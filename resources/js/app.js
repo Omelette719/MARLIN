@@ -25,12 +25,17 @@ function pinColor(pin) {
         return '#ba1a1a';
     }
 
-    if (pin.kondisi_terkini === 'rusak' || (pin.jenis_pekerjaan === 'perbaikan' && pin.status !== 'selesai')) {
-        return '#eab308';
-    }
-
+    // Checked before the "rusak/perbaikan" yellow rule below: once a repair
+    // job's report has been submitted, kondisi_terkini is often still 'rusak'
+    // (it only flips to 'baik' once admin accepts the report) — without this
+    // ordering the pin would stay yellow through the whole validation wait
+    // instead of showing it's actually progressed to menunggu validasi.
     if (pin.status === 'menunggu_validasi') {
         return '#22d3ee';
+    }
+
+    if (pin.kondisi_terkini === 'rusak' || (pin.jenis_pekerjaan === 'perbaikan' && pin.status !== 'selesai')) {
+        return '#eab308';
     }
 
     if ((pin.status === 'selesai' || pin.status === null) && pin.kondisi_terkini === 'baik') {
