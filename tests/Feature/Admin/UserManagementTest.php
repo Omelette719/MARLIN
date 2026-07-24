@@ -1,0 +1,85 @@
+<?php
+
+namespace Tests\Feature\Admin;
+
+use App\Enums\Role;
+use App\Livewire\Admin\Users\Create as UsersCreateComponent;
+use App\Livewire\Admin\Users\Edit as UsersEditComponent;
+use App\Livewire\Admin\Users\Index as UsersIndexComponent;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
+use Livewire\Livewire;
+use Tests\TestCase;
+
+class UserManagementTest extends TestCase
+{
+    use RefreshDatabase;
+
+    public function test_petugas_cannot_access_user_management(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $this->get(route('admin.users.index'))->assertRedirect(route('dashboard'));
+    }
+
+    public function test_admin_can_create_petugas_account(): void
+    {
+        $this->actingAs(User::factory()->admin()->create());
+
+        Livewire::test(UsersCreateComponent::class)
+            ->set('name', 'Petugas Baru')
+            ->set('nip', '199901012020011001')
+            ->set('role', 'user')
+            ->set('password', 'password123')
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertRedirect(route('admin.users.index'));
+
+        $user = User::where('nip', '199901012020011001')->first();
+        $this->assertNotNull($user);
+        $this->assertSame(Role::User, $user->role);
+        $this->assertTrue($user->aktif);
+        $this->assertTrue(Hash::check('password123', $user->password));
+    }
+
+    public function test_admin_can_edit_user_without_changing_password(): void
+    {
+        $this->actingAs(User::factory()->admin()->create());
+
+        $user = User::factory()->create(['jabatan' => 'Staf']);
+        $originalPassword = $user->password;
+
+        Livewire::test(UsersEditComponent::class, ['user' => $user])
+            ->set('jabatan', 'Kepala Seksi')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $user->refresh();
+        $this->assertSame('Kepala Seksi', $user->jabatan);
+        $this->assertSame($originalPassword, $user->password);
+    }
+
+    public function test_admin_can_deactivate_and_reactivate_petugas(): void
+    {
+        $this->actingAs(User::factory()->admin()->create());
+
+        $user = User::factory()->create(['aktif' => true]);
+
+        Livewire::test(UsersIndexComponent::class)->call('toggleAktif', $user->id);
+        $this->assertFalse($user->fresh()->aktif);
+
+        Livewire::test(UsersIndexComponent::class)->call('toggleAktif', $user->id);
+        $this->assertTrue($user->fresh()->aktif);
+    }
+
+    public function test_admin_cannot_deactivate_own_account(): void
+    {
+        $admin = User::factory()->admin()->create(['aktif' => true]);
+        $this->actingAs($admin);
+
+        Livewire::test(UsersIndexComponent::class)->call('toggleAktif', $admin->id);
+
+        $this->assertTrue($admin->fresh()->aktif);
+    }
+}
