@@ -20,7 +20,7 @@ class DatabaseSeeder extends Seeder
         User::factory()->admin()->create([
             'name' => 'Admin Dishub',
             'nama_panggilan' => 'Admin',
-            'nip' => '198501012010011001',
+            'nip' => '1',
             'username' => 'admin.dishub',
             'tanggal_lahir' => '1985-01-01',
             'jenis_kelamin' => 'L',
@@ -34,7 +34,7 @@ class DatabaseSeeder extends Seeder
         User::factory()->create([
             'name' => 'Test User',
             'nama_panggilan' => 'Test',
-            'nip' => '199003152015031002',
+            'nip' => '2',
             'username' => 'test.user',
             'tanggal_lahir' => '1990-03-15',
             'jenis_kelamin' => 'P',

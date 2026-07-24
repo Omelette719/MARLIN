@@ -213,9 +213,9 @@ Semua akun hasil seeding memakai password default: **`password`**
 
 | Role | Nama | NIP | Catatan |
 |---|---|---|---|
-| Admin | Admin Dishub | `198501012010011001` | Admin utama, NIP tetap/dikenal |
+| Admin | Admin Dishub | `1` | Admin utama — NIP sengaja dibuat pendek untuk memudahkan login saat pengembangan |
 | Admin | (4 akun lain) | acak (lihat tabel `users`) | Dibuat via factory, NIP/username acak |
-| Petugas | Test User | `199003152015031002` | Satu-satunya akun petugas default |
+| Petugas | Test User | `2` | Satu-satunya akun petugas default |
 
 Login di halaman `/login` menggunakan **NIP**, bukan email.
 

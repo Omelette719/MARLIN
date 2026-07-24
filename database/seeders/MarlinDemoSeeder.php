@@ -64,7 +64,7 @@ class MarlinDemoSeeder extends Seeder
 
     public function run(): void
     {
-        $this->admin = User::where('nip', '198501012010011001')->firstOrFail();
+        $this->admin = User::where('nip', '1')->firstOrFail();
 
         $this->seedPetugas();
         $this->seedSpkAktifBeragamStatus();
