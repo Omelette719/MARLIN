@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Spk;
+use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
@@ -11,7 +12,7 @@ class SuratPengantarController extends Controller
 {
     public function show(Spk $spk): Response
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = Auth::user();
 
         abort_unless(

@@ -2,7 +2,6 @@
 
 namespace App\Livewire\User;
 
-use App\Enums\JenisPekerjaan;
 use App\Enums\StatusRambuPasang;
 use App\Enums\StatusSpk;
 use App\Models\DikerjakanOleh;

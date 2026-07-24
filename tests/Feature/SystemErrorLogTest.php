@@ -32,7 +32,7 @@ class SystemErrorLogTest extends TestCase
     public function test_routine_framework_exceptions_are_not_logged(): void
     {
         app(ExceptionHandler::class)->report(ValidationException::withMessages(['field' => 'required']));
-        app(ExceptionHandler::class)->report(new NotFoundHttpException());
+        app(ExceptionHandler::class)->report(new NotFoundHttpException);
 
         $this->assertSame(0, SystemErrorLog::count());
     }
