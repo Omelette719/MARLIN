@@ -24,16 +24,16 @@
     --color-zinc-900: #171717;
     --color-zinc-950: #0a0a0a;
 
-    --color-accent: var(--color-neutral-800);
-    --color-accent-content: var(--color-neutral-800);
+    --color-accent: #004655;
+    --color-accent-content: #004655;
     --color-accent-foreground: var(--color-white);
 }
 
 @layer theme {
     .dark {
-        --color-accent: var(--color-white);
-        --color-accent-content: var(--color-white);
-        --color-accent-foreground: var(--color-neutral-800);
+        --color-accent: #86f0f3;
+        --color-accent-content: #86f0f3;
+        --color-accent-foreground: #002021;
     }
 }
 
@@ -65,3 +65,45 @@ select:focus[data-flux-control] {
 /* \[:where(&)\]:size-4 {
     @apply size-4;
 } */
+
+/* Peta rambu — custom marker icons (see resources/js/app.js) */
+.leaflet-div-icon {
+    background: transparent;
+    border: none;
+}
+
+@keyframes marker-radar-ping {
+    0% {
+        transform: scale(0.85);
+        opacity: 0.55;
+    }
+    100% {
+        transform: scale(2.2);
+        opacity: 0;
+    }
+}
+
+.marker-radar {
+    position: absolute;
+    inset: 0;
+    background: var(--marker-color, #9ca3af);
+    opacity: 0.55;
+    animation: marker-radar-ping 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+/* rambu-tooltip: the hover card auto-flips between the pin's left/right side
+   via Leaflet's own direction:'auto' (Leaflet only ever auto-picks left/right,
+   never top/bottom) — background/padding/rounding/shadow all live on the
+   card's own wrapper div (see pinPopupHtml in app.js) so this outer element
+   stays transparent and unclipped. Leaflet's own default CSS already colors
+   the directional arrow (::before) white to match a white tooltip background,
+   so it's left alone here. white-space is reset because Leaflet's base
+   .leaflet-tooltip rule forces nowrap, which was cutting long address text
+   off instead of wrapping. */
+.leaflet-tooltip.rambu-tooltip {
+    padding: 0;
+    border: none;
+    box-shadow: none;
+    background: transparent;
+    white-space: normal;
+}
