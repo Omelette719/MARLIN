@@ -1,0 +1,436 @@
+<?php
+
+namespace Tests\Feature\User;
+
+use App\Enums\StatusLaporan;
+use App\Enums\StatusRambuPasang;
+use App\Livewire\User\Kendala as KendalaComponent;
+use App\Livewire\User\Laporan as LaporanComponent;
+use App\Livewire\User\Spk\Show as UserSpkShowComponent;
+use App\Models\AuditLog;
+use App\Models\DikerjakanOleh;
+use App\Models\JenisRambu;
+use App\Models\Kendala;
+use App\Models\LaporanPengerjaan;
+use App\Models\Notifikasi;
+use App\Models\Rambu;
+use App\Models\RambuPasang;
+use App\Models\Spk;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Livewire\Livewire;
+use Tests\TestCase;
+
+class PetugasSpkTest extends TestCase
+{
+    use RefreshDatabase;
+
+    private function makeRambuPasang(User $admin, string $status = 'belum'): RambuPasang
+    {
+        $jenisRambu = JenisRambu::create(['nama_jenis' => 'Rambu Peringatan']);
+
+        $rambu = Rambu::create([
+            'jenis_rambu_id' => $jenisRambu->id,
+            'wilayah' => 'Banjarmasin Tengah',
+            'lokasi' => 'Perempatan dekat masjid',
+            'koordinat' => '-3.3194,114.5908',
+        ]);
+
+        $spk = Spk::create([
+            'nomor_surat' => 'SR-2026/BJM/0001',
+            'dibuat_oleh' => $admin->id,
+            'wilayah' => 'Banjarmasin Tengah',
+            'deadline' => now()->addDays(5),
+            'urgensi' => 'sedang',
+            'status' => 'aktif',
+            'asal_permintaan' => 'internal',
+        ]);
+
+        return RambuPasang::create([
+            'rambu_spk_id' => $spk->id,
+            'rambu_id' => $rambu->id,
+            'jenis_pekerjaan' => 'pasang_baru',
+            'jumlah' => 1,
+            'status' => $status,
+        ]);
+    }
+
+    public function test_petugas_can_view_daftar_surat_aktif(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $this->get(route('dashboard'))->assertOk();
+    }
+
+    public function test_daftar_surat_aktif_shows_progress_status_badge(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $this->actingAs(User::factory()->create());
+
+        $rambuPasang = $this->makeRambuPasang($admin, status: 'belum');
+
+        $response = $this->get(route('dashboard'));
+
+        $response->assertOk();
+        $response->assertSee($rambuPasang->spk->nomor_surat);
+        $response->assertSee('Belum');
+    }
+
+    public function test_daftar_surat_aktif_progress_status_prefers_most_urgent_of_multiple_rambu(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $this->actingAs(User::factory()->create());
+
+        $rambuPasang = $this->makeRambuPasang($admin, status: 'belum');
+
+        $jenisRambu = JenisRambu::create(['nama_jenis' => 'Rambu Larangan']);
+        $rambuKedua = Rambu::create([
+            'jenis_rambu_id' => $jenisRambu->id,
+            'wilayah' => 'Banjarmasin Tengah',
+            'lokasi' => 'Simpang tiga',
+            'koordinat' => '-3.30,114.60',
+        ]);
+
+        RambuPasang::create([
+            'rambu_spk_id' => $rambuPasang->rambu_spk_id,
+            'rambu_id' => $rambuKedua->id,
+            'jenis_pekerjaan' => 'pasang_baru',
+            'jumlah' => 1,
+            'status' => 'menunggu_validasi',
+        ]);
+
+        $response = $this->get(route('dashboard'));
+
+        $response->assertOk();
+        $response->assertSee('Menunggu Validasi');
+    }
+
+    public function test_admin_is_redirected_away_from_petugas_dashboard(): void
+    {
+        $this->actingAs(User::factory()->admin()->create());
+
+        $this->get(route('dashboard'))->assertRedirect(route('admin.dashboard'));
+    }
+
+    public function test_perwakilan_can_register_team_with_members(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $petugas = User::factory()->create();
+        $anggota = User::factory()->create();
+        $this->actingAs($petugas);
+
+        $rambuPasang = $this->makeRambuPasang($admin);
+        $spk = $rambuPasang->spk;
+
+        Livewire::test(UserSpkShowComponent::class, ['spk' => $spk])
+            ->assertSee($spk->nomor_surat)
+            ->set('anggotaIds', [(string) $anggota->id])
+            ->call('daftarkanTim');
+
+        $this->assertDatabaseHas('dikerjakan_oleh', [
+            'by_spk_id' => $spk->id,
+            'by_user_id' => $petugas->id,
+            'is_perwakilan' => true,
+        ]);
+        $this->assertDatabaseHas('dikerjakan_oleh', [
+            'by_spk_id' => $spk->id,
+            'by_user_id' => $anggota->id,
+            'is_perwakilan' => false,
+        ]);
+    }
+
+    public function test_petugas_cannot_register_team_if_one_already_exists(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $rambuPasang = $this->makeRambuPasang($admin);
+        $spk = $rambuPasang->spk;
+
+        DikerjakanOleh::create([
+            'by_spk_id' => $spk->id,
+            'by_user_id' => User::factory()->create()->id,
+            'is_perwakilan' => true,
+        ]);
+
+        $petugasKedua = User::factory()->create();
+        $this->actingAs($petugasKedua);
+
+        Livewire::test(UserSpkShowComponent::class, ['spk' => $spk])
+            ->call('daftarkanTim');
+
+        $this->assertDatabaseMissing('dikerjakan_oleh', [
+            'by_spk_id' => $spk->id,
+            'by_user_id' => $petugasKedua->id,
+        ]);
+    }
+
+    public function test_perwakilan_can_add_more_members_later(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $petugas = User::factory()->create();
+        $anggotaBaru = User::factory()->create();
+        $this->actingAs($petugas);
+
+        $rambuPasang = $this->makeRambuPasang($admin);
+        $spk = $rambuPasang->spk;
+
+        DikerjakanOleh::create([
+            'by_spk_id' => $spk->id,
+            'by_user_id' => $petugas->id,
+            'is_perwakilan' => true,
+        ]);
+
+        Livewire::test(UserSpkShowComponent::class, ['spk' => $spk])
+            ->set('anggotaIds', [(string) $anggotaBaru->id])
+            ->call('tambahAnggota');
+
+        $this->assertDatabaseHas('dikerjakan_oleh', [
+            'by_spk_id' => $spk->id,
+            'by_user_id' => $anggotaBaru->id,
+            'is_perwakilan' => false,
+        ]);
+    }
+
+    public function test_non_perwakilan_cannot_add_members(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $petugas = User::factory()->create();
+        $anggotaBaru = User::factory()->create();
+        $this->actingAs($petugas);
+
+        $rambuPasang = $this->makeRambuPasang($admin);
+        $spk = $rambuPasang->spk;
+
+        DikerjakanOleh::create([
+            'by_spk_id' => $spk->id,
+            'by_user_id' => User::factory()->create()->id,
+            'is_perwakilan' => true,
+        ]);
+        DikerjakanOleh::create([
+            'by_spk_id' => $spk->id,
+            'by_user_id' => $petugas->id,
+            'is_perwakilan' => false,
+        ]);
+
+        Livewire::test(UserSpkShowComponent::class, ['spk' => $spk])
+            ->set('anggotaIds', [(string) $anggotaBaru->id])
+            ->call('tambahAnggota');
+
+        $this->assertDatabaseMissing('dikerjakan_oleh', [
+            'by_spk_id' => $spk->id,
+            'by_user_id' => $anggotaBaru->id,
+        ]);
+    }
+
+    public function test_ajukan_laporan_akhir_requires_all_rambu_addressed(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $petugas = User::factory()->create();
+        $this->actingAs($petugas);
+
+        $rambuPasang = $this->makeRambuPasang($admin, status: 'belum');
+        $spk = $rambuPasang->spk;
+
+        DikerjakanOleh::create([
+            'by_spk_id' => $spk->id,
+            'by_user_id' => $petugas->id,
+            'is_perwakilan' => true,
+        ]);
+
+        Livewire::test(UserSpkShowComponent::class, ['spk' => $spk])
+            ->call('ajukanLaporanAkhir');
+
+        $this->assertNull($spk->fresh()->laporan_akhir_diajukan_at);
+
+        $rambuPasang->update(['status' => 'tertunda']);
+
+        Livewire::test(UserSpkShowComponent::class, ['spk' => $spk])
+            ->call('ajukanLaporanAkhir');
+
+        $this->assertNotNull($spk->fresh()->laporan_akhir_diajukan_at);
+    }
+
+    public function test_detail_surat_rambu_card_shows_foto_koordinat_and_map_links(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $this->actingAs(User::factory()->create());
+
+        $rambuPasang = $this->makeRambuPasang($admin);
+        $rambuPasang->update(['foto_survei' => 'rambu-pasang/survei/contoh-petugas.jpg']);
+        $spk = $rambuPasang->spk;
+
+        $response = $this->get(route('user.spk.show', $spk));
+
+        $response->assertOk();
+        $response->assertSee('rambu-pasang/survei/contoh-petugas.jpg', false);
+        $response->assertSee('-3.3194,114.5908');
+        $response->assertSee(route('peta', ['focus' => $rambuPasang->rambu_id]), false);
+        $response->assertSee('https://www.google.com/maps/search/?api=1&query=-3.3194,114.5908');
+    }
+
+    public function test_petugas_can_submit_kendala_for_joined_task(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $petugas = User::factory()->create();
+        $this->actingAs($petugas);
+
+        $rambuPasang = $this->makeRambuPasang($admin);
+
+        DikerjakanOleh::create([
+            'by_spk_id' => $rambuPasang->rambu_spk_id,
+            'by_user_id' => $petugas->id,
+            'is_perwakilan' => true,
+        ]);
+
+        Livewire::test(KendalaComponent::class)
+            ->call('selectItem', $rambuPasang->id)
+            ->set('alasan', 'Akses jalan tertutup proyek lain.')
+            ->set('foto', UploadedFile::fake()->image('kendala.jpg'))
+            ->call('submit')
+            ->assertHasNoErrors();
+
+        $this->assertSame(1, Kendala::count());
+        $this->assertNotNull(Kendala::first()->foto);
+        $this->assertSame(StatusRambuPasang::Tertunda, $rambuPasang->fresh()->status);
+        $this->assertSame(1, AuditLog::where('aksi', 'kendala_diajukan')->count());
+    }
+
+    public function test_petugas_cannot_submit_kendala_without_foto(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $petugas = User::factory()->create();
+        $this->actingAs($petugas);
+
+        $rambuPasang = $this->makeRambuPasang($admin);
+
+        DikerjakanOleh::create([
+            'by_spk_id' => $rambuPasang->rambu_spk_id,
+            'by_user_id' => $petugas->id,
+            'is_perwakilan' => true,
+        ]);
+
+        Livewire::test(KendalaComponent::class)
+            ->call('selectItem', $rambuPasang->id)
+            ->set('alasan', 'Akses jalan tertutup proyek lain.')
+            ->call('submit')
+            ->assertHasErrors(['foto' => 'required']);
+
+        $this->assertSame(0, Kendala::count());
+    }
+
+    public function test_petugas_cannot_submit_kendala_for_unjoined_task(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $this->actingAs(User::factory()->create());
+
+        $rambuPasang = $this->makeRambuPasang($admin);
+
+        Livewire::test(KendalaComponent::class)
+            ->call('selectItem', $rambuPasang->id)
+            ->set('alasan', 'Mencoba tanpa join.')
+            ->call('submit');
+
+        $this->assertSame(0, Kendala::count());
+        $this->assertSame(StatusRambuPasang::Belum, $rambuPasang->fresh()->status);
+    }
+
+    public function test_petugas_cannot_submit_kendala_if_joined_but_not_perwakilan(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $petugas = User::factory()->create();
+        $this->actingAs($petugas);
+
+        $rambuPasang = $this->makeRambuPasang($admin);
+
+        DikerjakanOleh::create([
+            'by_spk_id' => $rambuPasang->rambu_spk_id,
+            'by_user_id' => $petugas->id,
+            'is_perwakilan' => false,
+        ]);
+
+        Livewire::test(KendalaComponent::class)
+            ->call('selectItem', $rambuPasang->id)
+            ->set('alasan', 'Mencoba tanpa jadi perwakilan.')
+            ->call('submit');
+
+        $this->assertSame(0, Kendala::count());
+        $this->assertSame(StatusRambuPasang::Belum, $rambuPasang->fresh()->status);
+    }
+
+    public function test_petugas_can_submit_laporan_pengerjaan_for_joined_task(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $petugas = User::factory()->create();
+        $this->actingAs($petugas);
+
+        $rambuPasang = $this->makeRambuPasang($admin);
+
+        DikerjakanOleh::create([
+            'by_spk_id' => $rambuPasang->rambu_spk_id,
+            'by_user_id' => $petugas->id,
+            'is_perwakilan' => true,
+        ]);
+
+        Livewire::test(LaporanComponent::class)
+            ->call('selectItem', $rambuPasang->id)
+            ->set('foto_sesudah', UploadedFile::fake()->image('sesudah.jpg'))
+            ->set('catatan_lapangan', 'Sudah terpasang dengan baik.')
+            ->set('barangBahan.0.nama', 'Tiang')
+            ->set('barangBahan.0.jumlah', 2)
+            ->set('barangBahan.0.satuan', 'batang')
+            ->call('submit')
+            ->assertHasNoErrors();
+
+        $laporan = LaporanPengerjaan::first();
+        $this->assertNotNull($laporan);
+        $this->assertSame(StatusLaporan::Diajukan, $laporan->status);
+        $this->assertSame(1, $laporan->barangBahan()->count());
+        $this->assertSame(StatusRambuPasang::MenungguValidasi, $rambuPasang->fresh()->status);
+        $this->assertSame(1, AuditLog::where('aksi', 'laporan_dikirim')->count());
+        $this->assertSame(1, Notifikasi::where('user_id', $admin->id)->count());
+    }
+
+    public function test_laporan_form_shows_existing_foto_survei_as_before_reference(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $petugas = User::factory()->create();
+        $this->actingAs($petugas);
+
+        $rambuPasang = $this->makeRambuPasang($admin);
+        $rambuPasang->update(['foto_survei' => 'rambu-pasang/survei/contoh-survei.jpg']);
+
+        DikerjakanOleh::create([
+            'by_spk_id' => $rambuPasang->rambu_spk_id,
+            'by_user_id' => $petugas->id,
+            'is_perwakilan' => true,
+        ]);
+
+        Livewire::test(LaporanComponent::class)
+            ->call('selectItem', $rambuPasang->id)
+            ->assertSee('rambu-pasang/survei/contoh-survei.jpg')
+            ->assertSee('Foto Sebelum (dari survei SPK)');
+    }
+
+    public function test_petugas_cannot_submit_laporan_if_joined_but_not_perwakilan(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $petugas = User::factory()->create();
+        $this->actingAs($petugas);
+
+        $rambuPasang = $this->makeRambuPasang($admin);
+
+        DikerjakanOleh::create([
+            'by_spk_id' => $rambuPasang->rambu_spk_id,
+            'by_user_id' => $petugas->id,
+            'is_perwakilan' => false,
+        ]);
+
+        Livewire::test(LaporanComponent::class)
+            ->call('selectItem', $rambuPasang->id)
+            ->set('foto_sesudah', UploadedFile::fake()->image('sesudah.jpg'))
+            ->call('submit');
+
+        $this->assertSame(0, LaporanPengerjaan::count());
+        $this->assertSame(StatusRambuPasang::Belum, $rambuPasang->fresh()->status);
+    }
+}
