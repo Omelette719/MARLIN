@@ -13,12 +13,15 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        $this->call(JenisRambuSeeder::class);
+
         // User::factory(10)->create();
 
         User::factory()->admin()->create([
             'name' => 'Admin Dishub',
             'nama_panggilan' => 'Admin',
             'nip' => '198501012010011001',
+            'username' => 'admin.dishub',
             'tanggal_lahir' => '1985-01-01',
             'jenis_kelamin' => 'L',
             'bidang' => 'Sekretariat',
@@ -26,10 +29,13 @@ class DatabaseSeeder extends Seeder
             'no_telepon' => '081234567890',
         ]);
 
+        User::factory()->admin()->count(4)->create();
+
         User::factory()->create([
             'name' => 'Test User',
             'nama_panggilan' => 'Test',
             'nip' => '199003152015031002',
+            'username' => 'test.user',
             'tanggal_lahir' => '1990-03-15',
             'jenis_kelamin' => 'P',
             'bidang' => 'Bidang Lalu Lintas',
