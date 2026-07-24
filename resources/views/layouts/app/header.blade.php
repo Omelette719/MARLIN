@@ -1,11 +1,12 @@
 @php
     $homeRoute = auth()->user()?->isAdmin() ? 'admin.dashboard' : 'dashboard';
+    $unreadCount = auth()->user()?->notifikasi()->where('dibaca', false)->count() ?? 0;
 @endphp
 
 <flux:header sticky class="border-b border-zinc-200 bg-zinc-50">
-    <flux:sidebar.toggle icon="bars-2" inset="left" />
+    <flux:sidebar.toggle class="lg:hidden" icon="bars-2" inset="left" />
 
-    <div data-header-brand>
+    <div data-header-brand class="lg:hidden">
         <x-app-logo href="{{ route($homeRoute) }}" wire:navigate />
     </div>
 
@@ -15,6 +16,15 @@
         <flux:text class="hidden sm:block">
             {{ __('Halo,') }} <span class="font-semibold text-zinc-800">{{ auth()->user()->nama_panggilan ?: auth()->user()->name }}</span>
         </flux:text>
+
+        <a href="{{ route('notifikasi') }}" wire:navigate class="relative inline-flex">
+            <flux:button icon="bell" variant="ghost" size="sm" />
+            @if ($unreadCount > 0)
+                <flux:badge color="red" size="sm" class="pointer-events-none absolute -top-1 -right-1 min-w-4 justify-center px-1">
+                    {{ $unreadCount > 9 ? '9+' : $unreadCount }}
+                </flux:badge>
+            @endif
+        </a>
 
         <flux:dropdown position="bottom" align="end">
             <flux:profile
