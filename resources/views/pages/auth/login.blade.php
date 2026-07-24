@@ -20,7 +20,7 @@
         <div class="bg-muted flex min-h-svh flex-col items-center justify-center gap-6 p-6 md:p-10">
             <div class="flex w-full max-w-lg flex-col items-center">
                 <div class="animate-card-float relative w-full">
-                    <div class="absolute -inset-6 -z-10 rounded-4xl bg-linear-to-br from-blue-300 via-sky-400 to-blue-300 opacity-60 blur-2xl"></div>
+                    <div class="absolute -inset-6 -z-10 rounded-4xl bg-linear-to-br from-cyan-300 via-teal-400 to-cyan-300 opacity-60 blur-2xl"></div>
 
                     <div class="relative w-full rounded-2xl border bg-white p-10 shadow-[0_20px_60px_-15px_rgba(15,23,42,0.25)]">
                         <div class="mb-20 flex flex-col items-center gap-8 text-center">
@@ -29,7 +29,7 @@
 
                                 <p class="min-w-0 text-left font-brand text-base leading-tight font-extrabold text-stone-800 sm:text-xl">
                                     Sistem Manajemen Rambu
-                                    <span class="block text-blue-600">Lalu Lintas</span>
+                                    <span class="block text-[#004655]">Lalu Lintas</span>
                                 </p>
                             </div>
 
@@ -94,7 +94,7 @@
                                 </flux:modal.trigger>
                             </div>
 
-                            <flux:button type="submit" variant="primary" color="blue" class="mt-2 w-full justify-center">
+                            <flux:button type="submit" variant="primary" class="mt-2 w-full justify-center">
                                 Masuk
                             </flux:button>
                         </form>

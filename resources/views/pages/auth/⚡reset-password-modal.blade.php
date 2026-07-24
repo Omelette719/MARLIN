@@ -100,7 +100,7 @@ new class extends Component {
         <form wire:submit="verifyIdentity" class="flex flex-col gap-6">
             <div>
                 <flux:heading size="lg">{{ __('Reset Kata Sandi') }}</flux:heading>
-                <flux:subheading>{{ __('Langkah 1 dari 2 — masukkan NIP dan kata sandi Anda saat ini untuk melanjutkan.') }}</flux:subheading>
+                <flux:subheading>{{ __('Langkah 1 dari 2: masukkan NIP dan kata sandi Anda saat ini untuk melanjutkan.') }}</flux:subheading>
             </div>
 
             <flux:input
@@ -138,7 +138,7 @@ new class extends Component {
         <form wire:submit="updatePassword" class="flex flex-col gap-6">
             <div>
                 <flux:heading size="lg">{{ __('Buat Kata Sandi Baru') }}</flux:heading>
-                <flux:subheading>{{ __('Langkah 2 dari 2 — identitas Anda terverifikasi. Masukkan kata sandi baru Anda.') }}</flux:subheading>
+                <flux:subheading>{{ __('Langkah 2 dari 2: identitas Anda terverifikasi. Masukkan kata sandi baru Anda.') }}</flux:subheading>
             </div>
 
             <flux:input

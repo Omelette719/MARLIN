@@ -144,7 +144,8 @@ return [
     */
 
     'features' => [
-        Features::registration(),
+        // Registration is intentionally disabled. Accounts are created centrally
+        // by an admin (see Manajemen Petugas), per the spec's "no self-registration" rule.
         Features::twoFactorAuthentication([
             'confirm' => true,
             'confirmPassword' => true,

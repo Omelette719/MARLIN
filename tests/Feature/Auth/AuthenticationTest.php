@@ -23,7 +23,7 @@ class AuthenticationTest extends TestCase
         $user = User::factory()->create();
 
         $response = $this->post(route('login.store'), [
-            'email' => $user->email,
+            'nip' => $user->nip,
             'password' => 'password',
         ]);
 
@@ -39,7 +39,7 @@ class AuthenticationTest extends TestCase
         $user = User::factory()->create();
 
         $response = $this->post(route('login.store'), [
-            'email' => $user->email,
+            'nip' => $user->nip,
             'password' => 'wrong-password',
         ]);
 
@@ -60,7 +60,7 @@ class AuthenticationTest extends TestCase
         $user = User::factory()->withTwoFactor()->create();
 
         $response = $this->post(route('login.store'), [
-            'email' => $user->email,
+            'nip' => $user->nip,
             'password' => 'password',
         ]);
 
@@ -68,8 +68,22 @@ class AuthenticationTest extends TestCase
         $this->assertGuest();
     }
 
+    public function test_deactivated_users_cannot_authenticate(): void
+    {
+        $user = User::factory()->create(['aktif' => false]);
+
+        $response = $this->post(route('login.store'), [
+            'nip' => $user->nip,
+            'password' => 'password',
+        ]);
+
+        $response->assertSessionHasErrors('nip');
+        $this->assertGuest();
+    }
+
     public function test_users_can_logout(): void
     {
+        /** @var User $user */
         $user = User::factory()->create();
 
         $response = $this->actingAs($user)->post(route('logout'));

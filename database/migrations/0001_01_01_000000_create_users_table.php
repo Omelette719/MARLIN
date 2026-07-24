@@ -16,12 +16,14 @@ return new class extends Migration
             $table->string('name');
             $table->string('nama_panggilan')->nullable();
             $table->string('nip')->unique();
+            $table->string('username')->unique()->nullable();
             $table->string('role')->default('user');
             $table->date('tanggal_lahir')->nullable();
             $table->string('jenis_kelamin', 1)->nullable();
             $table->string('bidang')->nullable();
             $table->string('jabatan')->nullable();
             $table->string('no_telepon', 20)->nullable();
+            $table->boolean('aktif')->default(true);
             $table->string('password');
             $table->text('two_factor_secret')->nullable();
             $table->text('two_factor_recovery_codes')->nullable();
