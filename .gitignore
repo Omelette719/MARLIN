@@ -22,3 +22,11 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
+/.claude
+
+# Reference/planning material, not part of the app
+/HTML
+/IMPLEMENTATION_SPEC.md
+/daftar Halaman alur Utama.txt
+/marlin_schema (5).dbml
+/rencana 1 CERMIN JL. GATOT 10 RT. 27 PENGAMBANGAN.pdf
