@@ -35,6 +35,10 @@
             </flux:select>
         </div>
 
+        <flux:text class="-mt-2 text-sm text-zinc-500">
+            SPK berstatus "Selesai" diarsipkan &mdash; pilih status "Selesai" di atas untuk melihatnya.
+        </flux:text>
+
         @if ($spk->isEmpty())
             <flux:card class="flex-1">
                 <flux:text class="py-8 text-center text-zinc-500">

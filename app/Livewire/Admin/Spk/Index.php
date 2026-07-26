@@ -50,7 +50,13 @@ class Index extends Component
             ->when($this->search, fn ($query) => $query->where(fn ($q) => $q
                 ->where('nomor_surat', 'like', "%{$this->search}%")
                 ->orWhere('wilayah', 'like', "%{$this->search}%")))
-            ->when($this->status, fn ($query) => $query->where('status', $this->status))
+            ->when(
+                $this->status,
+                fn ($query) => $query->where('status', $this->status),
+                // "Selesai" SPKs are effectively archived — hidden from the default
+                // view, but still reachable by explicitly picking that status filter.
+                fn ($query) => $query->where('status', '!=', StatusSpk::Selesai->value)
+            )
             ->when($this->jenis, fn ($query) => $query->where('jenis_spk', $this->jenis))
             ->withCount('rambuPasang')
             ->with(['rambuPasang' => fn ($q) => $q->with('rambu.jenisRambu')])
