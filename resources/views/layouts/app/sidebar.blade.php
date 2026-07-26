@@ -14,7 +14,7 @@
                 <flux:sidebar.item icon="home" :href="route($homeRoute)" :current="request()->routeIs($homeRoute)" wire:navigate>
                     {{ __('Dashboard') }}
                 </flux:sidebar.item>
-                <flux:sidebar.item icon="document-text" :href="route('admin.spk.index')" :current="request()->routeIs('admin.spk.*')" wire:navigate>
+                <flux:sidebar.item icon="document-text" :href="route('admin.spk.index')" :current="request()->routeIs(['admin.spk.index', 'admin.spk.show', 'admin.spk.edit'])" wire:navigate>
                     {{ __('Daftar Surat') }}
                 </flux:sidebar.item>
                 <flux:sidebar.item icon="document-plus" :href="route('admin.spk.create')" :current="request()->routeIs('admin.spk.create')" wire:navigate>
@@ -31,9 +31,6 @@
                 </flux:sidebar.item>
                 <flux:sidebar.item icon="map" :href="route('peta')" :current="request()->routeIs('peta')" wire:navigate>
                     {{ __('Peta Rambu') }}
-                </flux:sidebar.item>
-                <flux:sidebar.item icon="bell" :href="route('notifikasi')" :current="request()->routeIs('notifikasi')" wire:navigate>
-                    {{ __('Notifikasi') }}
                 </flux:sidebar.item>
                 <flux:sidebar.item icon="clock" :href="route('audit-log')" :current="request()->routeIs('audit-log')" wire:navigate>
                     {{ __('Riwayat Aktivitas') }}
@@ -73,9 +70,6 @@
                 </flux:sidebar.item>
                 <flux:sidebar.item icon="clipboard-document-list" :href="route('rambu.index')" :current="request()->routeIs('rambu.index')" wire:navigate>
                     {{ __('Daftar Rambu') }}
-                </flux:sidebar.item>
-                <flux:sidebar.item icon="bell" :href="route('notifikasi')" :current="request()->routeIs('notifikasi')" wire:navigate>
-                    {{ __('Notifikasi') }}
                 </flux:sidebar.item>
                 <flux:sidebar.item icon="clock" :href="route('audit-log')" :current="request()->routeIs('audit-log')" wire:navigate>
                     {{ __('Riwayat Aktivitas') }}

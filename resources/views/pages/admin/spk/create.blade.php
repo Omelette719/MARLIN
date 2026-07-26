@@ -57,10 +57,7 @@
             </flux:card>
 
             <flux:card class="flex flex-col gap-4">
-                <div class="flex items-center justify-between">
-                    <flux:heading size="lg">Daftar Rambu</flux:heading>
-                    <flux:button type="button" size="sm" icon="plus" wire:click="addRambuItem">Tambah Rambu</flux:button>
-                </div>
+                <flux:heading size="lg">Daftar Rambu</flux:heading>
 
                 @error('rambuItems') <flux:error>{{ $message }}</flux:error> @enderror
 
@@ -115,6 +112,10 @@
                         <flux:textarea wire:model="rambuItems.{{ $index }}.catatan_instruksi" label="Info / Catatan Instruksi" placeholder="Mis. apa yang perlu dibawa petugas" rows="2" />
                     </flux:card>
                 @endforeach
+
+                <flux:button type="button" variant="primary" icon="plus" wire:click="addRambuItem" class="self-start">
+                    Tambah Rambu
+                </flux:button>
             </flux:card>
 
             <div class="flex justify-end gap-3">

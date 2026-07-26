@@ -20,9 +20,9 @@
         <a href="{{ route('notifikasi') }}" wire:navigate class="relative inline-flex">
             <flux:button icon="bell" variant="ghost" size="sm" />
             @if ($unreadCount > 0)
-                <flux:badge color="red" size="sm" class="pointer-events-none absolute -top-1 -right-1 min-w-4 justify-center px-1">
+                <span class="pointer-events-none absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full bg-red-600 text-[10px] leading-none font-semibold text-white">
                     {{ $unreadCount > 9 ? '9+' : $unreadCount }}
-                </flux:badge>
+                </span>
             @endif
         </a>
 
