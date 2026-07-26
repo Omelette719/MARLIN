@@ -24,6 +24,19 @@
                 <flux:button variant="ghost" icon="arrow-down-tray" :href="route('spk.surat-pengantar', $spk)" target="_blank">
                     Unduh Surat Pengantar
                 </flux:button>
+                @if ($spk->status === \App\Enums\StatusSpk::Aktif)
+                    <flux:button variant="ghost" icon="pencil" :href="route('admin.spk.edit', $spk)" wire:navigate>
+                        Edit
+                    </flux:button>
+                    <flux:button
+                        variant="danger"
+                        icon="x-circle"
+                        wire:click="batalkan"
+                        wire:confirm="Yakin ingin membatalkan SPK ini? Rambu yang belum selesai akan ditandai batal."
+                    >
+                        Batalkan SPK
+                    </flux:button>
+                @endif
                 <flux:button variant="ghost" :href="route('admin.spk.index')" wire:navigate>Kembali</flux:button>
             </div>
         </div>
@@ -136,6 +149,9 @@
                             @endif
 
                             <div class="mt-auto flex gap-2 pt-2">
+                                <flux:button size="sm" variant="ghost" icon="information-circle" class="flex-1" :href="route('rambu.show', $rp->rambu_id)" wire:navigate>
+                                    Detail
+                                </flux:button>
                                 <flux:button size="sm" variant="ghost" icon="map" class="flex-1" :href="route('peta', ['focus' => $rp->rambu_id])" wire:navigate>
                                     Peta
                                 </flux:button>

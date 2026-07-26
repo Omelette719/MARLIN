@@ -37,6 +37,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::livewire('spk', App\Livewire\Admin\Spk\Index::class)->name('spk.index');
         Route::livewire('spk/create', Create::class)->name('spk.create');
         Route::livewire('spk/{spk}', App\Livewire\Admin\Spk\Show::class)->name('spk.show');
+        Route::livewire('spk/{spk}/edit', App\Livewire\Admin\Spk\Edit::class)->name('spk.edit');
         Route::livewire('validasi', App\Livewire\Admin\Validasi\Index::class)->name('validasi.index');
         Route::livewire('validasi/{spk}', App\Livewire\Admin\Validasi\Show::class)->name('validasi.show');
         Route::livewire('temuan', App\Livewire\Admin\Temuan\Index::class)->name('temuan.index');
