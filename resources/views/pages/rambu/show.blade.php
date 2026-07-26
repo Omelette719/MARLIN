@@ -1,5 +1,6 @@
     @php
         use App\Enums\KondisiRambu;
+        use App\Enums\StatusRambuPasang;
         use Illuminate\Support\Facades\Storage;
     @endphp
 
@@ -81,14 +82,33 @@
             <flux:heading size="lg">Riwayat Pekerjaan</flux:heading>
 
             @forelse ($riwayat as $rp)
-                <div wire:key="riwayat-{{ $rp->id }}" class="flex flex-col gap-1 rounded-lg border border-zinc-200 p-4">
+                <div wire:key="riwayat-{{ $rp->id }}" class="flex flex-col gap-2 rounded-lg border border-zinc-200 p-4">
                     <div class="flex items-center justify-between">
-                        <flux:heading size="sm">{{ $rp->spk->nomor_surat }}</flux:heading>
+                        <flux:link
+                            :href="route($isAdmin ? 'admin.spk.show' : 'user.spk.show', $rp->spk)"
+                            wire:navigate
+                            class="font-semibold"
+                        >
+                            {{ $rp->spk->nomor_surat }}
+                        </flux:link>
                         <flux:badge size="sm">{{ $rp->status->label() }}</flux:badge>
                     </div>
                     <flux:subheading>{{ $rp->jenis_pekerjaan->label() }} &middot; Deadline {{ $rp->spk->deadline->format('d M Y') }}</flux:subheading>
                     @if ($rp->catatan_instruksi)
                         <flux:text class="text-sm text-zinc-600">{{ $rp->catatan_instruksi }}</flux:text>
+                    @endif
+
+                    @if ($isAdmin && in_array($rp->status, [StatusRambuPasang::MenungguValidasi, StatusRambuPasang::Tertunda], true))
+                        <flux:button
+                            size="sm"
+                            variant="primary"
+                            icon="clipboard-document-check"
+                            :href="route('admin.validasi.show', $rp->spk)"
+                            wire:navigate
+                            class="self-start"
+                        >
+                            Ke Halaman Validasi
+                        </flux:button>
                     @endif
                 </div>
             @empty

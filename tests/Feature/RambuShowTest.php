@@ -87,4 +87,46 @@ class RambuShowTest extends TestCase
         $response->assertSee('https://www.google.com/maps/search/?api=1&query=-3.30,114.59');
         $response->assertSee(route('peta', ['focus' => $rambu->id]), false);
     }
+
+    public function test_riwayat_pekerjaan_links_to_spk_detail_page(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $this->actingAs($admin);
+
+        $rambu = $this->makeRambuWithRiwayat($admin);
+        $spk = $rambu->rambuPasang()->first()->spk;
+
+        $response = $this->get(route('rambu.show', $rambu));
+
+        $response->assertSee(route('admin.spk.show', $spk), false);
+    }
+
+    public function test_admin_sees_ke_validasi_button_when_rambu_pasang_menunggu_validasi(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $this->actingAs($admin);
+
+        $rambu = $this->makeRambuWithRiwayat($admin);
+        $rambuPasang = $rambu->rambuPasang()->first();
+        $rambuPasang->update(['status' => 'menunggu_validasi']);
+
+        $response = $this->get(route('rambu.show', $rambu));
+
+        $response->assertSee(route('admin.validasi.show', $rambuPasang->spk), false);
+        $response->assertSee('Ke Halaman Validasi');
+    }
+
+    public function test_petugas_does_not_see_ke_validasi_button(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $rambu = $this->makeRambuWithRiwayat($admin);
+        $rambuPasang = $rambu->rambuPasang()->first();
+        $rambuPasang->update(['status' => 'menunggu_validasi']);
+
+        $this->actingAs(User::factory()->create());
+
+        $response = $this->get(route('rambu.show', $rambu));
+
+        $response->assertDontSee('Ke Halaman Validasi');
+    }
 }
