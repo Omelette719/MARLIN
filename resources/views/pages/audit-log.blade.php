@@ -5,7 +5,7 @@
                 @if (Auth::user()->isAdmin())
                     Jejak seluruh aksi bisnis kunci dalam sistem.
                 @else
-                    Jejak aksi pada SPK yang pernah kamu kerjakan.
+                    Jejak aksi yang kamu lakukan sendiri.
                 @endif
             </flux:subheading>
         </div>

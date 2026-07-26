@@ -26,7 +26,7 @@ class AuditLog extends Model
 
     /**
      * Scope audit log rows to what the given user is allowed to see:
-     * admins see everything, petugas only see logs for SPKs they've worked on.
+     * admins see everything, petugas only see their own actions.
      */
     public function scopeVisibleTo(Builder $query, User $user): Builder
     {
@@ -34,6 +34,6 @@ class AuditLog extends Model
             return $query;
         }
 
-        return $query->whereIn('spk_id', DikerjakanOleh::where('by_user_id', $user->id)->pluck('by_spk_id'));
+        return $query->where('user_id', $user->id);
     }
 }
