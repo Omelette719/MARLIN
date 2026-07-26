@@ -16,22 +16,21 @@ const KONDISI_LABEL = {
     rusak: 'Rusak',
 };
 
-// Colors mirror the priority rules from IMPLEMENTATION_SPEC.md §4 exactly,
+// Colors mirror the priority rules from IMPLEMENTATION_SPEC.md §4, with one
+// deliberate deviation: spec says red (urgent/prioritas/tinggi) overrides
+// every other color, but menunggu_validasi is checked first here instead —
+// once a report is already submitted, the pin should show that progress
+// regardless of the SPK's urgency, rather than staying red the whole wait.
 // computed client-side per spec's non-functional note (§7): never in the DB query.
 function pinColor(pin) {
     const spk = pin.spk;
 
-    if (pin.status === 'urgent' || (spk && (spk.prioritas || spk.urgensi === 'tinggi'))) {
-        return '#ba1a1a';
-    }
-
-    // Checked before the "rusak/perbaikan" yellow rule below: once a repair
-    // job's report has been submitted, kondisi_terkini is often still 'rusak'
-    // (it only flips to 'baik' once admin accepts the report) — without this
-    // ordering the pin would stay yellow through the whole validation wait
-    // instead of showing it's actually progressed to menunggu validasi.
     if (pin.status === 'menunggu_validasi') {
         return '#22d3ee';
+    }
+
+    if (pin.status === 'urgent' || (spk && (spk.prioritas || spk.urgensi === 'tinggi'))) {
+        return '#ba1a1a';
     }
 
     if (pin.kondisi_terkini === 'rusak' || (pin.jenis_pekerjaan === 'perbaikan' && pin.status !== 'selesai')) {
