@@ -4,6 +4,8 @@ Aplikasi web internal untuk **Dinas Perhubungan Kota Banjarmasin** yang mengelol
 
 Dibangun dengan **Laravel 13**, **Livewire 4** (class-based components), **Flux UI 2** (free tier), **SQLite**, **Leaflet** (peta), dan **DomPDF** (surat pengantar & laporan bulanan dalam PDF).
 
+> 📚 Dokumen ini cuma ringkasan. Dokumentasi lengkap per topik (fitur detail, penjelasan tiap halaman, alur bisnis, skema database, keamanan) ada di folder **[`docs/`](docs/README.md)**.
+
 ---
 
 ## Daftar Isi
@@ -22,6 +24,7 @@ Dibangun dengan **Laravel 13**, **Livewire 4** (class-based components), **Flux 
 - [Menjalankan Test](#menjalankan-test)
 - [Struktur Direktori Penting](#struktur-direktori-penting)
 - [CI/CD](#cicd)
+- [Dokumentasi Lengkap](#dokumentasi-lengkap)
 
 ---
 
@@ -263,3 +266,15 @@ Setiap push/PR ke `main` menjalankan 2 workflow GitHub Actions (`.github/workflo
 - **`lint.yml`** — jalankan Pint untuk format kode.
 
 `composer.json` mengunci `config.platform.php` ke `8.3.0` supaya `composer.lock` selalu resolve ke versi paket yang kompatibel dengan PHP minimum yang didukung (^8.3), terlepas dari versi PHP di komputer developer yang menjalankan `composer update`.
+
+## Dokumentasi Lengkap
+
+Dokumen ini cuma ringkasan. Untuk detail lebih dalam, lihat folder [`docs/`](docs/README.md):
+
+| Dokumen | Isi |
+|---|---|
+| [docs/FITUR.md](docs/FITUR.md) | Rincian tiap fitur per peran |
+| [docs/HALAMAN.md](docs/HALAMAN.md) | Referensi tiap halaman: URL, akses, fungsinya |
+| [docs/ALUR-BISNIS.md](docs/ALUR-BISNIS.md) | Siklus hidup SPK & aturan bisnis secara detail |
+| [docs/DATABASE.md](docs/DATABASE.md) | Skema lengkap tiap tabel & aturan foreign key |
+| [docs/KEAMANAN.md](docs/KEAMANAN.md) | Langkah keamanan & keputusan desain terkait akses data |
