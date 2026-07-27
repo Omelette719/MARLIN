@@ -8,17 +8,24 @@
     <div class="flex w-full flex-1 flex-col gap-6">
         <div class="flex items-end justify-between">
             <div>
-                <flux:heading size="xl">Daftar Surat</flux:heading>
-                <flux:subheading>SPK aktif untuk pemasangan &amp; perbaikan rambu &mdash; yang selesai/dibatalkan ada di <flux:link :href="route('admin.spk.riwayat')" wire:navigate>Riwayat SPK</flux:link>.</flux:subheading>
+                <flux:heading size="xl">Riwayat SPK</flux:heading>
+                <flux:subheading>Arsip SPK yang sudah selesai atau dibatalkan &mdash; yang masih aktif ada di <flux:link :href="route('admin.spk.index')" wire:navigate>Daftar Surat</flux:link>.</flux:subheading>
             </div>
 
-            <flux:button variant="primary" icon="plus" :href="route('admin.spk.create')" wire:navigate>
-                Buat Surat
+            <flux:button variant="ghost" icon="arrow-left" :href="route('admin.spk.index')" wire:navigate>
+                Kembali
             </flux:button>
         </div>
 
         <div class="flex items-center gap-4">
             <flux:input wire:model.live.debounce.400ms="search" placeholder="Cari nomor surat atau wilayah..." icon="magnifying-glass" class="max-w-sm" />
+
+            <flux:select wire:model.live="status" placeholder="Semua Status" class="max-w-xs">
+                <flux:select.option value="">Semua Status</flux:select.option>
+                @foreach ($statuses as $s)
+                    <flux:select.option value="{{ $s->value }}">{{ $s->label() }}</flux:select.option>
+                @endforeach
+            </flux:select>
 
             <flux:select wire:model.live="jenis" placeholder="Semua Jenis" class="max-w-xs">
                 <flux:select.option value="">Semua Jenis</flux:select.option>
@@ -31,7 +38,7 @@
         @if ($spk->isEmpty())
             <flux:card class="flex-1">
                 <flux:text class="py-8 text-center text-zinc-500">
-                    Belum ada surat. Klik "Buat Surat" untuk membuat SPK baru.
+                    Belum ada SPK yang selesai atau dibatalkan.
                 </flux:text>
             </flux:card>
         @else
@@ -57,19 +64,16 @@
                             <flux:text class="text-sm text-zinc-500">{{ $item->wilayah }}</flux:text>
 
                             <div class="flex flex-wrap items-center gap-2">
-                                @if ($item->prioritas)
-                                    <flux:badge color="red" size="sm">Prioritas</flux:badge>
-                                @endif
+                                <flux:badge size="sm" :color="match ($item->status) {
+                                    StatusSpk::Selesai => 'green',
+                                    StatusSpk::Dibatalkan => 'zinc',
+                                    default => 'zinc',
+                                }">{{ $item->status->label() }}</flux:badge>
                                 <flux:badge size="sm" :color="match ($item->urgensi) {
                                     Urgensi::Tinggi => 'red',
                                     Urgensi::Sedang => 'amber',
                                     Urgensi::Rendah => 'zinc',
                                 }">{{ $item->urgensi->label() }}</flux:badge>
-                                <flux:badge size="sm" :color="match ($item->status) {
-                                    StatusSpk::Aktif => 'blue',
-                                    StatusSpk::Selesai => 'green',
-                                    StatusSpk::Dibatalkan => 'zinc',
-                                }">{{ $item->status->label() }}</flux:badge>
                             </div>
 
                             <flux:text class="text-sm text-zinc-500">

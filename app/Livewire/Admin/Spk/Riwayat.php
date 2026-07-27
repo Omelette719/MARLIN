@@ -10,8 +10,8 @@ use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-#[Title('Daftar Surat')]
-class Index extends Component
+#[Title('Riwayat SPK')]
+class Riwayat extends Component
 {
     use WithPagination;
 
@@ -19,9 +19,17 @@ class Index extends Component
     public string $search = '';
 
     #[Url]
+    public string $status = '';
+
+    #[Url]
     public string $jenis = '';
 
     public function updatedSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedStatus(): void
     {
         $this->resetPage();
     }
@@ -33,23 +41,21 @@ class Index extends Component
 
     public function render()
     {
-        return view('pages::admin.spk.index');
+        return view('pages::admin.spk.riwayat');
     }
 
     public function with(): array
     {
-        // Selesai/dibatalkan SPKs live in Riwayat SPK instead — this list stays
-        // scoped to active work so it doesn't get cluttered with closed-out surat.
         $spk = Spk::query()
-            ->where('status', StatusSpk::Aktif->value)
+            ->whereIn('status', [StatusSpk::Selesai->value, StatusSpk::Dibatalkan->value])
             ->when($this->search, fn ($query) => $query->where(fn ($q) => $q
                 ->where('nomor_surat', 'like', "%{$this->search}%")
                 ->orWhere('wilayah', 'like', "%{$this->search}%")))
+            ->when($this->status, fn ($query) => $query->where('status', $this->status))
             ->when($this->jenis, fn ($query) => $query->where('jenis_spk', $this->jenis))
             ->withCount('rambuPasang')
             ->with(['rambuPasang' => fn ($q) => $q->with('rambu.jenisRambu')])
-            ->orderByDesc('prioritas')
-            ->orderBy('deadline')
+            ->orderByDesc('updated_at')
             ->paginate(9);
 
         $spk->getCollection()->transform(function (Spk $item) {
@@ -61,6 +67,7 @@ class Index extends Component
 
         return [
             'spk' => $spk,
+            'statuses' => [StatusSpk::Selesai, StatusSpk::Dibatalkan],
             'jenisOptions' => JenisPekerjaan::cases(),
         ];
     }

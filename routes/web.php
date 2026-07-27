@@ -6,6 +6,7 @@ use App\Http\Controllers\SuratPengantarController;
 use App\Livewire\Admin\Dashboard;
 use App\Livewire\Admin\JenisRambu\Index;
 use App\Livewire\Admin\Spk\Create;
+use App\Livewire\Admin\Spk\Riwayat;
 use App\Livewire\Admin\Users\Edit;
 use App\Livewire\Notifikasi;
 use App\Livewire\Peta;
@@ -38,6 +39,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::livewire('spk/create', Create::class)->name('spk.create');
         Route::livewire('spk/{spk}', App\Livewire\Admin\Spk\Show::class)->name('spk.show');
         Route::livewire('spk/{spk}/edit', App\Livewire\Admin\Spk\Edit::class)->name('spk.edit');
+        Route::livewire('spk-riwayat', Riwayat::class)->name('spk.riwayat');
         Route::livewire('validasi', App\Livewire\Admin\Validasi\Index::class)->name('validasi.index');
         Route::livewire('validasi/{spk}', App\Livewire\Admin\Validasi\Show::class)->name('validasi.show');
         Route::livewire('temuan', App\Livewire\Admin\Temuan\Index::class)->name('temuan.index');

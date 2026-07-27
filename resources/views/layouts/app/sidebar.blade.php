@@ -20,6 +20,9 @@
                 <flux:sidebar.item icon="document-plus" :href="route('admin.spk.create')" :current="request()->routeIs('admin.spk.create')" wire:navigate>
                     {{ __('Buat Surat') }}
                 </flux:sidebar.item>
+                <flux:sidebar.item icon="archive-box" :href="route('admin.spk.riwayat')" :current="request()->routeIs('admin.spk.riwayat')" wire:navigate>
+                    {{ __('Riwayat SPK') }}
+                </flux:sidebar.item>
                 <flux:sidebar.item icon="clipboard-document-check" :href="route('admin.validasi.index')" :current="request()->routeIs('admin.validasi.*')" wire:navigate>
                     {{ __('Validasi Laporan') }}
                 </flux:sidebar.item>
@@ -31,6 +34,9 @@
                 </flux:sidebar.item>
                 <flux:sidebar.item icon="map" :href="route('peta')" :current="request()->routeIs('peta')" wire:navigate>
                     {{ __('Peta Rambu') }}
+                </flux:sidebar.item>
+                <flux:sidebar.item icon="clipboard-document-list" :href="route('rambu.index')" :current="request()->routeIs('rambu.index')" wire:navigate>
+                    {{ __('Daftar Rambu') }}
                 </flux:sidebar.item>
                 <flux:sidebar.item icon="clock" :href="route('audit-log')" :current="request()->routeIs('audit-log')" wire:navigate>
                     {{ __('Riwayat Aktivitas') }}

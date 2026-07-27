@@ -6,7 +6,7 @@ use App\Enums\StatusRambuPasang;
 use App\Enums\StatusSpk;
 use App\Enums\Urgensi;
 use App\Livewire\Admin\Spk\Edit as SpkEditComponent;
-use App\Livewire\Admin\Spk\Index;
+use App\Livewire\Admin\Spk\Riwayat;
 use App\Livewire\Admin\Spk\Show as SpkShowComponent;
 use App\Models\JenisRambu;
 use App\Models\Rambu;
@@ -224,7 +224,7 @@ class AdminSpkShowTest extends TestCase
         $response->assertSee(route('admin.spk.show', $spk), false);
     }
 
-    public function test_daftar_surat_hides_selesai_by_default_but_shows_when_filtered(): void
+    public function test_daftar_surat_only_shows_aktif_spk(): void
     {
         $admin = User::factory()->admin()->create();
         $this->actingAs($admin);
@@ -240,11 +240,57 @@ class AdminSpkShowTest extends TestCase
             'asal_permintaan' => 'internal',
         ]);
 
-        $this->get(route('admin.spk.index'))->assertDontSee('SR-2026/BJM/8010');
+        Spk::create([
+            'nomor_surat' => 'SR-2026/BJM/8014',
+            'dibuat_oleh' => $admin->id,
+            'jenis_spk' => 'pasang_baru',
+            'wilayah' => 'Banjarmasin Tengah',
+            'deadline' => now()->addDays(5),
+            'urgensi' => 'sedang',
+            'status' => 'dibatalkan',
+            'asal_permintaan' => 'internal',
+        ]);
 
-        Livewire::test(Index::class)
+        $this->get(route('admin.spk.index'))
+            ->assertDontSee('SR-2026/BJM/8010')
+            ->assertDontSee('SR-2026/BJM/8014');
+    }
+
+    public function test_riwayat_spk_shows_selesai_and_dibatalkan_filterable_by_status(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $this->actingAs($admin);
+
+        Spk::create([
+            'nomor_surat' => 'SR-2026/BJM/8015',
+            'dibuat_oleh' => $admin->id,
+            'jenis_spk' => 'pasang_baru',
+            'wilayah' => 'Banjarmasin Tengah',
+            'deadline' => now()->addDays(5),
+            'urgensi' => 'sedang',
+            'status' => 'selesai',
+            'asal_permintaan' => 'internal',
+        ]);
+
+        Spk::create([
+            'nomor_surat' => 'SR-2026/BJM/8016',
+            'dibuat_oleh' => $admin->id,
+            'jenis_spk' => 'pasang_baru',
+            'wilayah' => 'Banjarmasin Tengah',
+            'deadline' => now()->addDays(5),
+            'urgensi' => 'sedang',
+            'status' => 'dibatalkan',
+            'asal_permintaan' => 'internal',
+        ]);
+
+        $this->get(route('admin.spk.riwayat'))
+            ->assertSee('SR-2026/BJM/8015')
+            ->assertSee('SR-2026/BJM/8016');
+
+        Livewire::test(Riwayat::class)
             ->set('status', 'selesai')
-            ->assertSee('SR-2026/BJM/8010');
+            ->assertSee('SR-2026/BJM/8015')
+            ->assertDontSee('SR-2026/BJM/8016');
     }
 
     public function test_admin_can_edit_spk_details(): void
