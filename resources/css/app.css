@@ -95,9 +95,14 @@ select:focus[data-flux-control] {
    app.js for why — Popup, unlike Tooltip, already handles clickable content
    correctly out of the box). background/padding/rounding/shadow all live on
    the card's own wrapper div (see pinPopupHtml in app.js), so Leaflet's own
-   content-wrapper chrome is stripped here to avoid a double box; the small
-   connecting tip is left at Leaflet's default (white + shadow) since it
-   already matches the card. */
+   content-wrapper chrome is stripped here to avoid a double box. The card is
+   pushed fully to the pin's left/right side in app.js (Popup has no
+   direction:'auto' of its own), so Leaflet's default tip — always centered
+   under the box, not the pin — would float disconnected from the marker; it
+   and the box's reserved space for it are both hidden. */
+.leaflet-popup.rambu-tooltip {
+    margin-bottom: 0;
+}
 .leaflet-popup.rambu-tooltip .leaflet-popup-content-wrapper {
     padding: 0;
     border-radius: 0;
@@ -107,4 +112,7 @@ select:focus[data-flux-control] {
 .leaflet-popup.rambu-tooltip .leaflet-popup-content {
     margin: 0;
     width: auto !important;
+}
+.leaflet-popup.rambu-tooltip .leaflet-popup-tip-container {
+    display: none;
 }

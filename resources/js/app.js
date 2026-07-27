@@ -16,6 +16,8 @@ const KONDISI_LABEL = {
     rusak: 'Rusak',
 };
 
+const PIN_CARD_WIDTH = 220;
+
 // Colors mirror the priority rules from IMPLEMENTATION_SPEC.md §4, with one
 // deliberate deviation: spec says red (urgent/prioritas/tinggi) overrides
 // every other color, but menunggu_validasi is checked first here instead —
@@ -142,7 +144,7 @@ function pinPopupHtml(pin, rambuDetailUrlTemplate, temuanUrlTemplate) {
         + `background:rgba(0,0,0,0.55);color:#fff;font-size:14px;line-height:1;cursor:pointer;`
         + `display:flex;align-items:center;justify-content:center;padding:0;">&times;</button>`;
 
-    return `<div style="position:relative;width:220px;background:#fff;border-radius:0.75rem;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.18);">${closeButton}${image}${rows}${buttons}${temuanButton}</div>`;
+    return `<div style="position:relative;width:${PIN_CARD_WIDTH}px;background:#fff;border-radius:0.75rem;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.18);">${closeButton}${image}${rows}${buttons}${temuanButton}</div>`;
 }
 
 function toDms(value, positiveSuffix, negativeSuffix) {
@@ -219,20 +221,40 @@ window.initPetaRambu = function (containerId, dataUrl, coordDisplayId, rambuDeta
                 // (see Leaflet's Popup._initLayout), and marker+popup click-to-toggle
                 // (open if closed, close if open) is Leaflet's own built-in default
                 // behavior, so no custom click wiring is needed here at all.
-                // offset lifts the card clear of the pin icon (36px tall, anchored at
-                // its own center) so the connecting tip doesn't cut through it.
                 marker.bindPopup(pinPopupHtml(pin, rambuDetailUrlTemplate, temuanUrlTemplate), {
                     className: 'rambu-tooltip',
                     closeButton: false,
                     autoPan: true,
-                    minWidth: 220,
-                    maxWidth: 260,
-                    offset: [0, -18],
+                    minWidth: PIN_CARD_WIDTH,
+                    maxWidth: PIN_CARD_WIDTH,
                 });
 
+                // Unlike Tooltip, Popup has no built-in left/right direction:'auto' —
+                // it always centers itself above its anchor. Recreate the "open toward
+                // whichever side has more room" behavior by hand on every open: measure
+                // the marker's on-screen X position against the map's current width,
+                // then push the card fully to that side and vertically re-center it on
+                // the pin icon (36px tall, anchored at its own center) using its actual
+                // rendered height. Recomputed on every open since panning/zooming
+                // between opens can change which side has more room.
                 marker.on('popupopen', () => {
-                    const el = marker.getPopup()?.getElement();
-                    el?.querySelector('.rambu-tooltip-close')?.addEventListener('click', () => marker.closePopup());
+                    const popup = marker.getPopup();
+                    const el = popup?.getElement();
+
+                    if (! el) {
+                        return;
+                    }
+
+                    const iconRadius = 18;
+                    const gap = 10;
+                    const point = map.latLngToContainerPoint(marker.getLatLng());
+                    const openLeft = point.x > map.getSize().x / 2;
+                    const xOffset = (PIN_CARD_WIDTH / 2 + iconRadius + gap) * (openLeft ? -1 : 1);
+
+                    popup.options.offset = L.point(xOffset, el.offsetHeight / 2);
+                    popup.update();
+
+                    el.querySelector('.rambu-tooltip-close')?.addEventListener('click', () => marker.closePopup());
                 });
 
                 if (focusId && pin.id === focusId) {
