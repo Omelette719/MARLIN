@@ -14,15 +14,7 @@
                 <form wire:submit="submit" class="flex flex-col gap-4">
                     <flux:textarea wire:model="alasan" label="Catatan Kendala" placeholder="Jelaskan kendala yang dihadapi di lapangan" rows="4" required />
 
-                    <div>
-                        <flux:input type="file" wire:model="foto" label="Foto Bukti Kendala" required />
-
-                        @if ($foto)
-                            <div class="mt-2 flex h-32 w-48 items-center justify-center overflow-hidden rounded-lg border border-zinc-200 bg-zinc-50">
-                                <img src="{{ $foto->temporaryUrl() }}" class="size-full object-cover" />
-                            </div>
-                        @endif
-                    </div>
+                    <x-photo-upload model="foto" label="Foto Bukti Kendala" :file="$foto" required />
 
                     <div class="flex justify-end gap-3">
                         <flux:button type="button" variant="ghost" wire:click="back">Batal</flux:button>

@@ -20,15 +20,7 @@
                     @endforeach
                 </flux:select>
 
-                <div>
-                    <flux:input type="file" wire:model="foto" label="Foto Bukti" required />
-
-                    @if ($foto)
-                        <div class="mt-2 flex h-32 w-48 items-center justify-center overflow-hidden rounded-lg border border-zinc-200 bg-zinc-50">
-                            <img src="{{ $foto->temporaryUrl() }}" class="size-full object-cover" />
-                        </div>
-                    @endif
-                </div>
+                <x-photo-upload model="foto" label="Foto Bukti" :file="$foto" required />
 
                 <flux:textarea wire:model="catatan" label="Catatan" placeholder="Jelaskan kondisi yang ditemukan (opsional)" rows="3" />
 

@@ -68,19 +68,14 @@
                 <flux:radio value="kotak" label="Kotak" />
             </flux:radio.group>
 
-            <div>
-                <flux:input type="file" wire:model="gambar_referensi" label="Gambar Referensi / Ikon" description="Dipakai sebagai ikon titik di peta. Opsional." />
-
-                @if ($gambar_referensi)
-                    <div class="mt-2 flex size-24 items-center justify-center rounded-lg border border-zinc-200 bg-zinc-50 p-2">
-                        <img src="{{ $gambar_referensi->temporaryUrl() }}" class="max-h-full max-w-full object-contain" />
-                    </div>
-                @elseif ($editingId && optional($jenisRambu->firstWhere('id', $editingId))->gambar_referensi)
-                    <div class="mt-2 flex size-24 items-center justify-center rounded-lg border border-zinc-200 bg-zinc-50 p-2">
-                        <img src="{{ Storage::url($jenisRambu->firstWhere('id', $editingId)->gambar_referensi) }}" class="max-h-full max-w-full object-contain" />
-                    </div>
-                @endif
-            </div>
+            <x-photo-upload
+                model="gambar_referensi"
+                label="Gambar Referensi / Ikon"
+                :file="$gambar_referensi"
+                :existing-url="$editingId && optional($jenisRambu->firstWhere('id', $editingId))->gambar_referensi ? Storage::url($jenisRambu->firstWhere('id', $editingId)->gambar_referensi) : null"
+                aspect="square"
+                description="Dipakai sebagai ikon titik di peta. Opsional."
+            />
 
             <div class="flex justify-end gap-3">
                 <flux:modal.close>

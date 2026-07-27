@@ -70,6 +70,12 @@
                             @endif
                         </div>
 
+                        <x-photo-upload
+                            model="rambuItems.{{ $index }}.foto_survei"
+                            label="Foto Tempat"
+                            :file="$item['foto_survei']"
+                        />
+
                         @if ($jenis_spk === \App\Enums\JenisPekerjaan::Perbaikan->value)
                             <flux:checkbox wire:model="rambuItems.{{ $index }}.rambu_terdaftar" label="Rambu sudah terdaftar di sistem" description="Matikan jika rambu ini sudah ada secara fisik tapi belum pernah dicatat di sistem." />
                         @endif
@@ -96,18 +102,7 @@
                             />
                         @endif
 
-                        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                            <flux:input wire:model="rambuItems.{{ $index }}.jumlah" type="number" min="1" label="Jumlah" />
-                            <div>
-                                <flux:input wire:model="rambuItems.{{ $index }}.foto_survei" type="file" label="Foto Tempat" />
-
-                                @if ($item['foto_survei'])
-                                    <div class="mt-2 flex h-24 w-32 items-center justify-center overflow-hidden rounded-lg border border-zinc-200 bg-zinc-50">
-                                        <img src="{{ $item['foto_survei']->temporaryUrl() }}" class="size-full object-cover" />
-                                    </div>
-                                @endif
-                            </div>
-                        </div>
+                        <flux:input wire:model="rambuItems.{{ $index }}.jumlah" type="number" min="1" label="Jumlah" class="sm:max-w-40" />
 
                         <flux:textarea wire:model="rambuItems.{{ $index }}.catatan_instruksi" label="Info / Catatan Instruksi" placeholder="Mis. apa yang perlu dibawa petugas" rows="2" />
                     </flux:card>

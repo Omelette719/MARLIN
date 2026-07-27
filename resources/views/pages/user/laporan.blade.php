@@ -24,24 +24,13 @@
 
                 <form wire:submit="submit" class="flex flex-col gap-4">
                     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                        <div>
-                            <flux:text class="mb-1.5 text-sm font-medium text-zinc-700">Foto Sebelum (dari survei SPK)</flux:text>
-                            <div class="flex h-28 items-center justify-center overflow-hidden rounded-lg border border-zinc-200 bg-zinc-50">
-                                @if ($item->foto_survei)
-                                    <img src="{{ Storage::url($item->foto_survei) }}" class="size-full object-cover" />
-                                @else
-                                    <x-photo-placeholder class="size-full" label="Belum ada foto survei" />
-                                @endif
-                            </div>
-                        </div>
-                        <div>
-                            <flux:input type="file" wire:model="foto_sesudah" label="Foto Sesudah" required />
-                            @if ($foto_sesudah)
-                                <div class="mt-2 flex h-28 items-center justify-center overflow-hidden rounded-lg border border-zinc-200 bg-zinc-50">
-                                    <img src="{{ $foto_sesudah->temporaryUrl() }}" class="size-full object-cover" />
-                                </div>
-                            @endif
-                        </div>
+                        <x-photo-upload
+                            label="Foto Sebelum (dari survei SPK)"
+                            :existing-url="$item->foto_survei ? Storage::url($item->foto_survei) : null"
+                            placeholder-label="Belum ada foto survei"
+                        />
+
+                        <x-photo-upload model="foto_sesudah" label="Foto Sesudah" :file="$foto_sesudah" required />
                     </div>
 
                     <div class="flex items-end gap-3">
