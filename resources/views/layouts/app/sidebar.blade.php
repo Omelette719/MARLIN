@@ -10,7 +10,7 @@
 
     <flux:sidebar.nav>
         @if (auth()->user()?->isAdmin())
-            <flux:sidebar.group :heading="__('Admin')" class="grid">
+            <flux:sidebar.group :heading="__('Admin')" expandable icon="squares-2x2" class="grid">
                 <flux:sidebar.item icon="home" :href="route($homeRoute)" :current="request()->routeIs($homeRoute)" wire:navigate>
                     {{ __('Dashboard') }}
                 </flux:sidebar.item>
@@ -43,7 +43,7 @@
                 </flux:sidebar.item>
             </flux:sidebar.group>
 
-            <flux:sidebar.group :heading="__('Pengaturan')" class="grid">
+            <flux:sidebar.group :heading="__('Pengaturan')" expandable icon="cog-6-tooth" class="grid">
                 <flux:sidebar.item icon="users" :href="route('admin.users.index')" :current="request()->routeIs('admin.users.*')" wire:navigate>
                     {{ __('Manajemen Petugas') }}
                 </flux:sidebar.item>
@@ -55,7 +55,7 @@
                 </flux:sidebar.item>
             </flux:sidebar.group>
         @else
-            <flux:sidebar.group :heading="__('Petugas')" class="grid">
+            <flux:sidebar.group :heading="__('Petugas')" expandable icon="squares-2x2" class="grid">
                 <flux:sidebar.item icon="home" :href="route($homeRoute)" :current="request()->routeIs('dashboard')" wire:navigate>
                     {{ __('Daftar Surat Aktif') }}
                 </flux:sidebar.item>
