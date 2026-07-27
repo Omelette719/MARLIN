@@ -74,6 +74,7 @@
                             model="rambuItems.{{ $index }}.foto_survei"
                             label="Foto Tempat"
                             :file="$item['foto_survei']"
+                            class="max-w-sm"
                         />
 
                         @if ($jenis_spk === \App\Enums\JenisPekerjaan::Perbaikan->value)
