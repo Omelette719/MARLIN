@@ -56,8 +56,19 @@ class Kendala extends Component
         $this->reset('alasan', 'foto');
     }
 
+    // Cancelling only ever happens from the per-rambu form, reached from that
+    // rambu's SPK detail page — going back to the flat cross-SPK list instead
+    // of straight to the SPK would just add an extra hop.
     public function back(): void
     {
+        $item = $this->currentItem();
+
+        if ($item) {
+            $this->redirectRoute('user.spk.show', $item->rambu_spk_id, navigate: true);
+
+            return;
+        }
+
         $this->rambuPasangId = null;
         $this->reset('alasan', 'foto');
     }
