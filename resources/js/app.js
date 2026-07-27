@@ -137,7 +137,12 @@ function pinPopupHtml(pin, rambuDetailUrlTemplate, temuanUrlTemplate) {
             + `<a href="${temuanUrl}" style="display:block;text-align:center;background:#eab308;color:#1f2937;border-radius:6px;padding:5px 0;font-size:11.5px;font-weight:600;text-decoration:none;">Lapor Temuan Kondisi</a></div>`;
     }
 
-    return `<div style="width:220px;background:#fff;border-radius:0.75rem;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.18);">${image}${rows}${buttons}${temuanButton}</div>`;
+    const closeButton = `<button type="button" class="rambu-tooltip-close" aria-label="Tutup" `
+        + `style="position:absolute;top:6px;right:6px;width:22px;height:22px;border-radius:9999px;border:none;`
+        + `background:rgba(0,0,0,0.55);color:#fff;font-size:14px;line-height:1;cursor:pointer;`
+        + `display:flex;align-items:center;justify-content:center;padding:0;">&times;</button>`;
+
+    return `<div style="position:relative;width:220px;background:#fff;border-radius:0.75rem;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.18);">${closeButton}${image}${rows}${buttons}${temuanButton}</div>`;
 }
 
 function toDms(value, positiveSuffix, negativeSuffix) {
@@ -219,30 +224,26 @@ window.initPetaRambu = function (containerId, dataUrl, coordDisplayId, rambuDeta
                     className: 'rambu-tooltip',
                 });
 
-                // bindTooltip's own mouseover/mouseout would close it the instant the
-                // cursor leaves the pin, before it can reach a button inside — replace
-                // it with a short grace period so moving onto the card itself keeps it open.
-                marker.off('mouseover mouseout');
+                // bindTooltip's own mouseover/mouseout/click wiring is replaced with a
+                // single click-to-toggle: tapping the pin opens the card, tapping it
+                // again (or the X button inside it) closes it. No hover involved.
+                marker.off('mouseover mouseout click');
 
-                let closeTimer = null;
-                const scheduleClose = () => {
-                    clearTimeout(closeTimer);
-                    closeTimer = setTimeout(() => marker.closeTooltip(), 200);
-                };
-                const cancelClose = () => clearTimeout(closeTimer);
-
-                marker.on('mouseover', () => {
-                    cancelClose();
-                    marker.openTooltip();
-                });
-                marker.on('mouseout', scheduleClose);
-                marker.on('tooltipopen', () => {
-                    const el = marker.getTooltip()?.getElement();
-
-                    if (el) {
-                        el.addEventListener('mouseenter', cancelClose);
-                        el.addEventListener('mouseleave', scheduleClose);
+                marker.on('click', () => {
+                    if (marker.isTooltipOpen()) {
+                        marker.closeTooltip();
+                    } else {
+                        marker.openTooltip();
                     }
+                });
+
+                marker.on('tooltipopen', () => {
+                    marker.getTooltip()?.getElement()
+                        ?.querySelector('.rambu-tooltip-close')
+                        ?.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            marker.closeTooltip();
+                        });
                 });
 
                 if (focusId && pin.id === focusId) {
