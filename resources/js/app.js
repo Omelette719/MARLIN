@@ -238,12 +238,21 @@ window.initPetaRambu = function (containerId, dataUrl, coordDisplayId, rambuDeta
                 });
 
                 marker.on('tooltipopen', () => {
-                    marker.getTooltip()?.getElement()
-                        ?.querySelector('.rambu-tooltip-close')
-                        ?.addEventListener('click', (e) => {
-                            e.stopPropagation();
-                            marker.closeTooltip();
-                        });
+                    const el = marker.getTooltip()?.getElement();
+
+                    if (! el) {
+                        return;
+                    }
+
+                    // Leaflet treats an interactive tooltip's element as belonging to
+                    // its marker for click purposes, so without this, clicking any
+                    // link/button inside the card (Detail Rambu, Google Maps, Lapor
+                    // Temuan) also re-fires the marker's own click-to-toggle handler
+                    // above — closing the tooltip out from under the click before the
+                    // link's navigation can happen.
+                    L.DomEvent.disableClickPropagation(el);
+
+                    el.querySelector('.rambu-tooltip-close')?.addEventListener('click', () => marker.closeTooltip());
                 });
 
                 if (focusId && pin.id === focusId) {
