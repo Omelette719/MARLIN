@@ -5,6 +5,7 @@ namespace App\Livewire\Admin\Spk;
 use App\Enums\AsalPermintaan;
 use App\Enums\StatusSpk;
 use App\Enums\Urgensi;
+use App\Livewire\Concerns\RejectsNonImageUploads;
 use App\Models\AuditLog;
 use App\Models\RtPerwakilan;
 use App\Models\Spk;
@@ -18,6 +19,7 @@ use Livewire\WithFileUploads;
 #[Title('Edit Surat')]
 class Edit extends Component
 {
+    use RejectsNonImageUploads;
     use WithFileUploads;
 
     public Spk $spk;

@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Admin\JenisRambu;
 
+use App\Livewire\Concerns\RejectsNonImageUploads;
 use App\Models\JenisRambu;
 use Flux\Flux;
 use Illuminate\Database\QueryException;
@@ -13,6 +14,7 @@ use Livewire\WithFileUploads;
 #[Title('Jenis Rambu')]
 class Index extends Component
 {
+    use RejectsNonImageUploads;
     use WithFileUploads;
 
     public ?int $editingId = null;

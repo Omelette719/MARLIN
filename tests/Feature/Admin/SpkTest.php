@@ -13,12 +13,23 @@ use App\Models\Rambu;
 use App\Models\Spk;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Livewire\Livewire;
 use Tests\TestCase;
 
 class SpkTest extends TestCase
 {
     use RefreshDatabase;
+
+    public function test_non_image_foto_survei_is_rejected_immediately_on_upload(): void
+    {
+        $this->actingAs(User::factory()->admin()->create());
+
+        Livewire::test(SpkCreateComponent::class)
+            ->set('rambuItems.0.foto_survei', UploadedFile::fake()->create('dokumen.pdf', 100, 'application/pdf'))
+            ->assertSet('rambuItems.0.foto_survei', null)
+            ->assertHasErrors(['rambuItems.0.foto_survei']);
+    }
 
     public function test_petugas_cannot_access_admin_spk_pages(): void
     {

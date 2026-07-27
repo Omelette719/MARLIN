@@ -9,6 +9,7 @@ use App\Enums\StatusRambuPasang;
 use App\Enums\StatusSpk;
 use App\Enums\StatusTindakLanjut;
 use App\Enums\Urgensi;
+use App\Livewire\Concerns\RejectsNonImageUploads;
 use App\Models\AuditLog;
 use App\Models\JenisRambu;
 use App\Models\LaporanKondisi;
@@ -29,6 +30,7 @@ use Livewire\WithFileUploads;
 #[Title('Buat Surat')]
 class Create extends Component
 {
+    use RejectsNonImageUploads;
     use WithFileUploads;
 
     #[Url(as: 'laporan_kondisi')]

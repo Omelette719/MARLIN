@@ -3,6 +3,7 @@
 namespace App\Livewire\User;
 
 use App\Enums\StatusRambuPasang;
+use App\Livewire\Concerns\RejectsNonImageUploads;
 use App\Models\AuditLog;
 use App\Models\DikerjakanOleh;
 use App\Models\Kendala as KendalaModel;
@@ -18,6 +19,7 @@ use Livewire\WithFileUploads;
 #[Title('Laporan Kendala Lapangan')]
 class Kendala extends Component
 {
+    use RejectsNonImageUploads;
     use WithFileUploads;
 
     #[Url]

@@ -4,6 +4,7 @@ namespace App\Livewire\User;
 
 use App\Enums\StatusLaporan;
 use App\Enums\StatusRambuPasang;
+use App\Livewire\Concerns\RejectsNonImageUploads;
 use App\Models\AuditLog;
 use App\Models\BarangBahan;
 use App\Models\DikerjakanOleh;
@@ -21,6 +22,7 @@ use Livewire\WithFileUploads;
 #[Title('Laporan Pengerjaan Lapangan')]
 class Laporan extends Component
 {
+    use RejectsNonImageUploads;
     use WithFileUploads;
 
     #[Url]

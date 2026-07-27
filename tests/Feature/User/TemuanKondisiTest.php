@@ -56,6 +56,25 @@ class TemuanKondisiTest extends TestCase
         $this->assertSame(2, Notifikasi::whereIn('user_id', [$admin1->id, $admin2->id])->count());
     }
 
+    public function test_non_image_foto_is_rejected_immediately_on_upload(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $jenisRambu = JenisRambu::create(['nama_jenis' => 'Rambu Larangan']);
+        $rambu = Rambu::create([
+            'jenis_rambu_id' => $jenisRambu->id,
+            'wilayah' => 'Banjarmasin Utara',
+            'lokasi' => 'Depan pasar',
+            'koordinat' => '-3.30,114.59',
+        ]);
+
+        Livewire::test(TemuanComponent::class)
+            ->set('rambu_id', (string) $rambu->id)
+            ->set('foto', UploadedFile::fake()->create('dokumen.pdf', 100, 'application/pdf'))
+            ->assertSet('foto', null)
+            ->assertHasErrors(['foto']);
+    }
+
     public function test_petugas_cannot_submit_temuan_without_foto(): void
     {
         $this->actingAs(User::factory()->create());

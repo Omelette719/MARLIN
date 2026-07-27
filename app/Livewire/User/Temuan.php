@@ -4,6 +4,7 @@ namespace App\Livewire\User;
 
 use App\Enums\KondisiRambu;
 use App\Enums\Role;
+use App\Livewire\Concerns\RejectsNonImageUploads;
 use App\Models\AuditLog;
 use App\Models\LaporanKondisi;
 use App\Models\Notifikasi;
@@ -20,6 +21,7 @@ use Livewire\WithFileUploads;
 #[Title('Laporan Temuan Kondisi')]
 class Temuan extends Component
 {
+    use RejectsNonImageUploads;
     use WithFileUploads;
 
     #[Url]
