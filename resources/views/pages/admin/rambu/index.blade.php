@@ -45,9 +45,13 @@
                             <flux:table.cell>{{ $r->lokasi }}</flux:table.cell>
                             <flux:table.cell class="font-mono text-xs">{{ $r->koordinat }}</flux:table.cell>
                             <flux:table.cell>
-                                <flux:badge size="sm" :color="$r->kondisi_terkini === KondisiRambu::Rusak ? 'red' : 'green'">
-                                    {{ $r->kondisi_terkini->label() }}
-                                </flux:badge>
+                                @if ($r->sudah_terpasang)
+                                    <flux:badge size="sm" :color="$r->kondisi_terkini === KondisiRambu::Rusak ? 'red' : 'green'">
+                                        {{ $r->kondisi_terkini->label() }}
+                                    </flux:badge>
+                                @else
+                                    <flux:badge size="sm" color="zinc">N/A</flux:badge>
+                                @endif
                             </flux:table.cell>
                             <flux:table.cell>
                                 <flux:badge size="sm" :color="$r->sudah_terpasang ? 'blue' : 'zinc'">

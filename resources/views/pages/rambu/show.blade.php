@@ -45,9 +45,13 @@
                     </div>
                     <div>
                         <flux:text class="mb-1 text-sm text-zinc-500">Kondisi Terkini</flux:text>
-                        <flux:badge size="sm" :color="$rambu->kondisi_terkini === KondisiRambu::Rusak ? 'red' : 'green'">
-                            {{ $rambu->kondisi_terkini->label() }}
-                        </flux:badge>
+                        @if ($rambu->sudah_terpasang)
+                            <flux:badge size="sm" :color="$rambu->kondisi_terkini === KondisiRambu::Rusak ? 'red' : 'green'">
+                                {{ $rambu->kondisi_terkini->label() }}
+                            </flux:badge>
+                        @else
+                            <flux:badge size="sm" color="zinc">N/A</flux:badge>
+                        @endif
                     </div>
                     <div>
                         <flux:text class="mb-1 text-sm text-zinc-500">Status Pemasangan</flux:text>
