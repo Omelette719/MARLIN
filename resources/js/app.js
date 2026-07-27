@@ -211,53 +211,28 @@ window.initPetaRambu = function (containerId, dataUrl, coordDisplayId, rambuDeta
 
                 const marker = L.marker([pin.lat, pin.lng], { icon }).addTo(map);
 
-                // direction: 'auto' picks whichever side (left/right) has more
-                // room in the current viewport, so the card doesn't open off-screen.
-                // offset pushes it away from the pin's own icon — without it the
-                // card (and its little direction arrow) sits flush against the
-                // icon, covering part of it.
-                marker.bindTooltip(pinPopupHtml(pin, rambuDetailUrlTemplate, temuanUrlTemplate), {
-                    direction: 'auto',
-                    offset: [16, 0],
-                    interactive: true,
-                    opacity: 1,
+                // A bound Tooltip's content sits under the same click-dispatch path as
+                // the marker itself, so links/buttons inside it never reliably receive
+                // their own click — Leaflet's marker click-to-toggle handler always
+                // wins the race. bindPopup doesn't have that problem: Popup already
+                // calls L.DomEvent.disableClickPropagation on its own container
+                // (see Leaflet's Popup._initLayout), and marker+popup click-to-toggle
+                // (open if closed, close if open) is Leaflet's own built-in default
+                // behavior, so no custom click wiring is needed here at all.
+                // offset lifts the card clear of the pin icon (36px tall, anchored at
+                // its own center) so the connecting tip doesn't cut through it.
+                marker.bindPopup(pinPopupHtml(pin, rambuDetailUrlTemplate, temuanUrlTemplate), {
                     className: 'rambu-tooltip',
+                    closeButton: false,
+                    autoPan: true,
+                    minWidth: 220,
+                    maxWidth: 260,
+                    offset: [0, -18],
                 });
 
-                // bindTooltip's own mouseover/mouseout/click wiring is replaced with a
-                // single click-to-toggle: tapping the pin opens the card, tapping it
-                // again (or the X button inside it) closes it. No hover involved.
-                marker.off('mouseover mouseout click');
-
-                marker.on('click', () => {
-                    if (marker.isTooltipOpen()) {
-                        marker.closeTooltip();
-                    } else {
-                        marker.openTooltip();
-                    }
-                });
-
-                marker.on('tooltipopen', () => {
-                    const el = marker.getTooltip()?.getElement();
-
-                    if (! el) {
-                        return;
-                    }
-
-                    // disableClickPropagation only stops mousedown/touchstart/dblclick/
-                    // contextmenu from bubbling — it does NOT touch 'click' itself. The
-                    // tooltip's DOM lives inside the map container, so a click on any
-                    // link/button in the card (Detail Rambu, Google Maps, Lapor Temuan)
-                    // still bubbles up to the map container, where Leaflet's own
-                    // delegated click handling picks it up and re-fires the marker's
-                    // click-to-toggle handler above — closing the tooltip before the
-                    // link's navigation can happen. Stop it from bubbling past the card
-                    // itself so the browser's native navigation is the only thing left
-                    // to happen.
-                    L.DomEvent.disableClickPropagation(el);
-                    el.addEventListener('click', (e) => e.stopPropagation());
-
-                    el.querySelector('.rambu-tooltip-close')?.addEventListener('click', () => marker.closeTooltip());
+                marker.on('popupopen', () => {
+                    const el = marker.getPopup()?.getElement();
+                    el?.querySelector('.rambu-tooltip-close')?.addEventListener('click', () => marker.closePopup());
                 });
 
                 if (focusId && pin.id === focusId) {
@@ -267,7 +242,7 @@ window.initPetaRambu = function (containerId, dataUrl, coordDisplayId, rambuDeta
 
             if (focusMarker) {
                 map.setView(focusMarker.getLatLng(), 17);
-                focusMarker.openTooltip();
+                focusMarker.openPopup();
             }
         });
 };
