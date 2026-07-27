@@ -42,9 +42,14 @@ Ringkasan jumlah SPK aktif, rambu rusak, dan laporan yang menunggu validasi — 
 - Tercatat di Audit Log (`spk_dibatalkan`).
 
 ### Daftar Surat
-- Pencarian (nomor surat/wilayah), filter status, filter jenis pekerjaan.
-- **SPK berstatus Selesai diarsipkan** — tidak tampil di daftar default, tapi tetap bisa dilihat dengan memilih status "Selesai" di filter.
+- Pencarian (nomor surat/wilayah), filter jenis pekerjaan.
+- **Hanya menampilkan SPK berstatus Aktif** — yang Selesai/Dibatalkan pindah ke halaman Riwayat SPK (lihat di bawah), supaya daftar ini tetap fokus ke pekerjaan yang masih berjalan.
 - Kartu SPK menampilkan foto (dari foto survei rambu pertama yang punya foto) atau ikon placeholder.
+
+### Riwayat SPK
+- Arsip SPK yang sudah **Selesai** atau **Dibatalkan** — dipisah dari Daftar Surat supaya tidak bercampur dengan pekerjaan aktif.
+- Pencarian (nomor surat/wilayah), filter status (Selesai/Dibatalkan), filter jenis pekerjaan.
+- Klik "Lihat Detail" tetap membuka Detail Surat yang sama seperti SPK aktif (cuma tombol Edit/Batalkan tidak muncul lagi karena SPK-nya sudah final).
 
 ### Validasi Pengerjaan
 - Daftar SPK yang sudah mengajukan **Laporan Akhir** (lihat [ALUR-BISNIS.md](ALUR-BISNIS.md) untuk detail gate ini).
@@ -62,6 +67,7 @@ Ringkasan jumlah SPK aktif, rambu rusak, dan laporan yang menunggu validasi — 
 
 ### Kelola Rambu
 - Daftar semua rambu terpasang di sistem, filter berdasar kondisi/wilayah.
+- Rambu yang belum terpasang (`sudah_terpasang = false`) menampilkan kondisi sebagai **N/A**, bukan "Baik" — karena rambu yang belum benar-benar ada secara fisik tidak punya kondisi nyata untuk dilaporkan.
 
 ### Kelola Pengguna
 - Tambah/edit akun petugas & admin.

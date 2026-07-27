@@ -26,9 +26,10 @@ Semua halaman berada di bawah middleware `auth` (harus login), kecuali disebutka
 
 | Halaman | Route | Akses | Keterangan |
 |---|---|---|---|
-| Daftar Surat | `GET /admin/spk` | Admin | List SPK, filter status/jenis, pencarian. SPK "Selesai" diarsipkan dari tampilan default. |
+| Daftar Surat | `GET /admin/spk` | Admin | List SPK **berstatus Aktif saja**, filter jenis, pencarian. |
+| Riwayat SPK | `GET /admin/spk-riwayat` | Admin | Arsip SPK berstatus Selesai/Dibatalkan, filter status/jenis, pencarian. |
 | Buat Surat | `GET /admin/spk/create` | Admin | Form buat SPK baru (pasang baru/perbaikan). |
-| Detail Surat | `GET /admin/spk/{spk}` | Admin | Detail lengkap SPK, tim bertugas, daftar rambu, tombol Edit & Batalkan. |
+| Detail Surat | `GET /admin/spk/{spk}` | Admin | Detail lengkap SPK, tim bertugas, daftar rambu. Tombol Edit & Batalkan hanya muncul selama status masih Aktif. |
 | Edit Surat | `GET /admin/spk/{spk}/edit` | Admin | Hanya bisa diakses kalau SPK masih berstatus Aktif — 403 kalau sudah Selesai/Dibatalkan. |
 | Validasi Laporan | `GET /admin/validasi` | Admin | Daftar SPK yang sudah mengajukan Laporan Akhir, siap divalidasi. |
 | Detail Validasi | `GET /admin/validasi/{spk}` | Admin | Terima/tolak laporan per rambu. |
