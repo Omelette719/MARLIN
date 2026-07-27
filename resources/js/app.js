@@ -244,13 +244,18 @@ window.initPetaRambu = function (containerId, dataUrl, coordDisplayId, rambuDeta
                         return;
                     }
 
-                    // Leaflet treats an interactive tooltip's element as belonging to
-                    // its marker for click purposes, so without this, clicking any
-                    // link/button inside the card (Detail Rambu, Google Maps, Lapor
-                    // Temuan) also re-fires the marker's own click-to-toggle handler
-                    // above — closing the tooltip out from under the click before the
-                    // link's navigation can happen.
+                    // disableClickPropagation only stops mousedown/touchstart/dblclick/
+                    // contextmenu from bubbling — it does NOT touch 'click' itself. The
+                    // tooltip's DOM lives inside the map container, so a click on any
+                    // link/button in the card (Detail Rambu, Google Maps, Lapor Temuan)
+                    // still bubbles up to the map container, where Leaflet's own
+                    // delegated click handling picks it up and re-fires the marker's
+                    // click-to-toggle handler above — closing the tooltip before the
+                    // link's navigation can happen. Stop it from bubbling past the card
+                    // itself so the browser's native navigation is the only thing left
+                    // to happen.
                     L.DomEvent.disableClickPropagation(el);
+                    el.addEventListener('click', (e) => e.stopPropagation());
 
                     el.querySelector('.rambu-tooltip-close')?.addEventListener('click', () => marker.closeTooltip());
                 });
