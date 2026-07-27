@@ -36,6 +36,6 @@
     @endif
 
     @if ($model)
-        <flux:input wire:model="{{ $model }}" type="file" :required="$required" :description="$description" />
+        <flux:input wire:model="{{ $model }}" type="file" accept="image/*" :required="$required" :description="$description" />
     @endif
 </div>

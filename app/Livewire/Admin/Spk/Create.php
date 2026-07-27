@@ -174,7 +174,7 @@ class Create extends Component
             'asal_permintaan' => 'required|string',
             'keterangan_asal' => 'nullable|string|max:1000',
             'tanggal_survei' => 'nullable|date',
-            'file_referensi' => 'nullable|file|max:5120',
+            'file_referensi' => 'nullable|image|max:5120',
             'catatan_pekerja_tambahan' => 'nullable|string|max:2000',
             'rt_nama' => 'nullable|string|max:255',
             'rt_telepon' => 'nullable|string|max:30',
