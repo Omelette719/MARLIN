@@ -7,7 +7,6 @@ use App\Enums\JenisPekerjaan;
 use App\Enums\StatusRambuPasang;
 use App\Enums\StatusSpk;
 use App\Enums\StatusTindakLanjut;
-use App\Enums\Urgensi;
 use App\Livewire\Concerns\RejectsNonImageUploads;
 use App\Models\AuditLog;
 use App\Models\JenisRambu;
@@ -16,6 +15,7 @@ use App\Models\Rambu;
 use App\Models\RambuPasang;
 use App\Models\RtPerwakilan;
 use App\Models\Spk;
+use App\Support\PenyesuaianDeadlineSpk;
 use Carbon\Carbon;
 use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
@@ -227,21 +227,6 @@ class Edit extends Component
         Flux::toast(variant: 'success', text: 'Rambu berhasil dihapus dari surat.');
     }
 
-    private function computeUrgensi(): Urgensi
-    {
-        if ($this->prioritas) {
-            return Urgensi::Tinggi;
-        }
-
-        $daysUntilDeadline = now()->startOfDay()->diffInDays(Carbon::parse($this->deadline)->startOfDay(), false);
-
-        return match (true) {
-            $daysUntilDeadline <= 2 => Urgensi::Tinggi,
-            $daysUntilDeadline <= 7 => Urgensi::Sedang,
-            default => Urgensi::Rendah,
-        };
-    }
-
     public function save(): void
     {
         $this->validate([
@@ -294,8 +279,9 @@ class Edit extends Component
                 'wilayah' => Spk::composeWilayah($this->jalan, $this->rt, $this->kelurahan),
                 'perihal' => $this->perihal ?: null,
                 'deadline' => $this->deadline,
+                'deadline_asli' => $this->deadline,
                 'prioritas' => $this->prioritas,
-                'urgensi' => $this->computeUrgensi(),
+                'urgensi' => Spk::computeUrgensi(Carbon::parse($this->deadline), $this->prioritas),
                 'asal_permintaan' => $this->asal_permintaan,
                 'keterangan_asal' => $this->keterangan_asal ?: null,
                 'tanggal_survei' => $this->tanggal_survei ?: null,
@@ -384,6 +370,8 @@ class Edit extends Component
                 'aksi' => 'spk_diedit',
                 'keterangan' => "SPK {$this->spk->nomor_surat} diperbarui.",
             ]);
+
+            PenyesuaianDeadlineSpk::terapkan($this->spk);
         });
 
         Flux::toast(variant: 'success', text: "Surat {$this->spk->nomor_surat} berhasil diperbarui.");

@@ -8,7 +8,6 @@ use App\Enums\Role;
 use App\Enums\StatusRambuPasang;
 use App\Enums\StatusSpk;
 use App\Enums\StatusTindakLanjut;
-use App\Enums\Urgensi;
 use App\Livewire\Concerns\RejectsNonImageUploads;
 use App\Models\AuditLog;
 use App\Models\JenisRambu;
@@ -19,6 +18,7 @@ use App\Models\RambuPasang;
 use App\Models\RtPerwakilan;
 use App\Models\Spk;
 use App\Models\User;
+use App\Support\PenyesuaianDeadlineSpk;
 use Carbon\Carbon;
 use Flux\Flux;
 use Illuminate\Support\Facades\DB;
@@ -141,21 +141,6 @@ class Create extends Component
         ];
     }
 
-    private function computeUrgensi(): Urgensi
-    {
-        if ($this->prioritas) {
-            return Urgensi::Tinggi;
-        }
-
-        $daysUntilDeadline = now()->startOfDay()->diffInDays(Carbon::parse($this->deadline)->startOfDay(), false);
-
-        return match (true) {
-            $daysUntilDeadline <= 2 => Urgensi::Tinggi,
-            $daysUntilDeadline <= 7 => Urgensi::Sedang,
-            default => Urgensi::Rendah,
-        };
-    }
-
     private function generateNomorSurat(): string
     {
         $year = now()->year;
@@ -211,7 +196,7 @@ class Create extends Component
             ]);
         }
 
-        $urgensi = $this->computeUrgensi();
+        $urgensi = Spk::computeUrgensi(Carbon::parse($this->deadline), $this->prioritas);
         $nomorSurat = $this->generateNomorSurat();
 
         $spk = DB::transaction(function () use ($urgensi, $nomorSurat, $isPasangBaru) {
@@ -224,6 +209,7 @@ class Create extends Component
                 'kelurahan' => $this->kelurahan,
                 'perihal' => $this->perihal ?: null,
                 'deadline' => $this->deadline,
+                'deadline_asli' => $this->deadline,
                 'prioritas' => $this->prioritas,
                 'urgensi' => $urgensi,
                 'status' => StatusSpk::Aktif,
@@ -301,6 +287,8 @@ class Create extends Component
                     'dibaca' => false,
                 ]);
             }
+
+            PenyesuaianDeadlineSpk::terapkan($spk);
 
             return $spk;
         });

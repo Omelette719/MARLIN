@@ -7,6 +7,7 @@ use App\Enums\AsalPermintaan;
 use App\Enums\JenisPekerjaan;
 use App\Enums\StatusSpk;
 use App\Enums\Urgensi;
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Model;
@@ -16,9 +17,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Table('spk')]
 #[Fillable([
-    'nomor_surat', 'dibuat_oleh', 'wilayah', 'jalan', 'rt', 'kelurahan', 'deadline', 'prioritas', 'urgensi',
-    'status', 'jenis_spk', 'asal_permintaan', 'keterangan_asal', 'perihal', 'tanggal_survei', 'file_referensi',
-    'catatan_pekerja_tambahan', 'laporan_akhir_diajukan_at',
+    'nomor_surat', 'dibuat_oleh', 'wilayah', 'jalan', 'rt', 'kelurahan', 'deadline', 'deadline_asli', 'prioritas',
+    'urgensi', 'status', 'jenis_spk', 'asal_permintaan', 'keterangan_asal', 'perihal', 'tanggal_survei',
+    'file_referensi', 'catatan_pekerja_tambahan', 'laporan_akhir_diajukan_at',
 ])]
 class Spk extends Model
 {
@@ -28,6 +29,7 @@ class Spk extends Model
     {
         return [
             'deadline' => 'date',
+            'deadline_asli' => 'date',
             'prioritas' => 'boolean',
             'urgensi' => Urgensi::class,
             'status' => StatusSpk::class,
@@ -36,6 +38,24 @@ class Spk extends Model
             'tanggal_survei' => 'date',
             'laporan_akhir_diajukan_at' => 'datetime',
         ];
+    }
+
+    // Shared by Create/Edit (manual save) and PenyesuaianDeadlineSpk (automatic
+    // push from a newly-prioritized SPK) so urgensi is always derived the same
+    // way no matter which of those three places last touched the deadline.
+    public static function computeUrgensi(CarbonInterface $deadline, bool $prioritas): Urgensi
+    {
+        if ($prioritas) {
+            return Urgensi::Tinggi;
+        }
+
+        $daysUntilDeadline = now()->startOfDay()->diffInDays($deadline->copy()->startOfDay(), false);
+
+        return match (true) {
+            $daysUntilDeadline <= 2 => Urgensi::Tinggi,
+            $daysUntilDeadline <= 7 => Urgensi::Sedang,
+            default => Urgensi::Rendah,
+        };
     }
 
     public function pembuat(): BelongsTo

@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('rt')->nullable();
             $table->string('kelurahan')->nullable();
             $table->date('deadline');
+            $table->date('deadline_asli')->nullable();
             $table->boolean('prioritas')->default(false);
             $table->string('urgensi');
             $table->string('status')->default('aktif');
