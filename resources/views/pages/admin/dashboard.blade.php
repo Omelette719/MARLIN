@@ -52,6 +52,38 @@
             </flux:card>
         </div>
 
+        <flux:card class="flex flex-col gap-3">
+            <div>
+                <flux:heading size="lg">Peta Rambu Perlu Perhatian</flux:heading>
+                <flux:subheading>Hanya rambu belum terpasang, rusak, atau menunggu validasi — yang sudah terpasang dan aman tidak ditampilkan.</flux:subheading>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-4 text-sm">
+                <div class="flex items-center gap-2"><span class="inline-block size-3 rounded-full" style="background:#ba1a1a"></span> Urgent / Prioritas / Tinggi</div>
+                <div class="flex items-center gap-2"><span class="inline-block size-3 rounded-full" style="background:#eab308"></span> Rusak / Perbaikan Berjalan</div>
+                <div class="flex items-center gap-2"><span class="inline-block size-3 rounded-full" style="background:#22d3ee"></span> Menunggu Validasi</div>
+                <div class="flex items-center gap-2"><span class="inline-block size-3 rounded-full" style="background:#9ca3af"></span> Belum Dikerjakan</div>
+            </div>
+
+            <div class="relative h-96 overflow-hidden rounded-xl border border-zinc-200">
+                <div id="dashboard-peta" wire:ignore class="size-full"></div>
+            </div>
+        </flux:card>
+
+        @script
+        <script>
+            initPetaRambu(
+                'dashboard-peta',
+                @js(route('peta.data')),
+                null,
+                @js(route('rambu.show', ['rambu' => '__ID__'])),
+                null,
+                null,
+                true
+            );
+        </script>
+        @endscript
+
         <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
             <flux:card class="flex flex-col gap-4 bg-[#004655] text-white lg:col-span-1">
                 <div>
@@ -88,22 +120,30 @@
             </flux:card>
 
             <flux:card class="flex flex-col gap-4 lg:col-span-2">
-                <flux:heading size="lg">Sebaran Rambu per Wilayah</flux:heading>
+                <div>
+                    <flux:heading size="lg">SPK Perlu Perhatian</flux:heading>
+                    <flux:subheading>Prioritas/urgensi tinggi ditampilkan lebih dulu, sisanya diurutkan dari progres paling rendah.</flux:subheading>
+                </div>
 
                 <div class="flex flex-col gap-3">
-                    @forelse ($wilayahBreakdown as $w)
-                        @php $persen = $w->total > 0 ? round(($w->terpasang / $w->total) * 100) : 0; @endphp
+                    @forelse ($spkPrioritas as $row)
+                        @php $persen = $row['total'] > 0 ? round(($row['selesai'] / $row['total']) * 100) : 100; @endphp
                         <div>
                             <div class="mb-1 flex items-center justify-between text-sm">
-                                <span class="font-medium text-zinc-700">{{ $w->wilayah }}</span>
-                                <span class="text-zinc-500">{{ $w->terpasang }}/{{ $w->total }} terpasang</span>
+                                <span class="flex items-center gap-2 font-medium text-zinc-700">
+                                    {{ $row['spk']->nomor_surat }}
+                                    @if ($row['butuhPerhatian'])
+                                        <flux:badge size="sm" color="red">Prioritas</flux:badge>
+                                    @endif
+                                </span>
+                                <span class="text-zinc-500">{{ $row['selesai'] }}/{{ $row['total'] }} selesai &middot; deadline {{ $row['spk']->deadline->translatedFormat('d M') }}</span>
                             </div>
                             <div class="h-2 w-full overflow-hidden rounded-full bg-zinc-100">
-                                <div class="h-full rounded-full bg-[#004655]" style="width: {{ $persen }}%"></div>
+                                <div class="h-full rounded-full {{ $row['butuhPerhatian'] ? 'bg-red-500' : 'bg-[#004655]' }}" style="width: {{ $persen }}%"></div>
                             </div>
                         </div>
                     @empty
-                        <flux:text class="text-zinc-500">Belum ada data rambu.</flux:text>
+                        <flux:text class="text-zinc-500">Tidak ada SPK aktif saat ini.</flux:text>
                     @endforelse
                 </div>
             </flux:card>

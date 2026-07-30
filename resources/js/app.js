@@ -164,7 +164,7 @@ function formatCoordinate(lat, lng) {
 
 let mapInstance = null;
 
-window.initPetaRambu = function (containerId, dataUrl, coordDisplayId, rambuDetailUrlTemplate, focusId, temuanUrlTemplate) {
+window.initPetaRambu = function (containerId, dataUrl, coordDisplayId, rambuDetailUrlTemplate, focusId, temuanUrlTemplate, hideTenang = false) {
     const container = document.getElementById(containerId);
 
     if (! container) {
@@ -201,6 +201,12 @@ window.initPetaRambu = function (containerId, dataUrl, coordDisplayId, rambuDeta
     fetch(dataUrl)
         .then((res) => res.json())
         .then((pins) => {
+            // Dashboard's compact map only cares about pins needing attention —
+            // already-installed-and-fine ("tenang") pins would just be clutter there.
+            if (hideTenang) {
+                pins = pins.filter((pin) => ! isPinTenang(pin));
+            }
+
             let focusMarker = null;
 
             pins.forEach((pin) => {
