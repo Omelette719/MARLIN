@@ -4,13 +4,13 @@ namespace App\Livewire\Admin\Laporan;
 
 use App\Enums\StatusRambuPasang;
 use App\Models\JenisRambu;
-use App\Support\LaporanBulanan;
+use App\Support\LaporanRambu;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 
-#[Title('Laporan Bulanan')]
-class Index extends Component
+#[Title('Laporan Rambu')]
+class RambuExport extends Component
 {
     #[Url]
     public string $tanggal_dari = '';
@@ -47,7 +47,7 @@ class Index extends Component
 
     public function with(): array
     {
-        return array_merge(LaporanBulanan::build($this->filters()), [
+        return array_merge(LaporanRambu::build($this->filters()), [
             'jenisRambuOptions' => JenisRambu::orderBy('nama_jenis')->get(),
             'statusOptions' => StatusRambuPasang::cases(),
         ]);
@@ -55,6 +55,6 @@ class Index extends Component
 
     public function render()
     {
-        return view('pages::admin.laporan.index');
+        return view('pages::admin.laporan.rambu');
     }
 }

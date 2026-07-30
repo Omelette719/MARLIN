@@ -12,7 +12,7 @@
         .kop .alamat { font-size: 9px; color: #555; margin: 0; }
 
         h1.judul { text-align: center; font-size: 13px; text-decoration: underline; margin: 10px 0 4px; }
-        .periode { text-align: center; font-size: 11px; margin-bottom: 14px; }
+        .periode { text-align: center; font-size: 10px; margin-bottom: 14px; color: #444; }
 
         h2.section { font-size: 12px; color: #004655; border-bottom: 1px solid #bfc8cc; padding-bottom: 3px; margin: 16px 0 6px; }
 
@@ -36,7 +36,11 @@
     </div>
 
     <h1 class="judul">LAPORAN RIWAYAT PEKERJAAN RAMBU LALU LINTAS</h1>
-    <p class="periode">Periode: {{ $periodeLabel }}</p>
+    <p class="periode">
+        Periode: {{ $periodeLabel }}
+        &nbsp;|&nbsp; Jenis: {{ $jenisRambuId && isset($jenisRambuNama) ? $jenisRambuNama : 'Semua Jenis' }}
+        &nbsp;|&nbsp; Status Rambu: {{ $status ? \App\Enums\StatusRambuPasang::from($status)->label() : 'Semua Status' }}
+    </p>
 
     <h2 class="section">Ringkasan Aset Rambu (per {{ now()->translatedFormat('d M Y') }})</h2>
     <table class="ringkasan">
@@ -48,17 +52,17 @@
         </tr>
     </table>
 
-    <h2 class="section">Ringkasan SPK Bulan Ini</h2>
+    <h2 class="section">Ringkasan SPK Periode Ini</h2>
     <table class="ringkasan">
         <tr>
-            <td><span class="angka">{{ $spk['dibuat_bulan_ini'] }}</span><br><span class="label">SPK Dibuat</span></td>
+            <td><span class="angka">{{ $spk['dibuat_periode'] }}</span><br><span class="label">SPK Dibuat</span></td>
             <td><span class="angka">{{ $spk['dibuat_selesai'] }}</span><br><span class="label">Sudah Selesai</span></td>
             <td><span class="angka">{{ $spk['dibuat_aktif'] }}</span><br><span class="label">Masih Aktif</span></td>
-            <td><span class="angka">{{ $kendalaBulanIni }}</span><br><span class="label">Kendala Diajukan</span></td>
+            <td><span class="angka">{{ $kendalaPeriode }}</span><br><span class="label">Kendala Diajukan</span></td>
         </tr>
     </table>
 
-    <h2 class="section">Daftar SPK Selesai Bulan Ini ({{ $spkSelesaiBulanIni->count() }})</h2>
+    <h2 class="section">Daftar SPK Selesai Periode Ini ({{ $spkSelesaiPeriode->count() }})</h2>
     <table class="data">
         <thead>
             <tr>
@@ -70,7 +74,7 @@
             </tr>
         </thead>
         <tbody>
-            @forelse ($spkSelesaiBulanIni as $i => $item)
+            @forelse ($spkSelesaiPeriode as $i => $item)
                 <tr>
                     <td>{{ $i + 1 }}</td>
                     <td>{{ $item->nomor_surat }}</td>
@@ -106,6 +110,34 @@
                 </tr>
             @empty
                 <tr><td colspan="5">Tidak ada SPK aktif saat ini.</td></tr>
+            @endforelse
+        </tbody>
+    </table>
+
+    <h2 class="section">Detail Rambu ({{ $rambuDetail['total'] }})</h2>
+    <table class="data">
+        <thead>
+            <tr>
+                <th style="width: 18px;">No</th>
+                <th>Nomor Surat</th>
+                <th>Jenis Rambu</th>
+                <th>Lokasi</th>
+                <th style="width: 65px;">Tanggal</th>
+                <th style="width: 70px;">Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            @forelse ($rambuDetail['items'] as $i => $item)
+                <tr>
+                    <td>{{ $i + 1 }}</td>
+                    <td>{{ $item->spk->nomor_surat }}</td>
+                    <td>{{ $item->rambu->jenisRambu?->nama_jenis }}</td>
+                    <td>{{ $item->rambu->wilayah }}, {{ $item->rambu->lokasi }}</td>
+                    <td>{{ $item->created_at->translatedFormat('d M Y') }}</td>
+                    <td>{{ $item->status->label() }}</td>
+                </tr>
+            @empty
+                <tr><td colspan="6">Tidak ada data untuk filter ini.</td></tr>
             @endforelse
         </tbody>
     </table>

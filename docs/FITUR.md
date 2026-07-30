@@ -59,8 +59,12 @@ Ringkasan jumlah SPK aktif, rambu rusak, dan laporan yang menunggu validasi — 
 - Kalau semua rambu dalam SPK sudah `selesai`, status SPK otomatis berubah jadi `selesai`.
 
 ### Laporan Bulanan
-- Rekap rambu terpasang/belum terpasang dan SPK selesai/belum dalam rentang bulan tertentu.
+- Rekap rambu terpasang/belum terpasang dan SPK selesai/belum, filter fleksibel: rentang tanggal bebas, jenis rambu, dan status rambu (StatusRambuPasang) untuk tabel Detail Rambu.
 - Bisa diexport ke PDF untuk dilaporkan ke atasan.
+
+### Laporan Rambu
+- Daftar riwayat pekerjaan rambu (per `rambu_pasang`), filter fleksibel: rentang tanggal bebas, jenis rambu, dan status.
+- Sama seperti Laporan Bulanan, bisa diexport ke PDF; keduanya berbagi query filter yang sama (`App\Support\LaporanRambu`) supaya angkanya selalu konsisten.
 
 ### Kelola Jenis Rambu
 - Master data kategori rambu: nama, spesifikasi standar, gambar referensi, bentuk ikon di peta (bulat/kotak).

@@ -29,8 +29,11 @@
                 <flux:sidebar.item icon="map-pin" :href="route('admin.temuan.index')" :current="request()->routeIs('admin.temuan.*')" wire:navigate>
                     {{ __('Temuan Lapangan') }}
                 </flux:sidebar.item>
-                <flux:sidebar.item icon="document-chart-bar" :href="route('admin.laporan.index')" :current="request()->routeIs('admin.laporan.*')" wire:navigate>
+                <flux:sidebar.item icon="document-chart-bar" :href="route('admin.laporan.index')" :current="request()->routeIs('admin.laporan.index')" wire:navigate>
                     {{ __('Laporan Bulanan') }}
+                </flux:sidebar.item>
+                <flux:sidebar.item icon="document-chart-bar" :href="route('admin.laporan.rambu')" :current="request()->routeIs('admin.laporan.rambu')" wire:navigate>
+                    {{ __('Laporan Rambu') }}
                 </flux:sidebar.item>
                 <flux:sidebar.item icon="map" :href="route('peta')" :current="request()->routeIs('peta')" wire:navigate>
                     {{ __('Peta Rambu') }}

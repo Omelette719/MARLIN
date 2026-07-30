@@ -1,3 +1,7 @@
+    @php
+        use App\Enums\StatusRambuPasang;
+    @endphp
+
     <div class="flex w-full flex-1 flex-col gap-6">
         <div class="flex items-end justify-between">
             <div>
@@ -5,13 +9,36 @@
                 <flux:subheading>Ringkasan riwayat pekerjaan untuk periode {{ $periodeLabel }}.</flux:subheading>
             </div>
 
-            <div class="flex items-end gap-3">
-                <flux:input type="month" wire:model.live="bulan" label="Periode" />
-                <flux:button variant="primary" icon="arrow-down-tray" :href="route('admin.laporan.export', ['bulan' => $bulan])" target="_blank">
-                    Unduh PDF
-                </flux:button>
-            </div>
+            <flux:button variant="primary" icon="arrow-down-tray" :href="route('admin.laporan.export', [
+                'tanggal_dari' => $tanggal_dari,
+                'tanggal_sampai' => $tanggal_sampai,
+                'jenis_rambu_id' => $jenis_rambu_id,
+                'status' => $status,
+            ])" target="_blank">
+                Unduh PDF
+            </flux:button>
         </div>
+
+        <flux:card class="flex flex-col gap-4">
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-4">
+                <flux:input type="date" wire:model.live="tanggal_dari" label="Dari Tanggal" />
+                <flux:input type="date" wire:model.live="tanggal_sampai" label="Sampai Tanggal" />
+
+                <flux:select wire:model.live="jenis_rambu_id" label="Jenis Rambu" placeholder="Semua Jenis">
+                    <flux:select.option value="">Semua Jenis</flux:select.option>
+                    @foreach ($jenisRambuOptions as $j)
+                        <flux:select.option value="{{ $j->id }}">{{ $j->nama_jenis }}</flux:select.option>
+                    @endforeach
+                </flux:select>
+
+                <flux:select wire:model.live="status" label="Status Rambu" placeholder="Semua Status" description="Menyaring tabel Detail Rambu di bawah.">
+                    <flux:select.option value="">Semua Status</flux:select.option>
+                    @foreach ($statusOptions as $s)
+                        <flux:select.option value="{{ $s->value }}">{{ $s->label() }}</flux:select.option>
+                    @endforeach
+                </flux:select>
+            </div>
+        </flux:card>
 
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <flux:card class="flex items-center gap-4">
@@ -39,8 +66,8 @@
                     <flux:icon icon="document-text" class="size-6" />
                 </div>
                 <div class="min-w-0">
-                    <flux:text class="text-sm text-zinc-500">SPK Dibuat Bulan Ini</flux:text>
-                    <flux:heading size="xl">{{ $spk['dibuat_bulan_ini'] }}</flux:heading>
+                    <flux:text class="text-sm text-zinc-500">SPK Dibuat Periode Ini</flux:text>
+                    <flux:heading size="xl">{{ $spk['dibuat_periode'] }}</flux:heading>
                 </div>
             </flux:card>
 
@@ -49,8 +76,8 @@
                     <flux:icon icon="exclamation-triangle" class="size-6" />
                 </div>
                 <div class="min-w-0">
-                    <flux:text class="text-sm text-zinc-500">Kendala Bulan Ini</flux:text>
-                    <flux:heading size="xl">{{ $kendalaBulanIni }}</flux:heading>
+                    <flux:text class="text-sm text-zinc-500">Kendala Periode Ini</flux:text>
+                    <flux:heading size="xl">{{ $kendalaPeriode }}</flux:heading>
                 </div>
             </flux:card>
         </div>
@@ -61,12 +88,12 @@
                 <div><flux:text class="text-zinc-500">Total Rambu</flux:text><flux:heading size="sm">{{ $rambu['total'] }}</flux:heading></div>
                 <div><flux:text class="text-zinc-500">Kondisi Baik</flux:text><flux:heading size="sm">{{ $rambu['kondisi_baik'] }}</flux:heading></div>
                 <div><flux:text class="text-zinc-500">Kondisi Rusak</flux:text><flux:heading size="sm">{{ $rambu['kondisi_rusak'] }}</flux:heading></div>
-                <div><flux:text class="text-zinc-500">Temuan Kondisi Bulan Ini</flux:text><flux:heading size="sm">{{ $temuanBulanIni }}</flux:heading></div>
+                <div><flux:text class="text-zinc-500">Temuan Kondisi Periode Ini</flux:text><flux:heading size="sm">{{ $temuanPeriode }}</flux:heading></div>
             </div>
         </flux:card>
 
         <flux:card class="flex flex-col gap-3">
-            <flux:heading size="lg">SPK Selesai Bulan Ini ({{ $spkSelesaiBulanIni->count() }})</flux:heading>
+            <flux:heading size="lg">SPK Selesai Periode Ini ({{ $spkSelesaiPeriode->count() }})</flux:heading>
 
             <flux:table>
                 <flux:table.columns>
@@ -77,7 +104,7 @@
                 </flux:table.columns>
 
                 <flux:table.rows>
-                    @forelse ($spkSelesaiBulanIni as $item)
+                    @forelse ($spkSelesaiPeriode as $item)
                         <flux:table.row>
                             <flux:table.cell variant="strong">{{ $item->nomor_surat }}</flux:table.cell>
                             <flux:table.cell>{{ $item->wilayah }}</flux:table.cell>
@@ -115,6 +142,46 @@
                     @empty
                         <flux:table.row>
                             <flux:table.cell colspan="4" class="text-center text-zinc-500">Tidak ada SPK aktif saat ini.</flux:table.cell>
+                        </flux:table.row>
+                    @endforelse
+                </flux:table.rows>
+            </flux:table>
+        </flux:card>
+
+        <flux:card class="flex flex-col gap-3">
+            <flux:heading size="lg">Detail Rambu ({{ $rambuDetail['total'] }})</flux:heading>
+            <flux:subheading>Mengikuti filter Jenis Rambu dan Status Rambu di atas.</flux:subheading>
+
+            <flux:table>
+                <flux:table.columns>
+                    <flux:table.column>Nomor Surat</flux:table.column>
+                    <flux:table.column>Jenis Rambu</flux:table.column>
+                    <flux:table.column>Lokasi</flux:table.column>
+                    <flux:table.column>Tanggal</flux:table.column>
+                    <flux:table.column align="end">Status</flux:table.column>
+                </flux:table.columns>
+
+                <flux:table.rows>
+                    @forelse ($rambuDetail['items'] as $item)
+                        <flux:table.row>
+                            <flux:table.cell variant="strong">{{ $item->spk->nomor_surat }}</flux:table.cell>
+                            <flux:table.cell>{{ $item->rambu->jenisRambu?->nama_jenis }}</flux:table.cell>
+                            <flux:table.cell>{{ $item->rambu->wilayah }}, {{ $item->rambu->lokasi }}</flux:table.cell>
+                            <flux:table.cell>{{ $item->created_at->translatedFormat('d M Y') }}</flux:table.cell>
+                            <flux:table.cell align="end">
+                                <flux:badge size="sm" :color="match ($item->status) {
+                                    StatusRambuPasang::Selesai => 'green',
+                                    StatusRambuPasang::MenungguValidasi => 'blue',
+                                    StatusRambuPasang::Urgent, StatusRambuPasang::Revisi => 'red',
+                                    StatusRambuPasang::Tertunda => 'amber',
+                                    StatusRambuPasang::Batal => 'zinc',
+                                    default => 'zinc',
+                                }">{{ $item->status->label() }}</flux:badge>
+                            </flux:table.cell>
+                        </flux:table.row>
+                    @empty
+                        <flux:table.row>
+                            <flux:table.cell colspan="5" class="text-center text-zinc-500">Tidak ada data untuk filter ini.</flux:table.cell>
                         </flux:table.row>
                     @endforelse
                 </flux:table.rows>

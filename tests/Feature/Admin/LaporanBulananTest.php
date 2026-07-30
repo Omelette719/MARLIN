@@ -4,6 +4,7 @@ namespace Tests\Feature\Admin;
 
 use App\Models\JenisRambu;
 use App\Models\Rambu;
+use App\Models\RambuPasang;
 use App\Models\Spk;
 use App\Models\User;
 use App\Support\LaporanBulanan;
@@ -35,7 +36,10 @@ class LaporanBulananTest extends TestCase
     {
         $this->actingAs(User::factory()->admin()->create());
 
-        $response = $this->get(route('admin.laporan.export', ['bulan' => now()->format('Y-m')]));
+        $response = $this->get(route('admin.laporan.export', [
+            'tanggal_dari' => now()->startOfMonth()->toDateString(),
+            'tanggal_sampai' => now()->toDateString(),
+        ]));
 
         $response->assertOk();
         $response->assertHeader('content-type', 'application/pdf');
@@ -63,8 +67,6 @@ class LaporanBulananTest extends TestCase
             'kondisi_terkini' => 'baik',
         ]);
 
-        $bulanIni = now()->format('Y-m');
-
         $spkSelesai = Spk::create([
             'nomor_surat' => 'SR-2026/BJM/9001',
             'dibuat_oleh' => $admin->id,
@@ -86,15 +88,97 @@ class LaporanBulananTest extends TestCase
             'asal_permintaan' => 'internal',
         ]);
 
-        $data = LaporanBulanan::build($bulanIni);
+        $data = LaporanBulanan::build([
+            'tanggal_dari' => now()->startOfMonth()->toDateString(),
+            'tanggal_sampai' => now()->toDateString(),
+        ]);
 
         $this->assertSame(2, $data['rambu']['total']);
         $this->assertSame(1, $data['rambu']['terpasang']);
         $this->assertSame(1, $data['rambu']['belum_terpasang']);
-        $this->assertSame(2, $data['spk']['dibuat_bulan_ini']);
-        $this->assertSame(1, $data['spkSelesaiBulanIni']->count());
+        $this->assertSame(2, $data['spk']['dibuat_periode']);
+        $this->assertSame(1, $data['spkSelesaiPeriode']->count());
         $this->assertSame(1, $data['spkAktif']->count());
-        $this->assertTrue($data['spkSelesaiBulanIni']->contains('nomor_surat', 'SR-2026/BJM/9001'));
+        $this->assertTrue($data['spkSelesaiPeriode']->contains('nomor_surat', 'SR-2026/BJM/9001'));
         $this->assertTrue($data['spkAktif']->contains('nomor_surat', 'SR-2026/BJM/9002'));
+    }
+
+    public function test_laporan_bulanan_defaults_to_current_month_when_no_filters_given(): void
+    {
+        $data = LaporanBulanan::build([]);
+
+        $this->assertSame(now()->startOfMonth()->toDateString(), $data['awal']->toDateString());
+        $this->assertSame(now()->toDateString(), $data['akhir']->toDateString());
+    }
+
+    public function test_laporan_bulanan_can_be_scoped_by_jenis_rambu(): void
+    {
+        $jenisA = JenisRambu::create(['nama_jenis' => 'Rambu Peringatan']);
+        $jenisB = JenisRambu::create(['nama_jenis' => 'Rambu Larangan']);
+
+        Rambu::create([
+            'jenis_rambu_id' => $jenisA->id,
+            'wilayah' => 'Banjarmasin Tengah',
+            'lokasi' => 'A',
+            'koordinat' => '-3.30,114.59',
+        ]);
+        Rambu::create([
+            'jenis_rambu_id' => $jenisB->id,
+            'wilayah' => 'Banjarmasin Tengah',
+            'lokasi' => 'B',
+            'koordinat' => '-3.31,114.60',
+        ]);
+
+        $data = LaporanBulanan::build([
+            'tanggal_dari' => now()->startOfMonth()->toDateString(),
+            'tanggal_sampai' => now()->toDateString(),
+            'jenis_rambu_id' => $jenisA->id,
+        ]);
+
+        $this->assertSame(1, $data['rambu']['total']);
+    }
+
+    public function test_laporan_bulanan_rambu_detail_can_be_scoped_by_status(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $jenisRambu = JenisRambu::create(['nama_jenis' => 'Rambu Peringatan']);
+        $rambu = Rambu::create([
+            'jenis_rambu_id' => $jenisRambu->id,
+            'wilayah' => 'Banjarmasin Tengah',
+            'lokasi' => 'A',
+            'koordinat' => '-3.30,114.59',
+        ]);
+        $spk = Spk::create([
+            'nomor_surat' => 'SR-2026/BJM/9003',
+            'dibuat_oleh' => $admin->id,
+            'wilayah' => 'Banjarmasin Tengah',
+            'deadline' => now()->addDays(5),
+            'urgensi' => 'sedang',
+            'status' => 'aktif',
+            'asal_permintaan' => 'internal',
+        ]);
+        RambuPasang::create([
+            'rambu_spk_id' => $spk->id,
+            'rambu_id' => $rambu->id,
+            'jenis_pekerjaan' => 'pasang_baru',
+            'jumlah' => 1,
+            'status' => 'selesai',
+        ]);
+
+        $data = LaporanBulanan::build([
+            'tanggal_dari' => now()->startOfMonth()->toDateString(),
+            'tanggal_sampai' => now()->toDateString(),
+            'status' => 'tertunda',
+        ]);
+
+        $this->assertSame(0, $data['rambuDetail']['total']);
+
+        $data = LaporanBulanan::build([
+            'tanggal_dari' => now()->startOfMonth()->toDateString(),
+            'tanggal_sampai' => now()->toDateString(),
+            'status' => 'selesai',
+        ]);
+
+        $this->assertSame(1, $data['rambuDetail']['total']);
     }
 }

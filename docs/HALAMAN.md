@@ -34,7 +34,8 @@ Semua halaman berada di bawah middleware `auth` (harus login), kecuali disebutka
 | Validasi Laporan | `GET /admin/validasi` | Admin | Daftar SPK yang sudah mengajukan Laporan Akhir, siap divalidasi. |
 | Detail Validasi | `GET /admin/validasi/{spk}` | Admin | Terima/tolak laporan per rambu. |
 | Temuan Lapangan | `GET /admin/temuan` | Admin | Antrean laporan kondisi rusak yang belum dibuatkan SPK. |
-| Laporan Bulanan | `GET /admin/laporan` | Admin | Rekap bulanan, bisa export PDF (`GET /admin/laporan/export`). |
+| Laporan Bulanan | `GET /admin/laporan` | Admin | Rekap dengan filter rentang tanggal/jenis rambu/status bebas, bisa export PDF (`GET /admin/laporan/export`). |
+| Laporan Rambu | `GET /admin/laporan/rambu` | Admin | Riwayat pekerjaan rambu, filter sama seperti Laporan Bulanan, export PDF (`GET /admin/laporan/rambu/export`). |
 
 ## Manajemen Master Data & Pengguna (Admin)
 

@@ -3,12 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\JenisRambu;
-use App\Support\LaporanBulanan;
+use App\Support\LaporanRambu;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
-class LaporanBulananController extends Controller
+class LaporanRambuController extends Controller
 {
     public function export(Request $request): Response
     {
@@ -19,16 +19,14 @@ class LaporanBulananController extends Controller
             'status' => $request->query('status') ?: null,
         ];
 
-        $data = LaporanBulanan::build($filters);
+        $data = LaporanRambu::build($filters);
 
         $data['jenisRambuNama'] = $filters['jenis_rambu_id']
             ? JenisRambu::find($filters['jenis_rambu_id'])?->nama_jenis
             : null;
 
-        $pdf = Pdf::loadView('pdf.laporan-bulanan', $data);
+        $pdf = Pdf::loadView('pdf.laporan-rambu', $data);
 
-        $filename = 'laporan-bulanan-'.now()->format('Y-m-d').'.pdf';
-
-        return $pdf->download($filename);
+        return $pdf->download('laporan-rambu-'.now()->format('Y-m-d').'.pdf');
     }
 }

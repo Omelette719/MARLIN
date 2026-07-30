@@ -1,10 +1,12 @@
 <?php
 
 use App\Http\Controllers\LaporanBulananController;
+use App\Http\Controllers\LaporanRambuController;
 use App\Http\Controllers\PetaController;
 use App\Http\Controllers\SuratPengantarController;
 use App\Livewire\Admin\Dashboard;
 use App\Livewire\Admin\JenisRambu\Index;
+use App\Livewire\Admin\Laporan\RambuExport;
 use App\Livewire\Admin\Spk\Create;
 use App\Livewire\Admin\Spk\Riwayat;
 use App\Livewire\Admin\Users\Edit;
@@ -45,6 +47,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::livewire('temuan', App\Livewire\Admin\Temuan\Index::class)->name('temuan.index');
         Route::livewire('laporan', App\Livewire\Admin\Laporan\Index::class)->name('laporan.index');
         Route::get('laporan/export', [LaporanBulananController::class, 'export'])->name('laporan.export');
+        Route::livewire('laporan/rambu', RambuExport::class)->name('laporan.rambu');
+        Route::get('laporan/rambu/export', [LaporanRambuController::class, 'export'])->name('laporan.rambu-export');
         Route::livewire('users', App\Livewire\Admin\Users\Index::class)->name('users.index');
         Route::livewire('users/create', App\Livewire\Admin\Users\Create::class)->name('users.create');
         Route::livewire('users/{user}/edit', Edit::class)->name('users.edit');
