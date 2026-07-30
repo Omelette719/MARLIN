@@ -313,6 +313,21 @@ class AdminSpkShowTest extends TestCase
             'asal_permintaan' => 'internal',
         ]);
 
+        $jenis = JenisRambu::create(['nama_jenis' => 'Rambu Peringatan']);
+        $rambu = Rambu::create([
+            'jenis_rambu_id' => $jenis->id,
+            'wilayah' => 'Jl. Veteran RT. 5 Kel. Antasan Besar',
+            'lokasi' => 'Depan kantor lurah',
+            'koordinat' => '-3.30,114.59',
+        ]);
+        RambuPasang::create([
+            'rambu_spk_id' => $spk->id,
+            'rambu_id' => $rambu->id,
+            'jenis_pekerjaan' => 'pasang_baru',
+            'jumlah' => 1,
+            'status' => 'belum',
+        ]);
+
         Livewire::test(SpkEditComponent::class, ['spk' => $spk])
             ->set('jalan', 'Ahmad Yani')
             ->set('rt', '12')

@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 #[Table('rambu_pasang')]
 #[Fillable([
     'rambu_spk_id', 'rambu_id', 'laporan_kondisi_id', 'jenis_pekerjaan', 'jumlah',
-    'foto_survei', 'catatan_instruksi', 'status',
+    'foto_survei', 'catatan_instruksi', 'status', 'catatan_pembatalan',
 ])]
 class RambuPasang extends Model
 {

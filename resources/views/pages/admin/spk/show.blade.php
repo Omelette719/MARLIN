@@ -148,6 +148,10 @@
                                 <flux:text class="text-sm text-zinc-500">{{ $rp->catatan_instruksi }}</flux:text>
                             @endif
 
+                            @if ($rp->status === StatusRambuPasang::Batal && $rp->catatan_pembatalan)
+                                <flux:text class="text-sm text-red-600">Dibatalkan: {{ $rp->catatan_pembatalan }}</flux:text>
+                            @endif
+
                             <div class="mt-auto flex gap-2 pt-2">
                                 <flux:button size="sm" variant="ghost" icon="information-circle" class="flex-1" :href="route('rambu.show', $rp->rambu_id)" wire:navigate>
                                     Detail

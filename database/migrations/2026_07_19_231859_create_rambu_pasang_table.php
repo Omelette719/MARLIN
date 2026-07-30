@@ -20,6 +20,7 @@ return new class extends Migration
             $table->unsignedInteger('jumlah')->default(1);
             $table->string('foto_survei')->nullable();
             $table->string('catatan_instruksi')->nullable();
+            $table->string('catatan_pembatalan')->nullable();
             $table->string('status')->default('belum');
             $table->timestamps();
 

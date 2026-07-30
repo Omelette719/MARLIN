@@ -120,7 +120,6 @@
             <tr>
                 <th style="width: 18px;">No</th>
                 <th>Nama Petugas</th>
-                <th style="width: 80px;">Perwakilan</th>
                 <th style="width: 160px;">Tanda Tangan</th>
             </tr>
         </thead>
@@ -130,7 +129,6 @@
                 <tr>
                     <td>{{ $i + 1 }}</td>
                     <td>{{ $d?->user->name }}</td>
-                    <td>{{ $d?->is_perwakilan ? 'Ya' : '' }}</td>
                     <td class="tanda-tangan"></td>
                 </tr>
             @endfor
@@ -139,15 +137,9 @@
 
     <div class="mengetahui">
         Mengetahui,<br>
-        RT/Perwakilan{{ $rtPertama ? ' '.$rtPertama->nama_lengkap : '' }}
+        RT/Perwakilan
         <div class="ttd-space"></div>
-        (
-        @if ($rtPertama)
-            {{ $rtPertama->nama_lengkap }}
-        @else
-            ....................................................
-        @endif
-        )
+        (....................................................)
     </div>
 
     <div class="catatan">

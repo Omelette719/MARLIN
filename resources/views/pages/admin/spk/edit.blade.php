@@ -1,3 +1,9 @@
+    @php
+        use App\Enums\StatusRambuPasang;
+        use Illuminate\Support\Facades\Storage;
+    @endphp
+
+    <div>
     <div class="flex w-full flex-1 flex-col gap-6">
         <div class="flex items-end justify-between">
             <div>
@@ -40,7 +46,7 @@
                     <flux:input wire:model="file_referensi" type="file" accept="image/*" label="Ganti File Referensi" description="Opsional, scan/foto surat permohonan asli dari RT/warga/pemerintah (gambar saja)." />
                     @if ($spk->file_referensi && ! $file_referensi)
                         <flux:text class="mt-1 text-sm text-zinc-500">
-                            File saat ini: <flux:link :href="\Illuminate\Support\Facades\Storage::url($spk->file_referensi)" target="_blank">lihat file</flux:link>
+                            File saat ini: <flux:link :href="Storage::url($spk->file_referensi)" target="_blank">lihat file</flux:link>
                         </flux:text>
                     @endif
                 </div>
@@ -50,14 +56,105 @@
 
             <flux:card class="flex flex-col gap-4">
                 <div>
-                    <flux:heading size="lg">RT / Perwakilan Warga</flux:heading>
-                    <flux:subheading>Opsional. Kontak RT/perwakilan yang akan mengetahui &amp; menandatangani surat pengantar secara manual.</flux:subheading>
+                    <flux:heading size="lg">Contact Person</flux:heading>
+                    <flux:subheading>Opsional. Kontak warga/perwakilan setempat yang bisa dihubungi petugas di lapangan — bukan identitas resmi RT (nama RT ditulis tangan langsung di surat saat petugas datang meminta izin).</flux:subheading>
                 </div>
 
                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <flux:input wire:model="rt_nama" label="Nama RT / Perwakilan" placeholder="Mis. RT. 27 Matoha" />
-                    <flux:input wire:model="rt_telepon" label="No. Telepon" placeholder="Opsional" />
+                    <flux:input wire:model="rt_nama" label="Nama Contact Person" placeholder="Mis. Abdul (warga setempat)" />
+                    <flux:input wire:model="rt_telepon" label="No. Telepon Contact Person" placeholder="Opsional" />
                 </div>
+            </flux:card>
+
+            <flux:card class="flex flex-col gap-4">
+                <flux:heading size="lg">Daftar Rambu</flux:heading>
+
+                @error('rambuItems') <flux:error>{{ $message }}</flux:error> @enderror
+
+                @foreach ($rambuItems as $index => $item)
+                    <flux:card wire:key="rambu-{{ $item['id'] ?? 'new-'.$index }}" class="flex flex-col gap-4 bg-zinc-50">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <flux:heading size="sm">Rambu #{{ $index + 1 }}</flux:heading>
+                                @if ($item['status'])
+                                    <flux:badge size="sm" :color="match (StatusRambuPasang::from($item['status'])) {
+                                        StatusRambuPasang::Selesai => 'green',
+                                        StatusRambuPasang::MenungguValidasi => 'blue',
+                                        StatusRambuPasang::Urgent, StatusRambuPasang::Revisi => 'red',
+                                        StatusRambuPasang::Tertunda => 'amber',
+                                        StatusRambuPasang::Batal => 'zinc',
+                                        default => 'zinc',
+                                    }">{{ StatusRambuPasang::from($item['status'])->label() }}</flux:badge>
+                                @endif
+                            </div>
+
+                            @if (! $item['id'])
+                                <flux:button type="button" size="sm" variant="danger" icon="trash" wire:click="removeRambuItem({{ $index }})" />
+                            @endif
+                        </div>
+
+                        @if ($item['status'] === 'batal' && $item['catatan_pembatalan'])
+                            <flux:text class="text-sm text-red-600">Dibatalkan: {{ $item['catatan_pembatalan'] }}</flux:text>
+                        @endif
+
+                        <x-photo-upload
+                            model="rambuItems.{{ $index }}.foto_survei"
+                            label="Foto Tempat"
+                            :file="$item['foto_survei']"
+                            :existing-url="$item['existing_foto_survei'] ? Storage::url($item['existing_foto_survei']) : null"
+                            class="max-w-sm"
+                        />
+
+                        @if (! $isPasangBaru)
+                            <flux:checkbox wire:model="rambuItems.{{ $index }}.rambu_terdaftar" label="Rambu sudah terdaftar di sistem" description="Matikan untuk mengubah data rambu ini (jenis/lokasi/koordinat) langsung." />
+                        @endif
+
+                        @if ($isPasangBaru || ! $item['rambu_terdaftar'])
+                            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                <x-searchable-select
+                                    wire-model="rambuItems.{{ $index }}.jenis_rambu_id"
+                                    :options="$jenisRambuSelectOptions"
+                                    label="Jenis Rambu"
+                                    placeholder="Cari jenis rambu"
+                                />
+                            </div>
+                            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                <flux:input wire:model="rambuItems.{{ $index }}.lokasi" label="Lokasi" placeholder="Mis. perempatan 1, samping masjid" />
+                                <flux:input wire:model="rambuItems.{{ $index }}.koordinat" label="Koordinat" placeholder="-3.3194,114.5908" />
+                            </div>
+                        @else
+                            <x-searchable-select
+                                wire-model="rambuItems.{{ $index }}.rambu_id"
+                                :options="$rambuSelectOptions"
+                                label="Pilih Rambu Existing"
+                                placeholder="Cari rambu berdasarkan wilayah/lokasi"
+                            />
+                        @endif
+
+                        <flux:input wire:model="rambuItems.{{ $index }}.jumlah" type="number" min="1" label="Jumlah" class="sm:max-w-40" />
+
+                        <flux:textarea wire:model="rambuItems.{{ $index }}.catatan_instruksi" label="Info / Catatan Instruksi" placeholder="Mis. apa yang perlu dibawa petugas" rows="2" />
+
+                        @if ($item['id'])
+                            <div class="flex justify-end gap-2 border-t border-zinc-200 pt-3">
+                                @if ($item['status'] !== 'batal')
+                                    <flux:button type="button" size="sm" variant="danger" wire:click="bukaBatalkanRambu({{ $index }})">
+                                        Batalkan
+                                    </flux:button>
+                                @endif
+                                @if ($item['can_hapus'])
+                                    <flux:button type="button" size="sm" variant="danger" wire:click="hapusRambu({{ $index }})" wire:confirm="Hapus rambu ini dari surat? Tindakan ini tidak bisa dibatalkan.">
+                                        Hapus
+                                    </flux:button>
+                                @endif
+                            </div>
+                        @endif
+                    </flux:card>
+                @endforeach
+
+                <flux:button type="button" variant="primary" icon="plus" wire:click="addRambuItem" class="self-start">
+                    Tambah Rambu
+                </flux:button>
             </flux:card>
 
             <div class="flex justify-end gap-3">
@@ -65,4 +162,18 @@
                 <flux:button type="submit" variant="primary">Simpan Perubahan</flux:button>
             </div>
         </form>
+    </div>
+
+    <flux:modal name="batalkan-rambu" class="max-w-md">
+        <form wire:submit="konfirmasiBatalkanRambu" class="flex flex-col gap-4">
+            <flux:heading size="lg">Batalkan Rambu</flux:heading>
+            <flux:textarea wire:model="catatan_pembatalan" label="Alasan Pembatalan" rows="3" required />
+            <div class="flex justify-end gap-3">
+                <flux:modal.close>
+                    <flux:button type="button" variant="ghost">Batal</flux:button>
+                </flux:modal.close>
+                <flux:button type="submit" variant="danger">Konfirmasi Batalkan</flux:button>
+            </div>
+        </form>
+    </flux:modal>
     </div>

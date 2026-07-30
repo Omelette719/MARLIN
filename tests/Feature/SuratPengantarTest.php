@@ -101,6 +101,52 @@ class SuratPengantarTest extends TestCase
         $response->assertHeader('content-type', 'application/pdf');
     }
 
+    public function test_perwakilan_column_removed_from_dikerjakan_oleh_table(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $spk = $this->makeSpk($admin);
+
+        $petugas = User::factory()->create();
+        DikerjakanOleh::create([
+            'by_spk_id' => $spk->id,
+            'by_user_id' => $petugas->id,
+            'is_perwakilan' => true,
+        ]);
+
+        $spk->load(['rambuPasang.rambu.jenisRambu', 'dikerjakanOleh.user', 'pembuat', 'rtPerwakilan']);
+
+        $html = view('pdf.surat-pengantar', ['spk' => $spk])->render();
+
+        $this->assertStringNotContainsString('Perwakilan</th>', $html);
+        $this->assertStringNotContainsString('>Ya<', $html);
+    }
+
+    public function test_mengetahui_block_never_shows_rt_perwakilan_name_even_when_present(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $spk = $this->makeSpk($admin);
+
+        RtPerwakilan::create([
+            'nama_lengkap' => 'Abdul',
+            'no_telepon' => '08226735526',
+            'rtperwakilan_spk_id' => $spk->id,
+        ]);
+
+        $spk->load(['rambuPasang.rambu.jenisRambu', 'dikerjakanOleh.user', 'pembuat', 'rtPerwakilan']);
+
+        $html = view('pdf.surat-pengantar', ['spk' => $spk])->render();
+
+        $this->assertStringContainsString('....................................................', $html);
+
+        $mengetahuiPos = strpos($html, 'Mengetahui');
+        $this->assertNotFalse($mengetahuiPos);
+        $this->assertStringNotContainsString('Abdul', substr($html, $mengetahuiPos));
+
+        // The contact person's name/phone still appear elsewhere in the letter (rt-box).
+        $this->assertStringContainsString('Abdul', $html);
+        $this->assertStringContainsString('08226735526', $html);
+    }
+
     public function test_unjoined_petugas_cannot_download_surat_pengantar(): void
     {
         $admin = User::factory()->admin()->create();
