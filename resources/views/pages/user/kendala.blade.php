@@ -1,3 +1,8 @@
+    @php
+        use App\Enums\StatusRambuPasang;
+        use Illuminate\Support\Facades\Storage;
+    @endphp
+
     <div class="flex w-full flex-1 flex-col gap-6">
         <div>
             <flux:heading size="xl">Laporan Kendala Lapangan</flux:heading>
@@ -5,20 +10,33 @@
         </div>
 
         @if ($item)
+            @php
+                $editingInPlace = $item->status === StatusRambuPasang::Tertunda;
+                $existingFoto = $editingInPlace ? $item->kendala()->latest()->first()?->foto : null;
+            @endphp
             <flux:card class="flex flex-col gap-4">
                 <div>
                     <flux:heading size="lg">{{ $item->spk->nomor_surat }}</flux:heading>
                     <flux:subheading>{{ $item->rambu->wilayah }}, {{ $item->rambu->lokasi }} ({{ $item->jenis_pekerjaan->label() }})</flux:subheading>
+                    @if ($item->status === StatusRambuPasang::MenungguValidasi)
+                        <flux:text class="text-sm text-amber-600">Rambu ini sudah ada laporan penyelesaiannya. Mengirim di sini akan mengganti laporan tersebut dengan kendala.</flux:text>
+                    @endif
                 </div>
 
                 <form wire:submit="submit" class="flex flex-col gap-4">
                     <flux:textarea wire:model="alasan" label="Catatan Kendala" placeholder="Jelaskan kendala yang dihadapi di lapangan" rows="4" required />
 
-                    <x-photo-upload model="foto" label="Foto Bukti Kendala" :file="$foto" required />
+                    <x-photo-upload
+                        model="foto"
+                        label="Foto Bukti Kendala"
+                        :file="$foto"
+                        :existing-url="$existingFoto ? Storage::url($existingFoto) : null"
+                        :required="! $editingInPlace"
+                    />
 
                     <div class="flex justify-end gap-3">
                         <flux:button type="button" variant="ghost" wire:click="back">Batal</flux:button>
-                        <flux:button type="submit" variant="primary">Ajukan Kendala</flux:button>
+                        <flux:button type="submit" variant="primary">{{ $editingInPlace ? 'Simpan Perubahan' : 'Ajukan Kendala' }}</flux:button>
                     </div>
                 </form>
             </flux:card>

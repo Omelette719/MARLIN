@@ -171,10 +171,28 @@
                                 @endif
                             </div>
 
-                            @if ($this->sayaPerwakilan && in_array($rp->status->value, $workableStatuses))
+                            @php
+                                $bisaDiedit = ! $spk->laporan_akhir_diajukan_at && in_array($rp->status, [
+                                    StatusRambuPasang::Belum, StatusRambuPasang::Revisi,
+                                    StatusRambuPasang::Tertunda, StatusRambuPasang::MenungguValidasi,
+                                ], true);
+                            @endphp
+                            @if ($this->sayaPerwakilan && $bisaDiedit)
                                 <div class="flex gap-2 border-t border-zinc-200 pt-2">
-                                    <flux:button size="sm" variant="ghost" class="flex-1" :href="route('user.kendala', ['rambuPasangId' => $rp->id])" wire:navigate>Kendala</flux:button>
-                                    <flux:button size="sm" variant="primary" class="flex-1" :href="route('user.laporan', ['rambuPasangId' => $rp->id])" wire:navigate>Laporan</flux:button>
+                                    <flux:button size="sm" variant="ghost" class="flex-1" :href="route('user.kendala', ['rambuPasangId' => $rp->id])" wire:navigate>
+                                        {{ match ($rp->status) {
+                                            StatusRambuPasang::Tertunda => 'Edit Kendala',
+                                            StatusRambuPasang::MenungguValidasi => 'Ada Kendala?',
+                                            default => 'Kendala',
+                                        } }}
+                                    </flux:button>
+                                    <flux:button size="sm" variant="primary" class="flex-1" :href="route('user.laporan', ['rambuPasangId' => $rp->id])" wire:navigate>
+                                        {{ match ($rp->status) {
+                                            StatusRambuPasang::Tertunda => 'Tandai Selesai',
+                                            StatusRambuPasang::MenungguValidasi => 'Edit Laporan',
+                                            default => 'Laporan',
+                                        } }}
+                                    </flux:button>
                                 </div>
                             @endif
                         </div>

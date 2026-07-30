@@ -1,4 +1,5 @@
     @php
+        use App\Enums\StatusRambuPasang;
         use Illuminate\Support\Facades\Storage;
     @endphp
 
@@ -9,6 +10,10 @@
         </div>
 
         @if ($item)
+            @php
+                $editingInPlace = $item->status === StatusRambuPasang::MenungguValidasi;
+                $existingFotoSesudah = $editingInPlace ? $item->laporanPengerjaan()->latest()->first()?->foto_sesudah : null;
+            @endphp
             <flux:card class="flex flex-col gap-4" x-data="{
                 ambilLokasi() {
                     if (! navigator.geolocation) return
@@ -20,6 +25,9 @@
                 <div>
                     <flux:heading size="lg">{{ $item->spk->nomor_surat }}</flux:heading>
                     <flux:subheading>{{ $item->rambu->wilayah }}, {{ $item->rambu->lokasi }} ({{ $item->jenis_pekerjaan->label() }})</flux:subheading>
+                    @if ($item->status === StatusRambuPasang::Tertunda)
+                        <flux:text class="text-sm text-amber-600">Rambu ini sudah ada kendalanya. Mengirim laporan di sini akan mengganti kendala tersebut dengan laporan selesai.</flux:text>
+                    @endif
                 </div>
 
                 <form wire:submit="submit" class="flex flex-col gap-4">
@@ -30,7 +38,13 @@
                             placeholder-label="Belum ada foto survei"
                         />
 
-                        <x-photo-upload model="foto_sesudah" label="Foto Sesudah" :file="$foto_sesudah" required />
+                        <x-photo-upload
+                            model="foto_sesudah"
+                            label="Foto Sesudah"
+                            :file="$foto_sesudah"
+                            :existing-url="$existingFotoSesudah ? Storage::url($existingFotoSesudah) : null"
+                            :required="! $editingInPlace"
+                        />
                     </div>
 
                     <div class="flex items-end gap-3">
@@ -60,7 +74,7 @@
 
                     <div class="flex justify-end gap-3">
                         <flux:button type="button" variant="ghost" wire:click="back">Batal</flux:button>
-                        <flux:button type="submit" variant="primary">Kirim Laporan</flux:button>
+                        <flux:button type="submit" variant="primary">{{ $editingInPlace ? 'Simpan Perubahan' : 'Kirim Laporan' }}</flux:button>
                     </div>
                 </form>
             </flux:card>

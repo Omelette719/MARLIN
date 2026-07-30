@@ -38,8 +38,20 @@ class Laporan extends Component
 
     private const WORKABLE = [StatusRambuPasang::Belum->value, StatusRambuPasang::Revisi->value];
 
+    // Once a rambu already has a LaporanPengerjaan (MenungguValidasi) or a
+    // Kendala (Tertunda), it's still reachable here so it can be edited in
+    // place or swapped for the other report type — but only until the SPK's
+    // laporan akhir is submitted for admin validation (see currentItem()).
+    private const EDITABLE = [StatusRambuPasang::MenungguValidasi->value, StatusRambuPasang::Tertunda->value];
+
     public function mount(): void
     {
+        if ($this->rambuPasangId) {
+            $this->selectItem($this->rambuPasangId);
+
+            return;
+        }
+
         $this->addBarangBahan();
     }
 
@@ -71,7 +83,8 @@ class Laporan extends Component
 
         return RambuPasang::with(['rambu', 'spk'])
             ->whereIn('rambu_spk_id', $this->eligibleSpkIds())
-            ->whereIn('status', self::WORKABLE)
+            ->whereIn('status', [...self::WORKABLE, ...self::EDITABLE])
+            ->whereHas('spk', fn ($q) => $q->whereNull('laporan_akhir_diajukan_at'))
             ->find($this->rambuPasangId);
     }
 
@@ -80,7 +93,23 @@ class Laporan extends Component
         $this->rambuPasangId = $id;
         $this->reset('foto_sesudah', 'koordinat_gps', 'catatan_lapangan');
         $this->barangBahan = [];
-        $this->addBarangBahan();
+
+        $item = $this->currentItem();
+
+        if ($item && $item->status === StatusRambuPasang::MenungguValidasi) {
+            $laporan = $item->laporanPengerjaan()->with('barangBahan')->latest()->first();
+            $this->koordinat_gps = $laporan?->koordinat_gps ?? '';
+            $this->catatan_lapangan = $laporan?->catatan_lapangan ?? '';
+            $this->barangBahan = $laporan?->barangBahan->map(fn ($bb) => [
+                'nama' => $bb->nama,
+                'jumlah' => $bb->jumlah,
+                'satuan' => $bb->satuan ?? '',
+            ])->values()->all() ?? [];
+        }
+
+        if (empty($this->barangBahan)) {
+            $this->addBarangBahan();
+        }
     }
 
     // Cancelling only ever happens from the per-rambu form, reached from that
@@ -109,8 +138,10 @@ class Laporan extends Component
             return;
         }
 
+        $editingInPlace = $item->status === StatusRambuPasang::MenungguValidasi;
+
         $this->validate([
-            'foto_sesudah' => 'required|image|max:5120',
+            'foto_sesudah' => $editingInPlace ? 'nullable|image|max:5120' : 'required|image|max:5120',
             'koordinat_gps' => 'nullable|string|max:255',
             'catatan_lapangan' => 'nullable|string|max:2000',
             'barangBahan.*.nama' => 'nullable|string|max:255',
@@ -118,15 +149,32 @@ class Laporan extends Component
             'barangBahan.*.satuan' => 'nullable|string|max:50',
         ]);
 
-        DB::transaction(function () use ($item) {
-            $laporan = LaporanPengerjaan::create([
-                'rambu_pasang_id' => $item->id,
-                'dilaporkan_oleh' => Auth::id(),
-                'foto_sesudah' => $this->foto_sesudah?->store('laporan-pengerjaan/sesudah', 'public'),
-                'koordinat_gps' => $this->koordinat_gps ?: $item->rambu->koordinat,
-                'catatan_lapangan' => $this->catatan_lapangan ?: null,
-                'status' => StatusLaporan::Diajukan,
-            ]);
+        DB::transaction(function () use ($item, $editingInPlace) {
+            if ($item->status === StatusRambuPasang::Tertunda) {
+                // Switching from a kendala back to a completion report: the
+                // old kendala no longer applies.
+                $item->kendala()->delete();
+            }
+
+            $laporan = $editingInPlace ? $item->laporanPengerjaan()->latest()->first() : null;
+
+            if ($laporan) {
+                $laporan->update([
+                    'foto_sesudah' => $this->foto_sesudah ? $this->foto_sesudah->store('laporan-pengerjaan/sesudah', 'public') : $laporan->foto_sesudah,
+                    'koordinat_gps' => $this->koordinat_gps ?: $item->rambu->koordinat,
+                    'catatan_lapangan' => $this->catatan_lapangan ?: null,
+                ]);
+                $laporan->barangBahan()->delete();
+            } else {
+                $laporan = LaporanPengerjaan::create([
+                    'rambu_pasang_id' => $item->id,
+                    'dilaporkan_oleh' => Auth::id(),
+                    'foto_sesudah' => $this->foto_sesudah?->store('laporan-pengerjaan/sesudah', 'public'),
+                    'koordinat_gps' => $this->koordinat_gps ?: $item->rambu->koordinat,
+                    'catatan_lapangan' => $this->catatan_lapangan ?: null,
+                    'status' => StatusLaporan::Diajukan,
+                ]);
+            }
 
             foreach ($this->barangBahan as $bb) {
                 if (blank($bb['nama'] ?? null)) {
@@ -147,7 +195,7 @@ class Laporan extends Component
                 'user_id' => Auth::id(),
                 'spk_id' => $item->rambu_spk_id,
                 'aksi' => 'laporan_dikirim',
-                'keterangan' => "Laporan pengerjaan dikirim untuk rambu di {$item->rambu->wilayah}, {$item->rambu->lokasi}.",
+                'keterangan' => "Laporan pengerjaan dikirim/diperbarui untuk rambu di {$item->rambu->wilayah}, {$item->rambu->lokasi}.",
             ]);
 
             Notifikasi::create([
@@ -158,7 +206,7 @@ class Laporan extends Component
             ]);
         });
 
-        Flux::toast(variant: 'success', text: 'Laporan pengerjaan berhasil dikirim.');
+        Flux::toast(variant: 'success', text: 'Laporan pengerjaan berhasil disimpan.');
 
         $this->back();
     }

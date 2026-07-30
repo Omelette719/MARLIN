@@ -31,6 +31,19 @@ class Kendala extends Component
 
     private const WORKABLE = [StatusRambuPasang::Belum->value, StatusRambuPasang::Revisi->value];
 
+    // Once a rambu already has a Kendala (Tertunda) or a LaporanPengerjaan
+    // (MenungguValidasi), it's still reachable here so it can be edited in
+    // place or swapped for the other report type — but only until the SPK's
+    // laporan akhir is submitted for admin validation (see currentItem()).
+    private const EDITABLE = [StatusRambuPasang::Tertunda->value, StatusRambuPasang::MenungguValidasi->value];
+
+    public function mount(): void
+    {
+        if ($this->rambuPasangId) {
+            $this->selectItem($this->rambuPasangId);
+        }
+    }
+
     // Only the designated perwakilan for a joined SPK may submit — the whole
     // team can join to help physically, but exactly one person files reports.
     private function eligibleSpkIds()
@@ -48,7 +61,8 @@ class Kendala extends Component
 
         return RambuPasang::with(['rambu', 'spk'])
             ->whereIn('rambu_spk_id', $this->eligibleSpkIds())
-            ->whereIn('status', self::WORKABLE)
+            ->whereIn('status', [...self::WORKABLE, ...self::EDITABLE])
+            ->whereHas('spk', fn ($q) => $q->whereNull('laporan_akhir_diajukan_at'))
             ->find($this->rambuPasangId);
     }
 
@@ -56,6 +70,12 @@ class Kendala extends Component
     {
         $this->rambuPasangId = $id;
         $this->reset('alasan', 'foto');
+
+        $item = $this->currentItem();
+
+        if ($item && $item->status === StatusRambuPasang::Tertunda) {
+            $this->alasan = $item->kendala()->latest()->first()?->alasan ?? '';
+        }
     }
 
     // Cancelling only ever happens from the per-rambu form, reached from that
@@ -85,18 +105,35 @@ class Kendala extends Component
             return;
         }
 
+        $editingInPlace = $item->status === StatusRambuPasang::Tertunda;
+
         $this->validate([
             'alasan' => 'required|string|max:1000',
-            'foto' => 'required|image|max:5120',
+            'foto' => $editingInPlace ? 'nullable|image|max:5120' : 'required|image|max:5120',
         ]);
 
-        DB::transaction(function () use ($item) {
-            KendalaModel::create([
-                'rambu_pasang_id' => $item->id,
-                'dilaporkan_oleh' => Auth::id(),
-                'alasan' => $this->alasan,
-                'foto' => $this->foto->store('kendala', 'public'),
-            ]);
+        DB::transaction(function () use ($item, $editingInPlace) {
+            if ($item->status === StatusRambuPasang::MenungguValidasi) {
+                // Switching from a completion report back to a kendala: the
+                // old laporan (and its barang_bahan, via cascade) no longer applies.
+                $item->laporanPengerjaan()->delete();
+            }
+
+            $existing = $editingInPlace ? $item->kendala()->latest()->first() : null;
+
+            if ($existing) {
+                $existing->update([
+                    'alasan' => $this->alasan,
+                    'foto' => $this->foto ? $this->foto->store('kendala', 'public') : $existing->foto,
+                ]);
+            } else {
+                KendalaModel::create([
+                    'rambu_pasang_id' => $item->id,
+                    'dilaporkan_oleh' => Auth::id(),
+                    'alasan' => $this->alasan,
+                    'foto' => $this->foto->store('kendala', 'public'),
+                ]);
+            }
 
             $item->update(['status' => StatusRambuPasang::Tertunda]);
 
@@ -104,11 +141,11 @@ class Kendala extends Component
                 'user_id' => Auth::id(),
                 'spk_id' => $item->rambu_spk_id,
                 'aksi' => 'kendala_diajukan',
-                'keterangan' => "Kendala diajukan untuk rambu di {$item->rambu->wilayah}, {$item->rambu->lokasi}.",
+                'keterangan' => "Kendala diajukan/diperbarui untuk rambu di {$item->rambu->wilayah}, {$item->rambu->lokasi}.",
             ]);
         });
 
-        Flux::toast(variant: 'success', text: 'Kendala berhasil diajukan. Setelah semua rambu ditangani, ajukan laporan akhir dari halaman Detail Surat.');
+        Flux::toast(variant: 'success', text: 'Kendala berhasil disimpan. Setelah semua rambu ditangani, ajukan laporan akhir dari halaman Detail Surat.');
 
         $this->back();
     }

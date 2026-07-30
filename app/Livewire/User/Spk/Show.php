@@ -171,7 +171,6 @@ class Show extends Component
             'perwakilan' => $tim->firstWhere('is_perwakilan', true),
             'userOptions' => $userOptions,
             'rambuPasang' => $this->spk->rambuPasang()->with('rambu.jenisRambu')->get(),
-            'workableStatuses' => [StatusRambuPasang::Belum->value, StatusRambuPasang::Revisi->value],
         ];
     }
 
