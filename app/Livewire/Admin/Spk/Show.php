@@ -48,6 +48,7 @@ class Show extends Component
                     'user_id' => $petugas->id,
                     'judul' => 'SPK Dibatalkan',
                     'pesan' => "SPK {$this->spk->nomor_surat} yang kamu kerjakan telah dibatalkan oleh admin.",
+                    'url' => route('user.spk.show', $this->spk),
                     'dibaca' => false,
                 ]);
             }

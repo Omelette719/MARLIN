@@ -140,6 +140,7 @@ class Show extends Component
                         'user_id' => $pelaporId,
                         'judul' => 'Laporan Diterima',
                         'pesan' => "Laporan untuk SPK {$this->spk->nomor_surat} telah diterima.",
+                        'url' => route('user.spk.show', $this->spk),
                         'dibaca' => false,
                     ]);
                 }
@@ -179,6 +180,7 @@ class Show extends Component
                         'user_id' => $pelaporId,
                         'judul' => 'Laporan Ditolak',
                         'pesan' => "Laporan untuk SPK {$this->spk->nomor_surat} ditolak: {$catatan}",
+                        'url' => route('user.spk.show', $this->spk),
                         'dibaca' => false,
                     ]);
                 }

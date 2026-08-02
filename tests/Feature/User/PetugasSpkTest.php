@@ -249,6 +249,10 @@ class PetugasSpkTest extends TestCase
             ->call('ajukanLaporanAkhir');
 
         $this->assertNotNull($spk->fresh()->laporan_akhir_diajukan_at);
+        $this->assertSame(
+            route('admin.validasi.show', $spk),
+            Notifikasi::where('user_id', $admin->id)->where('judul', 'Laporan Akhir Masuk')->first()->url
+        );
     }
 
     public function test_detail_surat_rambu_card_shows_foto_koordinat_and_map_links(): void
@@ -295,6 +299,10 @@ class PetugasSpkTest extends TestCase
         $this->assertSame(StatusRambuPasang::Tertunda, $rambuPasang->fresh()->status);
         $this->assertSame(1, AuditLog::where('aksi', 'kendala_diajukan')->count());
         $this->assertSame(1, Notifikasi::where('user_id', $admin->id)->count());
+        $this->assertSame(
+            route('admin.spk.show', $rambuPasang->rambu_spk_id),
+            Notifikasi::where('user_id', $admin->id)->first()->url
+        );
     }
 
     public function test_petugas_cannot_submit_kendala_without_foto(): void
@@ -390,6 +398,10 @@ class PetugasSpkTest extends TestCase
         $this->assertSame(StatusRambuPasang::MenungguValidasi, $rambuPasang->fresh()->status);
         $this->assertSame(1, AuditLog::where('aksi', 'laporan_dikirim')->count());
         $this->assertSame(1, Notifikasi::where('user_id', $admin->id)->count());
+        $this->assertSame(
+            route('admin.spk.show', $rambuPasang->rambu_spk_id),
+            Notifikasi::where('user_id', $admin->id)->first()->url
+        );
     }
 
     public function test_laporan_form_shows_existing_foto_survei_as_before_reference(): void

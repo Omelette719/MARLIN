@@ -223,6 +223,10 @@ class PenyesuaianDeadlineSpkTest extends TestCase
             1,
             Notifikasi::where('user_id', $admin->id)->where('judul', 'Deadline SPK Bergeser')->count()
         );
+        $this->assertSame(
+            route('admin.spk.show', $lain),
+            Notifikasi::where('user_id', $admin->id)->where('judul', 'Deadline SPK Bergeser')->first()->url
+        );
     }
 
     public function test_editing_deadline_resets_deadline_asli(): void

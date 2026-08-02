@@ -54,6 +54,7 @@ class TemuanKondisiTest extends TestCase
         $this->assertSame(KondisiRambu::Rusak, $rambu->fresh()->kondisi_terkini);
         $this->assertSame(1, AuditLog::where('aksi', 'laporan_kondisi_dibuat')->count());
         $this->assertSame(2, Notifikasi::whereIn('user_id', [$admin1->id, $admin2->id])->count());
+        $this->assertSame(route('admin.temuan.index'), Notifikasi::where('user_id', $admin1->id)->first()->url);
     }
 
     public function test_non_image_foto_is_rejected_immediately_on_upload(): void

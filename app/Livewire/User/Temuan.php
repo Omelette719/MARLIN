@@ -66,6 +66,7 @@ class Temuan extends Component
                     'user_id' => $admin->id,
                     'judul' => 'Temuan Kondisi Rambu',
                     'pesan' => "Petugas melaporkan rambu di {$rambu->wilayah}, {$rambu->lokasi} berkondisi {$this->kondisi_dilaporkan}.",
+                    'url' => route('admin.temuan.index'),
                     'dibaca' => false,
                 ]);
             }

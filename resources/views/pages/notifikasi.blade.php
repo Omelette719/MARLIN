@@ -22,11 +22,19 @@
                         <flux:text class="text-xs text-zinc-400">{{ $item->created_at->diffForHumans() }}</flux:text>
                     </div>
 
-                    @if (! $item->dibaca)
-                        <flux:button size="sm" variant="ghost" wire:click="tandaiDibaca({{ $item->id }})">
-                            Tandai Dibaca
-                        </flux:button>
-                    @endif
+                    <div class="flex shrink-0 items-center gap-2">
+                        @if ($item->url)
+                            <flux:button size="sm" variant="primary" wire:click="bukaNotifikasi({{ $item->id }})">
+                                Lihat
+                            </flux:button>
+                        @endif
+
+                        @if (! $item->dibaca)
+                            <flux:button size="sm" variant="ghost" wire:click="tandaiDibaca({{ $item->id }})">
+                                Tandai Dibaca
+                            </flux:button>
+                        @endif
+                    </div>
                 </div>
             @empty
                 <div class="p-6 text-center text-zinc-500">Belum ada notifikasi.</div>

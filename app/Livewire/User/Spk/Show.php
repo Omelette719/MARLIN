@@ -165,6 +165,7 @@ class Show extends Component
             'user_id' => $this->spk->dibuat_oleh,
             'judul' => 'Laporan Akhir Masuk',
             'pesan' => "Laporan akhir untuk SPK {$this->spk->nomor_surat} siap divalidasi.",
+            'url' => route('admin.validasi.show', $this->spk),
             'dibaca' => false,
         ]);
 

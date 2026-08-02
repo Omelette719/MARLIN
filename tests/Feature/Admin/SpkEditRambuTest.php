@@ -159,6 +159,10 @@ class SpkEditRambuTest extends TestCase
         $this->assertSame(1, $spk->auditLogs()->where('aksi', 'rambu_pasang_dibatalkan')->count());
         $this->assertSame('aktif', $spk->fresh()->status->value);
         $this->assertSame(1, Notifikasi::where('user_id', $petugas->id)->where('judul', 'Rambu Dibatalkan')->count());
+        $this->assertSame(
+            route('user.spk.show', $spk),
+            Notifikasi::where('user_id', $petugas->id)->where('judul', 'Rambu Dibatalkan')->first()->url
+        );
     }
 
     public function test_batalkan_single_rambu_requires_reason(): void

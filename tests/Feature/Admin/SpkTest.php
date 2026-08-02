@@ -239,6 +239,9 @@ class SpkTest extends TestCase
         $this->assertSame(1, Notifikasi::where('user_id', $activePetugas->id)->count());
         $this->assertSame(0, Notifikasi::where('user_id', $inactivePetugas->id)->count());
         $this->assertSame(0, Notifikasi::where('user_id', $admin->id)->count());
+
+        $spk = Spk::first();
+        $this->assertSame(route('user.spk.show', $spk), Notifikasi::where('user_id', $activePetugas->id)->first()->url);
     }
 
     public function test_admin_can_create_spk_with_perbaikan_referencing_existing_rambu(): void

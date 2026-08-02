@@ -150,6 +150,7 @@ class Kendala extends Component
                 'user_id' => $item->spk->dibuat_oleh,
                 'judul' => 'Kendala Dilaporkan',
                 'pesan' => "Petugas melaporkan kendala untuk SPK {$item->spk->nomor_surat} di {$item->rambu->wilayah}, {$item->rambu->lokasi}: {$this->alasan}",
+                'url' => route('admin.spk.show', $item->spk),
                 'dibaca' => false,
             ]);
         });

@@ -20,6 +20,25 @@ class Notifikasi extends Component
             ->update(['dibaca' => true]);
     }
 
+    // Notifications that link somewhere are opened via this single action so
+    // clicking through always also marks it read — no separate "tandai dibaca"
+    // click needed first. Notifications without a url (nothing sensible to
+    // navigate to) never render the button that calls this.
+    public function bukaNotifikasi(int $id): void
+    {
+        $notif = NotifikasiModel::where('id', $id)
+            ->where('user_id', Auth::id())
+            ->first();
+
+        if (! $notif || ! $notif->url) {
+            return;
+        }
+
+        $notif->update(['dibaca' => true]);
+
+        $this->redirect($notif->url, navigate: true);
+    }
+
     public function tandaiSemuaDibaca(): void
     {
         NotifikasiModel::where('user_id', Auth::id())

@@ -491,5 +491,9 @@ class AdminSpkShowTest extends TestCase
         $this->assertSame(StatusRambuPasang::Batal, $rambuPasang->status);
         $this->assertSame(1, $spk->auditLogs()->where('aksi', 'spk_dibatalkan')->count());
         $this->assertSame(1, Notifikasi::where('user_id', $petugas->id)->where('judul', 'SPK Dibatalkan')->count());
+        $this->assertSame(
+            route('user.spk.show', $spk),
+            Notifikasi::where('user_id', $petugas->id)->where('judul', 'SPK Dibatalkan')->first()->url
+        );
     }
 }

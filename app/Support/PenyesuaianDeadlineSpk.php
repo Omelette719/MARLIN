@@ -72,6 +72,7 @@ class PenyesuaianDeadlineSpk
                         'user_id' => $target->dibuat_oleh,
                         'judul' => 'Deadline SPK Bergeser',
                         'pesan' => "Deadline SPK {$target->nomor_surat} otomatis mundur dari {$deadlineLama} ke {$kandidat->toDateString()} karena SPK prioritas {$spkPrioritas->nomor_surat} dibuat.",
+                        'url' => route('admin.spk.show', $target),
                         'dibaca' => false,
                     ]);
                 });

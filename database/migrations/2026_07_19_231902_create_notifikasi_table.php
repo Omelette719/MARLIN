@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained('users')->restrictOnDelete();
             $table->string('judul');
             $table->string('pesan');
+            $table->string('url')->nullable();
             $table->boolean('dibaca')->default(false);
             $table->timestamp('created_at')->useCurrent();
         });

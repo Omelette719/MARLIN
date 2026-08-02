@@ -290,6 +290,7 @@ class Create extends Component
                     'user_id' => $petugas->id,
                     'judul' => 'SPK Baru Tersedia',
                     'pesan' => "SPK {$spk->nomor_surat} untuk wilayah {$spk->wilayah} sudah bisa dikerjakan.",
+                    'url' => route('user.spk.show', $spk),
                     'dibaca' => false,
                 ]);
             }

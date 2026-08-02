@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 #[Table('notifikasi')]
-#[Fillable(['user_id', 'judul', 'pesan', 'dibaca'])]
+#[Fillable(['user_id', 'judul', 'pesan', 'url', 'dibaca'])]
 class Notifikasi extends Model
 {
     const UPDATED_AT = null;

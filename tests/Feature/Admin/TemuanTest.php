@@ -72,6 +72,8 @@ class TemuanTest extends TestCase
         $this->assertSame(StatusTindakLanjut::Ditolak, $temuan->fresh()->status_tindak_lanjut);
         $this->assertSame(1, AuditLog::where('aksi', 'temuan_ditolak')->count());
         $this->assertSame(1, Notifikasi::where('user_id', $petugas->id)->count());
+        // Petugas has no dedicated "my temuan" page to link to, so this notification stays unclickable.
+        $this->assertNull(Notifikasi::where('user_id', $petugas->id)->first()->url);
     }
 
     public function test_admin_creating_spk_from_temuan_prefills_perbaikan_and_marks_handled(): void

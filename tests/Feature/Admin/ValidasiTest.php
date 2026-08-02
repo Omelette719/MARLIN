@@ -111,6 +111,7 @@ class ValidasiTest extends TestCase
         $this->assertNull($spk->fresh()->laporan_akhir_diajukan_at);
         $this->assertSame(1, AuditLog::where('aksi', 'validasi_diterima')->count());
         $this->assertSame(1, Notifikasi::where('user_id', $petugas->id)->count());
+        $this->assertSame(route('user.spk.show', $spk), Notifikasi::where('user_id', $petugas->id)->first()->url);
     }
 
     public function test_admin_can_approve_laporan_perbaikan_and_fixes_kondisi(): void
@@ -155,6 +156,7 @@ class ValidasiTest extends TestCase
         $this->assertNull($spk->fresh()->laporan_akhir_diajukan_at);
         $this->assertSame(1, AuditLog::where('aksi', 'validasi_ditolak')->count());
         $this->assertSame(1, Notifikasi::where('user_id', $petugas->id)->count());
+        $this->assertSame(route('user.spk.show', $spk), Notifikasi::where('user_id', $petugas->id)->first()->url);
     }
 
     public function test_validasi_page_shows_before_photo_from_rambu_pasang_and_after_photo_from_laporan(): void

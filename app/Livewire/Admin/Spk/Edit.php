@@ -183,6 +183,7 @@ class Edit extends Component
                     'user_id' => $petugas->id,
                     'judul' => 'Rambu Dibatalkan',
                     'pesan' => "Rambu di {$rp->rambu->wilayah}, {$rp->rambu->lokasi} (SPK {$this->spk->nomor_surat}) dibatalkan: {$this->catatan_pembatalan}",
+                    'url' => route('user.spk.show', $this->spk),
                     'dibaca' => false,
                 ]);
             }
