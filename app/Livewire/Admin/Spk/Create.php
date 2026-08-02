@@ -56,6 +56,8 @@ class Create extends Component
 
     public string $tanggal_survei = '';
 
+    public string $petugas_survei = '';
+
     public $file_referensi = null;
 
     public string $catatan_pekerja_tambahan = '';
@@ -161,10 +163,13 @@ class Create extends Component
             'asal_permintaan' => 'required|string',
             'keterangan_asal' => 'nullable|string|max:1000',
             'tanggal_survei' => 'nullable|date',
+            'petugas_survei' => 'nullable|string|max:500|required_with:tanggal_survei',
             'file_referensi' => 'nullable|image|max:5120',
             'catatan_pekerja_tambahan' => 'nullable|string|max:2000',
             'rt_nama' => 'nullable|string|max:255',
             'rt_telepon' => 'nullable|string|max:30',
+        ], [
+            'petugas_survei.required_with' => 'Isi petugas survei kalau tanggal survei sudah diisi.',
         ]);
 
         if (count($this->rambuItems) < 1) {
@@ -216,6 +221,7 @@ class Create extends Component
                 'asal_permintaan' => $this->asal_permintaan,
                 'keterangan_asal' => $this->keterangan_asal ?: null,
                 'tanggal_survei' => $this->tanggal_survei ?: null,
+                'petugas_survei' => $this->petugas_survei ?: null,
                 'file_referensi' => $this->file_referensi?->store('spk/referensi', 'public'),
                 'catatan_pekerja_tambahan' => $this->catatan_pekerja_tambahan ?: null,
             ]);

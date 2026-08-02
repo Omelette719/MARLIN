@@ -35,7 +35,10 @@
                     <flux:input wire:model="keterangan_asal" label="Keterangan Asal" placeholder="Opsional, mis. nama pelapor/instansi" />
                 </div>
 
-                <flux:input wire:model="tanggal_survei" type="date" label="Tanggal Survei" description="Opsional. Kalau diisi, akan muncul di surat pengantar sebagai '(DISURVEI TGL ...)'." />
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <flux:input wire:model="tanggal_survei" type="date" label="Tanggal Survei" description="Opsional. Kalau diisi, akan muncul di surat pengantar sebagai '(DISURVEI TGL ...)'." />
+                    <flux:input wire:model="petugas_survei" label="Petugas Survei" placeholder="Nama-nama petugas, pisahkan dengan koma" description="Wajib diisi jika tanggal survei diisi. Tidak muncul di surat pengantar." />
+                </div>
 
                 <flux:checkbox wire:model="prioritas" label="Tandai sebagai prioritas" description="Jika dicentang, urgensi otomatis menjadi Tinggi terlepas dari deadline." />
 

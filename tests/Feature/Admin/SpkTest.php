@@ -136,6 +136,7 @@ class SpkTest extends TestCase
             ->set('deadline', now()->addDays(5)->toDateString())
             ->set('asal_permintaan', 'internal')
             ->set('tanggal_survei', '2026-06-15')
+            ->set('petugas_survei', 'Budi, Andi')
             ->set('rt_nama', 'RT. 27 Matoha')
             ->set('rt_telepon', '08981112210')
             ->set('rambuItems.0.jenis_rambu_id', (string) $jenisRambu->id)
@@ -152,11 +153,38 @@ class SpkTest extends TestCase
         $this->assertSame('Jl. Gatot X RT. 27 Kel. Pengambangan', $spk->wilayah);
         $this->assertSame('pemasangan cermin tikungan', $spk->perihal);
         $this->assertSame('2026-06-15', $spk->tanggal_survei->toDateString());
+        $this->assertSame('Budi, Andi', $spk->petugas_survei);
         $this->assertSame(1, $spk->rtPerwakilan()->count());
 
         $rt = $spk->rtPerwakilan()->first();
         $this->assertSame('RT. 27 Matoha', $rt->nama_lengkap);
         $this->assertSame('08981112210', $rt->no_telepon);
+    }
+
+    public function test_petugas_survei_required_when_tanggal_survei_filled(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $this->actingAs($admin);
+
+        $jenisRambu = JenisRambu::create(['nama_jenis' => 'Cermin Tikungan']);
+
+        Livewire::test(SpkCreateComponent::class)
+            ->set('jenis_spk', JenisPekerjaan::PasangBaru->value)
+            ->set('jalan', 'Gatot X')
+            ->set('rt', '27')
+            ->set('kelurahan', 'Pengambangan')
+            ->set('deadline', now()->addDays(5)->toDateString())
+            ->set('asal_permintaan', 'internal')
+            ->set('tanggal_survei', '2026-06-15')
+            ->set('petugas_survei', '')
+            ->set('rambuItems.0.jenis_rambu_id', (string) $jenisRambu->id)
+            ->set('rambuItems.0.lokasi', 'Perempatan 1')
+            ->set('rambuItems.0.koordinat', '-3.3194,114.5908')
+            ->set('rambuItems.0.jumlah', 1)
+            ->call('save')
+            ->assertHasErrors(['petugas_survei' => 'required_with']);
+
+        $this->assertSame(0, Spk::count());
     }
 
     public function test_admin_can_create_spk_without_tanggal_survei_or_rt_perwakilan(): void

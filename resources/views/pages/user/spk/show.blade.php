@@ -53,6 +53,19 @@
                 </div>
             </div>
 
+            @if ($spk->tanggal_survei)
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div>
+                        <flux:text class="text-sm text-zinc-500">Tanggal Survei</flux:text>
+                        <flux:text>{{ $spk->tanggal_survei->translatedFormat('d M Y') }}</flux:text>
+                    </div>
+                    <div>
+                        <flux:text class="text-sm text-zinc-500">Petugas Survei</flux:text>
+                        <flux:text>{{ $spk->petugas_survei }}</flux:text>
+                    </div>
+                </div>
+            @endif
+
             @if ($spk->catatan_pekerja_tambahan)
                 <div>
                     <flux:text class="text-sm text-zinc-500">Catatan</flux:text>

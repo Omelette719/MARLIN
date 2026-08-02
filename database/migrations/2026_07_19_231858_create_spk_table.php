@@ -29,6 +29,7 @@ return new class extends Migration
             $table->string('keterangan_asal')->nullable();
             $table->string('perihal')->nullable();
             $table->date('tanggal_survei')->nullable();
+            $table->string('petugas_survei')->nullable();
             $table->string('file_referensi')->nullable();
             $table->string('catatan_pekerja_tambahan')->nullable();
             $table->timestamp('laporan_akhir_diajukan_at')->nullable();

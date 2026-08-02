@@ -513,6 +513,20 @@ class PetugasSpkTest extends TestCase
         $response->assertSee('Pemasangan miring, perlu diperbaiki.');
     }
 
+    public function test_user_spk_detail_shows_tanggal_dan_petugas_survei(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $this->actingAs(User::factory()->create());
+
+        $rambuPasang = $this->makeRambuPasang($admin);
+        $rambuPasang->spk->update(['tanggal_survei' => '2026-06-15', 'petugas_survei' => 'Budi, Andi']);
+
+        $response = $this->get(route('user.spk.show', $rambuPasang->spk));
+
+        $response->assertOk();
+        $response->assertSee('Budi, Andi');
+    }
+
     public function test_petugas_cannot_submit_laporan_if_joined_but_not_perwakilan(): void
     {
         $admin = User::factory()->admin()->create();

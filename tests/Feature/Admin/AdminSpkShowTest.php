@@ -122,6 +122,30 @@ class AdminSpkShowTest extends TestCase
         $response->assertSee('https://www.google.com/maps/search/?api=1&query=-3.30,114.59');
     }
 
+    public function test_admin_spk_detail_shows_tanggal_dan_petugas_survei(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $this->actingAs($admin);
+
+        $spk = Spk::create([
+            'nomor_surat' => 'SR-2026/BJM/7007',
+            'dibuat_oleh' => $admin->id,
+            'jenis_spk' => 'pasang_baru',
+            'wilayah' => 'Banjarmasin Tengah',
+            'deadline' => now()->addDays(5),
+            'urgensi' => 'sedang',
+            'status' => 'aktif',
+            'asal_permintaan' => 'internal',
+            'tanggal_survei' => '2026-06-15',
+            'petugas_survei' => 'Budi, Andi',
+        ]);
+
+        $response = $this->get(route('admin.spk.show', $spk));
+
+        $response->assertOk();
+        $response->assertSee('Budi, Andi');
+    }
+
     public function test_daftar_surat_card_shows_placeholder_not_jenis_rambu_icon_when_no_foto_survei(): void
     {
         $admin = User::factory()->admin()->create();
@@ -345,6 +369,58 @@ class AdminSpkShowTest extends TestCase
         $this->assertSame('Jl. Ahmad Yani RT. 12 Kel. Kertak Baru', $spk->wilayah);
         $this->assertSame('perbaikan rambu larangan', $spk->perihal);
         $this->assertSame(Urgensi::Tinggi, $spk->urgensi);
+    }
+
+    public function test_admin_can_edit_tanggal_dan_petugas_survei(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $this->actingAs($admin);
+
+        $spk = Spk::create([
+            'nomor_surat' => 'SR-2026/BJM/8017',
+            'dibuat_oleh' => $admin->id,
+            'jenis_spk' => 'pasang_baru',
+            'jalan' => 'Veteran',
+            'rt' => '5',
+            'kelurahan' => 'Antasan Besar',
+            'wilayah' => 'Jl. Veteran RT. 5 Kel. Antasan Besar',
+            'deadline' => now()->addDays(10),
+            'urgensi' => 'rendah',
+            'status' => 'aktif',
+            'asal_permintaan' => 'internal',
+        ]);
+
+        $jenis = JenisRambu::create(['nama_jenis' => 'Rambu Peringatan']);
+        $rambu = Rambu::create([
+            'jenis_rambu_id' => $jenis->id,
+            'wilayah' => 'Jl. Veteran RT. 5 Kel. Antasan Besar',
+            'lokasi' => 'Depan kantor lurah',
+            'koordinat' => '-3.30,114.59',
+        ]);
+        RambuPasang::create([
+            'rambu_spk_id' => $spk->id,
+            'rambu_id' => $rambu->id,
+            'jenis_pekerjaan' => 'pasang_baru',
+            'jumlah' => 1,
+            'status' => 'belum',
+        ]);
+
+        Livewire::test(SpkEditComponent::class, ['spk' => $spk])
+            ->set('tanggal_survei', '2026-06-15')
+            ->set('petugas_survei', '')
+            ->call('save')
+            ->assertHasErrors(['petugas_survei' => 'required_with']);
+
+        Livewire::test(SpkEditComponent::class, ['spk' => $spk])
+            ->set('tanggal_survei', '2026-06-15')
+            ->set('petugas_survei', 'Budi, Andi')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $spk->refresh();
+
+        $this->assertSame('2026-06-15', $spk->tanggal_survei->toDateString());
+        $this->assertSame('Budi, Andi', $spk->petugas_survei);
     }
 
     public function test_cannot_edit_selesai_spk(): void

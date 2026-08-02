@@ -19,7 +19,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 #[Fillable([
     'nomor_surat', 'dibuat_oleh', 'wilayah', 'jalan', 'rt', 'kelurahan', 'deadline', 'deadline_asli', 'prioritas',
     'urgensi', 'status', 'jenis_spk', 'asal_permintaan', 'keterangan_asal', 'perihal', 'tanggal_survei',
-    'file_referensi', 'catatan_pekerja_tambahan', 'laporan_akhir_diajukan_at',
+    'petugas_survei', 'file_referensi', 'catatan_pekerja_tambahan', 'laporan_akhir_diajukan_at',
 ])]
 class Spk extends Model
 {

@@ -147,6 +147,20 @@ class SuratPengantarTest extends TestCase
         $this->assertStringContainsString('08226735526', $html);
     }
 
+    public function test_petugas_survei_never_shown_in_surat_pengantar_but_tanggal_survei_is(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $spk = $this->makeSpk($admin);
+        $spk->update(['tanggal_survei' => '2026-06-15', 'petugas_survei' => 'Budi, Andi']);
+
+        $spk->load(['rambuPasang.rambu.jenisRambu', 'dikerjakanOleh.user', 'pembuat', 'rtPerwakilan']);
+
+        $html = view('pdf.surat-pengantar', ['spk' => $spk])->render();
+
+        $this->assertStringContainsString('DISURVEI TGL 15 JUNI 2026', $html);
+        $this->assertStringNotContainsString('Budi, Andi', $html);
+    }
+
     public function test_unjoined_petugas_cannot_download_surat_pengantar(): void
     {
         $admin = User::factory()->admin()->create();
