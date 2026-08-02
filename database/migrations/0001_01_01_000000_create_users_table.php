@@ -24,6 +24,8 @@ return new class extends Migration
             $table->string('jabatan')->nullable();
             $table->string('no_telepon', 20)->nullable();
             $table->boolean('aktif')->default(true);
+            $table->string('telegram_chat_id')->nullable()->unique();
+            $table->string('telegram_link_token')->nullable()->unique();
             $table->string('password');
             $table->text('two_factor_secret')->nullable();
             $table->text('two_factor_recovery_codes')->nullable();

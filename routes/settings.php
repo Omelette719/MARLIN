@@ -2,6 +2,7 @@
 
 use App\Livewire\Settings\Profile;
 use App\Livewire\Settings\Security;
+use App\Livewire\Settings\Telegram;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 
@@ -9,6 +10,7 @@ Route::middleware(['auth'])->group(function () {
     Route::redirect('settings', 'settings/profile');
 
     Route::livewire('settings/profile', Profile::class)->name('profile.edit');
+    Route::livewire('settings/telegram', Telegram::class)->name('telegram.edit');
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {

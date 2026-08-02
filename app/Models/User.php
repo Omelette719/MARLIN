@@ -19,7 +19,7 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
 #[Fillable([
     'name', 'nama_panggilan', 'nip', 'username', 'role',
     'tanggal_lahir', 'jenis_kelamin', 'bidang', 'jabatan', 'no_telepon', 'aktif',
-    'password',
+    'password', 'telegram_chat_id', 'telegram_link_token',
 ])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable
