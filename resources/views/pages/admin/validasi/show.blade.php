@@ -128,11 +128,9 @@
                 @endforeach
 
                 <div class="flex justify-end">
-                    <flux:button
-                        variant="primary"
-                        wire:click="lanjutkan"
-                        wire:confirm="Lanjutkan proses validasi? Rambu yang dicentang akan langsung disetujui dan tidak bisa dibatalkan."
-                    >Proses Validasi</flux:button>
+                    <flux:modal.trigger name="proses-validasi">
+                        <flux:button variant="primary">Proses Validasi</flux:button>
+                    </flux:modal.trigger>
                 </div>
             </div>
         @else
@@ -164,12 +162,28 @@
 
                 <div class="flex justify-end gap-3">
                     <flux:button type="button" variant="ghost" wire:click="kembali">Kembali</flux:button>
-                    <flux:button
-                        variant="danger"
-                        wire:click="konfirmasiPenolakan"
-                        wire:confirm="Konfirmasi hasil validasi ini? Tindakan ini tidak bisa dibatalkan."
-                    >Konfirmasi & Selesaikan</flux:button>
+                    <flux:modal.trigger name="konfirmasi-penolakan">
+                        <flux:button variant="danger">Konfirmasi & Selesaikan</flux:button>
+                    </flux:modal.trigger>
                 </div>
             </flux:card>
         @endif
+
+        <x-confirm-modal
+            name="proses-validasi"
+            heading="Lanjutkan proses validasi?"
+            text="Rambu yang dicentang akan langsung disetujui dan tidak bisa dibatalkan."
+            action="lanjutkan"
+            confirm-label="Ya, Lanjutkan"
+            tone="primary"
+        />
+
+        <x-confirm-modal
+            name="konfirmasi-penolakan"
+            heading="Konfirmasi hasil validasi ini?"
+            text="Rambu yang ditolak akan dikembalikan ke petugas untuk direvisi. Tindakan ini tidak bisa dibatalkan."
+            action="konfirmasiPenolakan"
+            confirm-label="Ya, Konfirmasi"
+            tone="danger"
+        />
     </div>

@@ -80,6 +80,7 @@ class Show extends Component
 
         $this->reset('anggotaIds');
 
+        Flux::modal('daftarkan-tim')->close();
         Flux::toast(variant: 'success', text: 'Tim berhasil didaftarkan untuk surat ini.');
     }
 
@@ -110,6 +111,7 @@ class Show extends Component
 
         $this->reset('anggotaIds');
 
+        Flux::modal('tambah-anggota')->close();
         Flux::toast(variant: 'success', text: 'Anggota tim berhasil ditambahkan.');
     }
 
@@ -166,6 +168,7 @@ class Show extends Component
             'dibaca' => false,
         ]);
 
+        Flux::modal('ajukan-laporan-akhir')->close();
         Flux::toast(variant: 'success', text: 'Laporan akhir berhasil diajukan ke admin.');
     }
 

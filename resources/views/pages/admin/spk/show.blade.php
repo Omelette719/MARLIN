@@ -28,14 +28,11 @@
                     <flux:button variant="ghost" icon="pencil" :href="route('admin.spk.edit', $spk)" wire:navigate>
                         Edit
                     </flux:button>
-                    <flux:button
-                        variant="danger"
-                        icon="x-circle"
-                        wire:click="batalkan"
-                        wire:confirm="Yakin ingin membatalkan SPK ini? Rambu yang belum selesai akan ditandai batal."
-                    >
-                        Batalkan SPK
-                    </flux:button>
+                    <flux:modal.trigger name="batalkan-spk">
+                        <flux:button variant="danger" icon="x-circle">
+                            Batalkan SPK
+                        </flux:button>
+                    </flux:modal.trigger>
                 @endif
                 <flux:button variant="ghost" :href="route('admin.spk.index')" wire:navigate>Kembali</flux:button>
             </div>
@@ -168,4 +165,13 @@
                 @endforeach
             </div>
         </flux:card>
+
+        <x-confirm-modal
+            name="batalkan-spk"
+            heading="Batalkan SPK ini?"
+            text="Rambu yang belum selesai akan ditandai batal. Tindakan ini tidak bisa dibatalkan."
+            action="batalkan"
+            confirm-label="Ya, Batalkan SPK"
+            tone="danger"
+        />
     </div>

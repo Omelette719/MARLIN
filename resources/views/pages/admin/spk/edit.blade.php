@@ -143,9 +143,20 @@
                                     </flux:button>
                                 @endif
                                 @if ($item['can_hapus'])
-                                    <flux:button type="button" size="sm" variant="danger" wire:click="hapusRambu({{ $index }})" wire:confirm="Hapus rambu ini dari surat? Tindakan ini tidak bisa dibatalkan.">
-                                        Hapus
-                                    </flux:button>
+                                    <flux:modal.trigger name="hapus-rambu-{{ $index }}">
+                                        <flux:button type="button" size="sm" variant="danger">
+                                            Hapus
+                                        </flux:button>
+                                    </flux:modal.trigger>
+
+                                    <x-confirm-modal
+                                        name="hapus-rambu-{{ $index }}"
+                                        heading="Hapus rambu ini dari surat?"
+                                        text="Rambu akan dihapus permanen dari daftar surat ini. Tindakan ini tidak bisa dibatalkan."
+                                        action="hapusRambu({{ $index }})"
+                                        confirm-label="Ya, Hapus"
+                                        tone="danger"
+                                    />
                                 @endif
                             </div>
                         @endif

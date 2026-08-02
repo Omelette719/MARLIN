@@ -234,6 +234,7 @@ class Edit extends Component
         unset($this->rambuItems[$index]);
         $this->rambuItems = array_values($this->rambuItems);
 
+        Flux::modal("hapus-rambu-{$index}")->close();
         Flux::toast(variant: 'success', text: 'Rambu berhasil dihapus dari surat.');
     }
 

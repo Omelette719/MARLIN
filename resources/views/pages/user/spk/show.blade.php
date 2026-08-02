@@ -69,18 +69,16 @@
                     Surat ini belum didaftarkan timnya. Kalau kamu yang akan mengerjakan, daftarkan dirimu sebagai perwakilan beserta anggota timmu.
                 </flux:text>
 
-                <form
-                    wire:submit="daftarkanTim"
-                    wire:confirm="Daftarkan dirimu sebagai perwakilan untuk surat ini? Tindakan ini tidak bisa dibatalkan."
-                    class="flex flex-col gap-3 rounded-lg border border-zinc-200 bg-zinc-50 p-4"
-                >
+                <div class="flex flex-col gap-3 rounded-lg border border-zinc-200 bg-zinc-50 p-4">
                     <x-searchable-multiselect
                         wire-model="anggotaIds"
                         :options="$userOptions"
                         label="Anggota Tim (opsional, kamu otomatis jadi perwakilan)"
                     />
-                    <flux:button type="submit" variant="primary" size="sm" class="self-start">Daftarkan Tim</flux:button>
-                </form>
+                    <flux:modal.trigger name="daftarkan-tim">
+                        <flux:button type="button" variant="primary" size="sm" class="self-start">Daftarkan Tim</flux:button>
+                    </flux:modal.trigger>
+                </div>
             @else
                 <ul class="list-inside list-disc">
                     @foreach ($tim as $t)
@@ -96,16 +94,12 @@
                             + Tambah Anggota
                         </flux:button>
 
-                        <form
-                            wire:submit="tambahAnggota"
-                            wire:confirm="Tambahkan anggota yang dipilih ke tim ini? Anggota yang sudah ditambahkan tidak bisa dihapus lagi."
-                            x-show="tambah"
-                            x-cloak
-                            class="flex flex-col gap-3"
-                        >
+                        <div x-show="tambah" x-cloak class="flex flex-col gap-3">
                             <x-searchable-multiselect wire-model="anggotaIds" :options="$userOptions" label="Anggota Baru" />
-                            <flux:button type="submit" variant="primary" size="sm" class="self-start">Tambahkan</flux:button>
-                        </form>
+                            <flux:modal.trigger name="tambah-anggota">
+                                <flux:button type="button" variant="primary" size="sm" class="self-start">Tambahkan</flux:button>
+                            </flux:modal.trigger>
+                        </div>
                     </div>
                 @elseif ($this->sudahBergabung)
                     <flux:badge color="zinc" size="sm" class="w-fit">Kamu bagian dari tim ini</flux:badge>
@@ -125,9 +119,11 @@
             @elseif ($this->sayaPerwakilan)
                 @if ($this->siapDiajukan)
                     <flux:text class="text-sm text-zinc-500">Semua rambu sudah ditangani (selesai atau terkendala). Surat ini siap diajukan sebagai laporan akhir.</flux:text>
-                    <flux:button variant="primary" size="sm" class="self-start" wire:click="ajukanLaporanAkhir" wire:confirm="Ajukan laporan akhir untuk surat ini?">
-                        Ajukan Laporan Akhir
-                    </flux:button>
+                    <flux:modal.trigger name="ajukan-laporan-akhir">
+                        <flux:button variant="primary" size="sm" class="self-start">
+                            Ajukan Laporan Akhir
+                        </flux:button>
+                    </flux:modal.trigger>
                 @else
                     <flux:text class="text-sm text-zinc-500">Selesaikan atau ajukan kendala untuk semua rambu di bawah dulu sebelum bisa mengajukan laporan akhir.</flux:text>
                 @endif
@@ -216,4 +212,31 @@
                 @endforeach
             </div>
         </flux:card>
+
+        <x-confirm-modal
+            name="daftarkan-tim"
+            heading="Daftarkan diri sebagai perwakilan?"
+            text="Kamu akan menjadi perwakilan untuk surat ini. Tindakan ini tidak bisa dibatalkan."
+            action="daftarkanTim"
+            confirm-label="Ya, Daftarkan"
+            tone="primary"
+        />
+
+        <x-confirm-modal
+            name="tambah-anggota"
+            heading="Tambahkan anggota ke tim ini?"
+            text="Anggota yang sudah ditambahkan tidak bisa dihapus lagi dari tim."
+            action="tambahAnggota"
+            confirm-label="Ya, Tambahkan"
+            tone="primary"
+        />
+
+        <x-confirm-modal
+            name="ajukan-laporan-akhir"
+            heading="Ajukan laporan akhir?"
+            text="Setelah diajukan, kendala/laporan tiap rambu tidak bisa diedit lagi sampai admin selesai memvalidasi. Tindakan ini tidak bisa dibatalkan."
+            action="ajukanLaporanAkhir"
+            confirm-label="Ya, Ajukan"
+            tone="primary"
+        />
     </div>

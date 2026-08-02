@@ -55,6 +55,7 @@ class Show extends Component
 
         $this->spk->refresh();
 
+        Flux::modal('batalkan-spk')->close();
         Flux::toast(variant: 'success', text: "Surat {$this->spk->nomor_surat} berhasil dibatalkan.");
     }
 

@@ -31,9 +31,20 @@
                                 <flux:button size="sm" variant="primary" :href="route('admin.spk.create', ['laporan_kondisi' => $item->id])" wire:navigate>
                                     Buat SPK
                                 </flux:button>
-                                <flux:button size="sm" variant="ghost" wire:click="tolak({{ $item->id }})" wire:confirm="Tandai temuan ini sebagai ditolak?">
-                                    Tolak
-                                </flux:button>
+                                <flux:modal.trigger name="tolak-temuan-{{ $item->id }}">
+                                    <flux:button size="sm" variant="ghost">
+                                        Tolak
+                                    </flux:button>
+                                </flux:modal.trigger>
+
+                                <x-confirm-modal
+                                    name="tolak-temuan-{{ $item->id }}"
+                                    heading="Tolak temuan ini?"
+                                    text="Temuan akan ditandai sebagai ditolak dan tidak akan muncul lagi di daftar ini."
+                                    action="tolak({{ $item->id }})"
+                                    confirm-label="Ya, Tolak"
+                                    tone="danger"
+                                />
                             </flux:table.cell>
                         </flux:table.row>
                     @empty

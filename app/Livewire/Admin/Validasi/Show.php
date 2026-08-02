@@ -66,6 +66,8 @@ class Show extends Component
 
     public function lanjutkan(): void
     {
+        Flux::modal('proses-validasi')->close();
+
         $uncheckedIds = collect($this->checked)->filter(fn ($v) => ! $v)->keys();
 
         if ($uncheckedIds->isEmpty()) {

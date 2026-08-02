@@ -32,6 +32,7 @@ class Index extends Component
             'dibaca' => false,
         ]);
 
+        Flux::modal("tolak-temuan-{$id}")->close();
         Flux::toast(variant: 'success', text: 'Temuan ditandai sebagai ditolak.');
     }
 
