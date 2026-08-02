@@ -52,6 +52,18 @@ class Show extends Component
             ->get();
     }
 
+    // Every rambu in the SPK, not just the ones awaiting a decision right now —
+    // an SPK that's been through a partial reject/redo cycle already has some
+    // rambu sitting at Selesai from an earlier accepted round, and admin needs
+    // that full picture (not just whatever's newly pending) to make sense of
+    // "why is this SPK back in my queue with only one rambu to review".
+    private function semuaRambuPasang()
+    {
+        return RambuPasang::where('rambu_spk_id', $this->spk->id)
+            ->with(['rambu.jenisRambu', 'laporanPengerjaan' => fn ($q) => $q->latest()])
+            ->get();
+    }
+
     public function lanjutkan(): void
     {
         $uncheckedIds = collect($this->checked)->filter(fn ($v) => ! $v)->keys();
@@ -193,6 +205,7 @@ class Show extends Component
     {
         return [
             'pending' => $this->pendingRambuPasang(),
+            'semua' => $this->semuaRambuPasang(),
         ];
     }
 

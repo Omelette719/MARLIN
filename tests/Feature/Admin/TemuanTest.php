@@ -6,8 +6,10 @@ use App\Enums\JenisPekerjaan;
 use App\Enums\StatusTindakLanjut;
 use App\Livewire\Admin\Spk\Create as SpkCreateComponent;
 use App\Livewire\Admin\Temuan\Index as TemuanIndexComponent;
+use App\Models\AuditLog;
 use App\Models\JenisRambu;
 use App\Models\LaporanKondisi;
+use App\Models\Notifikasi;
 use App\Models\Rambu;
 use App\Models\RambuPasang;
 use App\Models\Spk;
@@ -68,6 +70,8 @@ class TemuanTest extends TestCase
             ->call('tolak', $temuan->id);
 
         $this->assertSame(StatusTindakLanjut::Ditolak, $temuan->fresh()->status_tindak_lanjut);
+        $this->assertSame(1, AuditLog::where('aksi', 'temuan_ditolak')->count());
+        $this->assertSame(1, Notifikasi::where('user_id', $petugas->id)->count());
     }
 
     public function test_admin_creating_spk_from_temuan_prefills_perbaikan_and_marks_handled(): void

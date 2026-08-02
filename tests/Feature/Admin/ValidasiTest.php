@@ -299,4 +299,41 @@ class ValidasiTest extends TestCase
         $this->assertSame(StatusSpk::Aktif, $spk->fresh()->status);
         $this->assertNull($spk->fresh()->laporan_akhir_diajukan_at);
     }
+
+    public function test_validasi_show_displays_every_rambu_in_spk_not_just_pending(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $petugas = User::factory()->create();
+        $this->actingAs($admin);
+
+        ['spk' => $spk, 'rambu' => $rambuSelesai] = $this->makeSpkWithPendingLaporan($admin, $petugas);
+        $rambuPasangSelesai = RambuPasang::where('rambu_spk_id', $spk->id)->first();
+        $rambuPasangSelesai->update(['status' => 'selesai']);
+
+        $jenisRambu = JenisRambu::create(['nama_jenis' => 'Rambu Petunjuk']);
+        $rambuPending = Rambu::create([
+            'jenis_rambu_id' => $jenisRambu->id,
+            'wilayah' => 'Banjarmasin Tengah',
+            'lokasi' => 'Simpang tiga baru',
+            'koordinat' => '-3.31,114.59',
+        ]);
+        $rambuPasangPending = RambuPasang::create([
+            'rambu_spk_id' => $spk->id,
+            'rambu_id' => $rambuPending->id,
+            'jenis_pekerjaan' => 'pasang_baru',
+            'jumlah' => 1,
+            'status' => 'menunggu_validasi',
+        ]);
+        LaporanPengerjaan::create([
+            'rambu_pasang_id' => $rambuPasangPending->id,
+            'dilaporkan_oleh' => $petugas->id,
+            'status' => 'diajukan',
+        ]);
+
+        $response = $this->get(route('admin.validasi.show', $spk));
+
+        $response->assertOk();
+        $response->assertSee($rambuSelesai->lokasi);
+        $response->assertSee('Simpang tiga baru');
+    }
 }

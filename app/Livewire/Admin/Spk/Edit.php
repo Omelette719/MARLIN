@@ -11,6 +11,7 @@ use App\Livewire\Concerns\RejectsNonImageUploads;
 use App\Models\AuditLog;
 use App\Models\JenisRambu;
 use App\Models\LaporanKondisi;
+use App\Models\Notifikasi;
 use App\Models\Rambu;
 use App\Models\RambuPasang;
 use App\Models\RtPerwakilan;
@@ -173,6 +174,15 @@ class Edit extends Component
                 'aksi' => 'rambu_pasang_dibatalkan',
                 'keterangan' => "Rambu di {$rp->rambu->wilayah}, {$rp->rambu->lokasi} dibatalkan: {$this->catatan_pembatalan}",
             ]);
+
+            foreach ($this->spk->petugas as $petugas) {
+                Notifikasi::create([
+                    'user_id' => $petugas->id,
+                    'judul' => 'Rambu Dibatalkan',
+                    'pesan' => "Rambu di {$rp->rambu->wilayah}, {$rp->rambu->lokasi} (SPK {$this->spk->nomor_surat}) dibatalkan: {$this->catatan_pembatalan}",
+                    'dibaca' => false,
+                ]);
+            }
         });
 
         $this->rambuItems[$index]['status'] = StatusRambuPasang::Batal->value;

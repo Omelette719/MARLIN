@@ -162,6 +162,12 @@
 
                             <flux:text class="text-sm">Jumlah: {{ $rp->jumlah }}</flux:text>
 
+                            @if ($rp->status === StatusRambuPasang::Revisi && $rp->laporanPengerjaan->first()?->catatan_penolakan)
+                                <flux:callout variant="danger" icon="exclamation-triangle" heading="Perlu direvisi">
+                                    {{ $rp->laporanPengerjaan->first()->catatan_penolakan }}
+                                </flux:callout>
+                            @endif
+
                             <div class="mt-auto flex gap-2 pt-2">
                                 <flux:button size="sm" variant="ghost" icon="map" class="flex-1" :href="route('peta', ['focus' => $rp->rambu_id])" wire:navigate>
                                     Peta

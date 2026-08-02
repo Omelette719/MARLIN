@@ -23,6 +23,12 @@
                     @endif
                 </div>
 
+                @if ($catatanPenolakanSebelumnya)
+                    <flux:callout variant="danger" icon="exclamation-triangle" heading="Ditolak admin, perlu direvisi">
+                        {{ $catatanPenolakanSebelumnya }}
+                    </flux:callout>
+                @endif
+
                 <form wire:submit="submit" class="flex flex-col gap-4">
                     <flux:textarea wire:model="alasan" label="Catatan Kendala" placeholder="Jelaskan kendala yang dihadapi di lapangan" rows="4" required />
 

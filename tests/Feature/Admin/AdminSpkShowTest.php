@@ -8,7 +8,9 @@ use App\Enums\Urgensi;
 use App\Livewire\Admin\Spk\Edit as SpkEditComponent;
 use App\Livewire\Admin\Spk\Riwayat;
 use App\Livewire\Admin\Spk\Show as SpkShowComponent;
+use App\Models\DikerjakanOleh;
 use App\Models\JenisRambu;
+use App\Models\Notifikasi;
 use App\Models\Rambu;
 use App\Models\RambuPasang;
 use App\Models\Spk;
@@ -396,6 +398,13 @@ class AdminSpkShowTest extends TestCase
             'status' => 'belum',
         ]);
 
+        $petugas = User::factory()->create();
+        DikerjakanOleh::create([
+            'by_spk_id' => $spk->id,
+            'by_user_id' => $petugas->id,
+            'is_perwakilan' => true,
+        ]);
+
         Livewire::test(SpkShowComponent::class, ['spk' => $spk])
             ->call('batalkan');
 
@@ -405,5 +414,6 @@ class AdminSpkShowTest extends TestCase
         $this->assertSame(StatusSpk::Dibatalkan, $spk->status);
         $this->assertSame(StatusRambuPasang::Batal, $rambuPasang->status);
         $this->assertSame(1, $spk->auditLogs()->where('aksi', 'spk_dibatalkan')->count());
+        $this->assertSame(1, Notifikasi::where('user_id', $petugas->id)->where('judul', 'SPK Dibatalkan')->count());
     }
 }

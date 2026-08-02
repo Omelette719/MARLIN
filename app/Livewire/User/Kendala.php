@@ -2,11 +2,13 @@
 
 namespace App\Livewire\User;
 
+use App\Enums\StatusLaporan;
 use App\Enums\StatusRambuPasang;
 use App\Livewire\Concerns\RejectsNonImageUploads;
 use App\Models\AuditLog;
 use App\Models\DikerjakanOleh;
 use App\Models\Kendala as KendalaModel;
+use App\Models\Notifikasi;
 use App\Models\RambuPasang;
 use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
@@ -143,6 +145,13 @@ class Kendala extends Component
                 'aksi' => 'kendala_diajukan',
                 'keterangan' => "Kendala diajukan/diperbarui untuk rambu di {$item->rambu->wilayah}, {$item->rambu->lokasi}.",
             ]);
+
+            Notifikasi::create([
+                'user_id' => $item->spk->dibuat_oleh,
+                'judul' => 'Kendala Dilaporkan',
+                'pesan' => "Petugas melaporkan kendala untuk SPK {$item->spk->nomor_surat} di {$item->rambu->wilayah}, {$item->rambu->lokasi}: {$this->alasan}",
+                'dibaca' => false,
+            ]);
         });
 
         Flux::toast(variant: 'success', text: 'Kendala berhasil disimpan. Setelah semua rambu ditangani, ajukan laporan akhir dari halaman Detail Surat.');
@@ -154,8 +163,13 @@ class Kendala extends Component
     {
         $item = $this->currentItem();
 
+        $catatanPenolakanSebelumnya = $item && $item->status === StatusRambuPasang::Revisi
+            ? $item->laporanPengerjaan()->where('status', StatusLaporan::Ditolak->value)->latest()->value('catatan_penolakan')
+            : null;
+
         return [
             'item' => $item,
+            'catatanPenolakanSebelumnya' => $catatanPenolakanSebelumnya,
             'items' => $item ? collect() : RambuPasang::with(['rambu', 'spk'])
                 ->whereIn('rambu_spk_id', $this->eligibleSpkIds())
                 ->whereIn('status', self::WORKABLE)

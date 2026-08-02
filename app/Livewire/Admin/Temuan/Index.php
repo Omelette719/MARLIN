@@ -3,8 +3,11 @@
 namespace App\Livewire\Admin\Temuan;
 
 use App\Enums\StatusTindakLanjut;
+use App\Models\AuditLog;
 use App\Models\LaporanKondisi;
+use App\Models\Notifikasi;
 use Flux\Flux;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
@@ -13,8 +16,21 @@ class Index extends Component
 {
     public function tolak(int $id): void
     {
-        $laporan = LaporanKondisi::findOrFail($id);
+        $laporan = LaporanKondisi::with('rambu')->findOrFail($id);
         $laporan->update(['status_tindak_lanjut' => StatusTindakLanjut::Ditolak]);
+
+        AuditLog::create([
+            'user_id' => Auth::id(),
+            'aksi' => 'temuan_ditolak',
+            'keterangan' => "Temuan kondisi untuk rambu di {$laporan->rambu->wilayah}, {$laporan->rambu->lokasi} ditolak.",
+        ]);
+
+        Notifikasi::create([
+            'user_id' => $laporan->dilaporkan_oleh,
+            'judul' => 'Temuan Ditolak',
+            'pesan' => "Temuan kondisi yang kamu laporkan untuk rambu di {$laporan->rambu->wilayah}, {$laporan->rambu->lokasi} ditolak admin.",
+            'dibaca' => false,
+        ]);
 
         Flux::toast(variant: 'success', text: 'Temuan ditandai sebagai ditolak.');
     }

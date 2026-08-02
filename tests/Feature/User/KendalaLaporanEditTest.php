@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\User;
 
+use App\Enums\StatusLaporan;
 use App\Enums\StatusRambuPasang;
 use App\Livewire\User\Kendala as KendalaComponent;
 use App\Livewire\User\Laporan as LaporanComponent;
@@ -203,6 +204,46 @@ class KendalaLaporanEditTest extends TestCase
         Livewire::test(UserSpkShowComponent::class, ['spk' => $rpMenunggu->spk])
             ->assertSee('Ada Kendala?')
             ->assertSee('Edit Laporan');
+    }
+
+    public function test_catatan_penolakan_shown_on_laporan_edit_form_when_revisi(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $petugas = User::factory()->create();
+        $this->actingAs($petugas);
+
+        $rp = $this->makeJoinedRambuPasang($admin, $petugas, 'revisi');
+        LaporanPengerjaan::create([
+            'rambu_pasang_id' => $rp->id,
+            'dilaporkan_oleh' => $petugas->id,
+            'foto_sesudah' => 'laporan-pengerjaan/sesudah/lama.jpg',
+            'status' => StatusLaporan::Ditolak->value,
+            'catatan_penolakan' => 'Foto kurang jelas, ulangi dari sudut lain.',
+        ]);
+
+        Livewire::test(LaporanComponent::class)
+            ->call('selectItem', $rp->id)
+            ->assertSee('Foto kurang jelas, ulangi dari sudut lain.');
+    }
+
+    public function test_catatan_penolakan_shown_on_kendala_edit_form_when_revisi(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $petugas = User::factory()->create();
+        $this->actingAs($petugas);
+
+        $rp = $this->makeJoinedRambuPasang($admin, $petugas, 'revisi');
+        LaporanPengerjaan::create([
+            'rambu_pasang_id' => $rp->id,
+            'dilaporkan_oleh' => $petugas->id,
+            'foto_sesudah' => 'laporan-pengerjaan/sesudah/lama.jpg',
+            'status' => StatusLaporan::Ditolak->value,
+            'catatan_penolakan' => 'Rambu belum terpasang dengan kuat.',
+        ]);
+
+        Livewire::test(KendalaComponent::class)
+            ->call('selectItem', $rp->id)
+            ->assertSee('Rambu belum terpasang dengan kuat.');
     }
 
     public function test_editing_locked_once_laporan_akhir_diajukan(): void

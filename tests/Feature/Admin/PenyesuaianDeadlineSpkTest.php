@@ -6,6 +6,7 @@ use App\Enums\Urgensi;
 use App\Livewire\Admin\Spk\Create as SpkCreateComponent;
 use App\Livewire\Admin\Spk\Edit as SpkEditComponent;
 use App\Models\JenisRambu;
+use App\Models\Notifikasi;
 use App\Models\Rambu;
 use App\Models\RambuPasang;
 use App\Models\Spk;
@@ -207,6 +208,21 @@ class PenyesuaianDeadlineSpkTest extends TestCase
         $this->createPrioritySpk($admin, 10);
 
         $this->assertSame(1, $lain->auditLogs()->where('aksi', 'deadline_disesuaikan')->count());
+    }
+
+    public function test_notifikasi_is_sent_to_creator_of_pushed_spk(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $this->actingAs($admin);
+
+        $lain = $this->makeSpk($admin, ['deadline' => now()->addDays(4), 'deadline_asli' => now()->addDays(4)]);
+
+        $this->createPrioritySpk($admin, 10);
+
+        $this->assertSame(
+            1,
+            Notifikasi::where('user_id', $admin->id)->where('judul', 'Deadline SPK Bergeser')->count()
+        );
     }
 
     public function test_editing_deadline_resets_deadline_asli(): void

@@ -215,8 +215,13 @@ class Laporan extends Component
     {
         $item = $this->currentItem();
 
+        $catatanPenolakanSebelumnya = $item && $item->status === StatusRambuPasang::Revisi
+            ? $item->laporanPengerjaan()->where('status', StatusLaporan::Ditolak->value)->latest()->value('catatan_penolakan')
+            : null;
+
         return [
             'item' => $item,
+            'catatanPenolakanSebelumnya' => $catatanPenolakanSebelumnya,
             'items' => $item ? collect() : RambuPasang::with(['rambu', 'spk'])
                 ->whereIn('rambu_spk_id', $this->eligibleSpkIds())
                 ->whereIn('status', self::WORKABLE)

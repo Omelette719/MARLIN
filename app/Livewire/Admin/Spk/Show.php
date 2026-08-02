@@ -5,6 +5,7 @@ namespace App\Livewire\Admin\Spk;
 use App\Enums\StatusRambuPasang;
 use App\Enums\StatusSpk;
 use App\Models\AuditLog;
+use App\Models\Notifikasi;
 use App\Models\Spk;
 use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
@@ -41,6 +42,15 @@ class Show extends Component
                 'aksi' => 'spk_dibatalkan',
                 'keterangan' => "SPK {$this->spk->nomor_surat} dibatalkan.",
             ]);
+
+            foreach ($this->spk->petugas as $petugas) {
+                Notifikasi::create([
+                    'user_id' => $petugas->id,
+                    'judul' => 'SPK Dibatalkan',
+                    'pesan' => "SPK {$this->spk->nomor_surat} yang kamu kerjakan telah dibatalkan oleh admin.",
+                    'dibaca' => false,
+                ]);
+            }
         });
 
         $this->spk->refresh();

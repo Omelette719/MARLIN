@@ -4,9 +4,11 @@ namespace Tests\Feature\Admin;
 
 use App\Enums\StatusRambuPasang;
 use App\Livewire\Admin\Spk\Edit as SpkEditComponent;
+use App\Models\DikerjakanOleh;
 use App\Models\JenisRambu;
 use App\Models\Kendala;
 use App\Models\LaporanPengerjaan;
+use App\Models\Notifikasi;
 use App\Models\Rambu;
 use App\Models\RambuPasang;
 use App\Models\Spk;
@@ -137,6 +139,13 @@ class SpkEditRambuTest extends TestCase
         $spk = $this->makeSpk($admin);
         $rp = $this->makeRambuPasang($spk);
 
+        $petugas = User::factory()->create();
+        DikerjakanOleh::create([
+            'by_spk_id' => $spk->id,
+            'by_user_id' => $petugas->id,
+            'is_perwakilan' => true,
+        ]);
+
         Livewire::test(SpkEditComponent::class, ['spk' => $spk])
             ->call('bukaBatalkanRambu', 0)
             ->set('catatan_pembatalan', 'Salah lokasi, sudah ada rambu lain di sana.')
@@ -149,6 +158,7 @@ class SpkEditRambuTest extends TestCase
         $this->assertSame('Salah lokasi, sudah ada rambu lain di sana.', $rp->catatan_pembatalan);
         $this->assertSame(1, $spk->auditLogs()->where('aksi', 'rambu_pasang_dibatalkan')->count());
         $this->assertSame('aktif', $spk->fresh()->status->value);
+        $this->assertSame(1, Notifikasi::where('user_id', $petugas->id)->where('judul', 'Rambu Dibatalkan')->count());
     }
 
     public function test_batalkan_single_rambu_requires_reason(): void

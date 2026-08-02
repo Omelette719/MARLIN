@@ -4,6 +4,7 @@ namespace App\Support;
 
 use App\Enums\StatusSpk;
 use App\Models\AuditLog;
+use App\Models\Notifikasi;
 use App\Models\Spk;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -65,6 +66,13 @@ class PenyesuaianDeadlineSpk
                         'spk_id' => $target->id,
                         'aksi' => 'deadline_disesuaikan',
                         'keterangan' => "Deadline SPK {$target->nomor_surat} otomatis mundur dari {$deadlineLama} ke {$kandidat->toDateString()} karena SPK prioritas {$spkPrioritas->nomor_surat} dibuat.",
+                    ]);
+
+                    Notifikasi::create([
+                        'user_id' => $target->dibuat_oleh,
+                        'judul' => 'Deadline SPK Bergeser',
+                        'pesan' => "Deadline SPK {$target->nomor_surat} otomatis mundur dari {$deadlineLama} ke {$kandidat->toDateString()} karena SPK prioritas {$spkPrioritas->nomor_surat} dibuat.",
+                        'dibaca' => false,
                     ]);
                 });
             });

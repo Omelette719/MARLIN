@@ -13,6 +13,32 @@
             <flux:button variant="ghost" :href="route('admin.validasi.index')" wire:navigate>Kembali</flux:button>
         </div>
 
+        <flux:card class="flex flex-col gap-3">
+            <div>
+                <flux:heading size="lg">Semua Rambu dalam SPK Ini</flux:heading>
+                <flux:subheading>Termasuk rambu yang sudah divalidasi di putaran sebelumnya — hanya yang berstatus Terkendala/Menunggu Validasi di bawah yang perlu keputusan sekarang.</flux:subheading>
+            </div>
+
+            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                @foreach ($semua as $rp)
+                    <div wire:key="semua-{{ $rp->id }}" class="flex items-center justify-between gap-2 rounded-lg border border-zinc-200 p-3">
+                        <div class="min-w-0">
+                            <flux:text class="truncate text-sm font-medium text-zinc-700">{{ $rp->rambu->wilayah }}, {{ $rp->rambu->lokasi }}</flux:text>
+                            <flux:text class="text-xs text-zinc-500">{{ $rp->rambu->jenisRambu?->nama_jenis }}</flux:text>
+                        </div>
+                        <flux:badge size="sm" :color="match ($rp->status) {
+                            StatusRambuPasang::Selesai => 'green',
+                            StatusRambuPasang::MenungguValidasi => 'blue',
+                            StatusRambuPasang::Urgent, StatusRambuPasang::Revisi => 'red',
+                            StatusRambuPasang::Tertunda => 'amber',
+                            StatusRambuPasang::Batal => 'zinc',
+                            default => 'zinc',
+                        }">{{ $rp->status->label() }}</flux:badge>
+                    </div>
+                @endforeach
+            </div>
+        </flux:card>
+
         @if (! $showPenolakanForm)
             <div class="flex flex-col gap-4">
                 <div>

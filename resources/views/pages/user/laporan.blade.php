@@ -30,6 +30,12 @@
                     @endif
                 </div>
 
+                @if ($catatanPenolakanSebelumnya)
+                    <flux:callout variant="danger" icon="exclamation-triangle" heading="Ditolak admin, perlu direvisi">
+                        {{ $catatanPenolakanSebelumnya }}
+                    </flux:callout>
+                @endif
+
                 <form wire:submit="submit" class="flex flex-col gap-4">
                     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <x-photo-upload

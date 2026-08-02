@@ -4,6 +4,7 @@ namespace Tests\Feature\User;
 
 use App\Enums\StatusLaporan;
 use App\Enums\StatusRambuPasang;
+use App\Livewire\Admin\Validasi\Show as ValidasiShowComponent;
 use App\Livewire\User\Kendala as KendalaComponent;
 use App\Livewire\User\Laporan as LaporanComponent;
 use App\Livewire\User\Spk\Show as UserSpkShowComponent;
@@ -293,6 +294,7 @@ class PetugasSpkTest extends TestCase
         $this->assertNotNull(Kendala::first()->foto);
         $this->assertSame(StatusRambuPasang::Tertunda, $rambuPasang->fresh()->status);
         $this->assertSame(1, AuditLog::where('aksi', 'kendala_diajukan')->count());
+        $this->assertSame(1, Notifikasi::where('user_id', $admin->id)->count());
     }
 
     public function test_petugas_cannot_submit_kendala_without_foto(): void
@@ -409,6 +411,106 @@ class PetugasSpkTest extends TestCase
             ->call('selectItem', $rambuPasang->id)
             ->assertSee('rambu-pasang/survei/contoh-survei.jpg')
             ->assertSee('Foto Sebelum (dari survei SPK)');
+    }
+
+    public function test_ajukan_laporan_akhir_becomes_available_again_after_partial_reject_cycle(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $petugas = User::factory()->create();
+        $this->actingAs($petugas);
+
+        $rambuPasang1 = $this->makeRambuPasang($admin, status: 'menunggu_validasi');
+        $spk = $rambuPasang1->spk;
+
+        $jenisRambu = JenisRambu::create(['nama_jenis' => 'Rambu Larangan']);
+        $rambu2 = Rambu::create([
+            'jenis_rambu_id' => $jenisRambu->id,
+            'wilayah' => 'Banjarmasin Tengah',
+            'lokasi' => 'Simpang tiga',
+            'koordinat' => '-3.30,114.60',
+        ]);
+        $rambuPasang2 = RambuPasang::create([
+            'rambu_spk_id' => $spk->id,
+            'rambu_id' => $rambu2->id,
+            'jenis_pekerjaan' => 'pasang_baru',
+            'jumlah' => 1,
+            'status' => 'menunggu_validasi',
+        ]);
+
+        LaporanPengerjaan::create([
+            'rambu_pasang_id' => $rambuPasang1->id,
+            'dilaporkan_oleh' => $petugas->id,
+            'foto_sesudah' => 'laporan-pengerjaan/sesudah/satu.jpg',
+            'status' => 'diajukan',
+        ]);
+        LaporanPengerjaan::create([
+            'rambu_pasang_id' => $rambuPasang2->id,
+            'dilaporkan_oleh' => $petugas->id,
+            'foto_sesudah' => 'laporan-pengerjaan/sesudah/dua.jpg',
+            'status' => 'diajukan',
+        ]);
+
+        DikerjakanOleh::create([
+            'by_spk_id' => $spk->id,
+            'by_user_id' => $petugas->id,
+            'is_perwakilan' => true,
+        ]);
+
+        Livewire::test(UserSpkShowComponent::class, ['spk' => $spk])
+            ->call('ajukanLaporanAkhir');
+
+        $this->assertNotNull($spk->fresh()->laporan_akhir_diajukan_at);
+
+        // Admin accepts rambu1 (-> Selesai) and rejects rambu2 (-> Revisi) in the same validation round.
+        $this->actingAs($admin);
+        Livewire::test(ValidasiShowComponent::class, ['spk' => $spk])
+            ->set("checked.{$rambuPasang1->id}", true)
+            ->set("checked.{$rambuPasang2->id}", false)
+            ->call('lanjutkan')
+            ->set("catatanPenolakan.{$rambuPasang2->id}", 'Pemasangan miring, perlu diperbaiki.')
+            ->call('konfirmasiPenolakan')
+            ->assertHasNoErrors();
+
+        $this->assertSame(StatusRambuPasang::Selesai, $rambuPasang1->fresh()->status);
+        $this->assertSame(StatusRambuPasang::Revisi, $rambuPasang2->fresh()->status);
+        $this->assertNull($spk->fresh()->laporan_akhir_diajukan_at);
+
+        // Petugas resubmits only the revised rambu. Without the getSiapDiajukanProperty
+        // fix, this would stay permanently un-submittable because rambuPasang1 is Selesai.
+        $this->actingAs($petugas);
+        Livewire::test(LaporanComponent::class)
+            ->call('selectItem', $rambuPasang2->id)
+            ->set('foto_sesudah', UploadedFile::fake()->image('sesudah-revisi.jpg'))
+            ->call('submit')
+            ->assertHasNoErrors();
+
+        $this->assertSame(StatusRambuPasang::MenungguValidasi, $rambuPasang2->fresh()->status);
+
+        Livewire::test(UserSpkShowComponent::class, ['spk' => $spk])
+            ->call('ajukanLaporanAkhir');
+
+        $this->assertNotNull($spk->fresh()->laporan_akhir_diajukan_at);
+    }
+
+    public function test_catatan_penolakan_shown_on_spk_show_page_when_revisi(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $petugas = User::factory()->create();
+        $this->actingAs($petugas);
+
+        $rambuPasang = $this->makeRambuPasang($admin, status: 'revisi');
+        LaporanPengerjaan::create([
+            'rambu_pasang_id' => $rambuPasang->id,
+            'dilaporkan_oleh' => $petugas->id,
+            'foto_sesudah' => 'laporan-pengerjaan/sesudah/lama.jpg',
+            'status' => StatusLaporan::Ditolak->value,
+            'catatan_penolakan' => 'Pemasangan miring, perlu diperbaiki.',
+        ]);
+
+        $response = $this->get(route('user.spk.show', $rambuPasang->spk));
+
+        $response->assertOk();
+        $response->assertSee('Pemasangan miring, perlu diperbaiki.');
     }
 
     public function test_petugas_cannot_submit_laporan_if_joined_but_not_perwakilan(): void

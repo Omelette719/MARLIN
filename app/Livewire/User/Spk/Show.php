@@ -113,6 +113,17 @@ class Show extends Component
         Flux::toast(variant: 'success', text: 'Anggota tim berhasil ditambahkan.');
     }
 
+    // "Ready" means: nothing is still untouched this round (Belum/Urgent), and
+    // nothing sent back for rework has been ignored (Revisi) — but rambu that
+    // are already Selesai from an earlier accepted validation round DO count
+    // as settled, they just don't need to be resubmitted. Without allowing
+    // Selesai here, an SPK that goes through even one partial reject/redo
+    // cycle could never be marked ready again: once any rambu reaches Selesai
+    // while another is still being redone, this would always evaluate false,
+    // permanently locking the SPK out of ever reaching admin's validation
+    // queue again. Requiring at least one Tertunda/MenungguValidasi rambu
+    // stops an SPK where literally everything is already Selesai from being
+    // considered "ready" with nothing new to actually submit.
     public function getSiapDiajukanProperty(): bool
     {
         $statuses = $this->spk->rambuPasang()
@@ -120,8 +131,16 @@ class Show extends Component
             ->pluck('status')
             ->reject(fn ($s) => $s === StatusRambuPasang::Batal);
 
-        return $statuses->isNotEmpty() && $statuses->every(
+        $adaYangBaruDiajukan = $statuses->contains(
             fn ($s) => in_array($s, [StatusRambuPasang::Tertunda, StatusRambuPasang::MenungguValidasi], true)
+        );
+
+        return $adaYangBaruDiajukan && $statuses->every(
+            fn ($s) => in_array($s, [
+                StatusRambuPasang::Tertunda,
+                StatusRambuPasang::MenungguValidasi,
+                StatusRambuPasang::Selesai,
+            ], true)
         );
     }
 
@@ -170,7 +189,9 @@ class Show extends Component
             'tim' => $tim,
             'perwakilan' => $tim->firstWhere('is_perwakilan', true),
             'userOptions' => $userOptions,
-            'rambuPasang' => $this->spk->rambuPasang()->with('rambu.jenisRambu')->get(),
+            'rambuPasang' => $this->spk->rambuPasang()
+                ->with(['rambu.jenisRambu', 'laporanPengerjaan' => fn ($q) => $q->latest()])
+                ->get(),
         ];
     }
 
