@@ -5,10 +5,12 @@ namespace App\Livewire\Admin;
 use App\Enums\StatusLaporan;
 use App\Enums\StatusSpk;
 use App\Enums\Urgensi;
+use App\Models\JenisRambu;
 use App\Models\LaporanKondisi;
 use App\Models\LaporanPengerjaan;
 use App\Models\Rambu;
 use App\Models\Spk;
+use App\Support\PetaData;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
@@ -61,6 +63,8 @@ class Dashboard extends Component
             'temuanBaruCount' => LaporanKondisi::where('status_tindak_lanjut', 'baru')->count(),
             'progresPersen' => $totalRambu > 0 ? round(($rambuTerpasang / $totalRambu) * 100) : 0,
             'spkPrioritas' => $this->spkPrioritas(),
+            'jenisRambuOptions' => JenisRambu::orderBy('nama_jenis')->get(),
+            'tingkatOptions' => PetaData::TINGKAT_LABELS,
             'spkTerbaru' => Spk::withCount('rambuPasang')
                 ->latest()
                 ->limit(6)

@@ -7,6 +7,7 @@ use App\Models\Rambu;
 use App\Models\RambuPasang;
 use App\Models\Spk;
 use App\Models\User;
+use App\Support\PetaData;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -246,5 +247,168 @@ class PetaTest extends TestCase
 
         $pin = collect($response->json())->firstWhere('id', $rambu->id);
         $this->assertNull($pin);
+    }
+
+    public function test_peta_data_can_be_filtered_by_jenis_rambu(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $this->actingAs($admin);
+
+        $jenisA = JenisRambu::create(['nama_jenis' => 'Rambu Peringatan A']);
+        $jenisB = JenisRambu::create(['nama_jenis' => 'Rambu Peringatan B']);
+
+        $rambuA = Rambu::create([
+            'jenis_rambu_id' => $jenisA->id,
+            'wilayah' => 'Banjarmasin Tengah',
+            'lokasi' => 'A',
+            'koordinat' => '-3.30,114.59',
+            'sudah_terpasang' => true,
+        ]);
+        $rambuB = Rambu::create([
+            'jenis_rambu_id' => $jenisB->id,
+            'wilayah' => 'Banjarmasin Tengah',
+            'lokasi' => 'B',
+            'koordinat' => '-3.31,114.60',
+            'sudah_terpasang' => true,
+        ]);
+
+        $response = $this->getJson(route('peta.data', ['jenis_rambu_id' => $jenisA->id]));
+        $ids = collect($response->json())->pluck('id');
+
+        $this->assertTrue($ids->contains($rambuA->id));
+        $this->assertFalse($ids->contains($rambuB->id));
+    }
+
+    public function test_peta_data_can_be_filtered_by_tingkat_urgent(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $this->actingAs($admin);
+
+        $rambuUrgent = $this->makeRambu();
+        $spkPrioritas = $this->makeSpk($admin, urgensi: 'tinggi', prioritas: true);
+        RambuPasang::create([
+            'rambu_spk_id' => $spkPrioritas->id,
+            'rambu_id' => $rambuUrgent->id,
+            'jenis_pekerjaan' => 'pasang_baru',
+            'jumlah' => 1,
+            'status' => 'belum',
+        ]);
+
+        $rambuTenang = $this->makeRambu(sudahTerpasang: true, kondisi: 'baik');
+
+        $response = $this->getJson(route('peta.data', ['tingkat' => 'urgent']));
+        $ids = collect($response->json())->pluck('id');
+
+        $this->assertTrue($ids->contains($rambuUrgent->id));
+        $this->assertFalse($ids->contains($rambuTenang->id));
+    }
+
+    public function test_peta_data_menunggu_validasi_takes_priority_over_urgent_tingkat(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $this->actingAs($admin);
+
+        $rambu = $this->makeRambu();
+        $spkPrioritas = $this->makeSpk($admin, urgensi: 'tinggi', prioritas: true);
+        RambuPasang::create([
+            'rambu_spk_id' => $spkPrioritas->id,
+            'rambu_id' => $rambu->id,
+            'jenis_pekerjaan' => 'pasang_baru',
+            'jumlah' => 1,
+            'status' => 'menunggu_validasi',
+        ]);
+
+        $response = $this->getJson(route('peta.data'));
+        $pin = collect($response->json())->firstWhere('id', $rambu->id);
+
+        $this->assertSame('menunggu_validasi', $pin['tingkat']);
+    }
+
+    public function test_peta_data_can_be_filtered_by_task_date_range(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $this->actingAs($admin);
+
+        $rambuLama = $this->makeRambu();
+        $spk = $this->makeSpk($admin);
+        $tugasLama = RambuPasang::create([
+            'rambu_spk_id' => $spk->id,
+            'rambu_id' => $rambuLama->id,
+            'jenis_pekerjaan' => 'pasang_baru',
+            'jumlah' => 1,
+            'status' => 'belum',
+        ]);
+        $tugasLama->created_at = now()->subYear();
+        $tugasLama->save();
+
+        $rambuBaru = $this->makeRambu();
+        RambuPasang::create([
+            'rambu_spk_id' => $this->makeSpk($admin)->id,
+            'rambu_id' => $rambuBaru->id,
+            'jenis_pekerjaan' => 'pasang_baru',
+            'jumlah' => 1,
+            'status' => 'belum',
+        ]);
+
+        $response = $this->getJson(route('peta.data', [
+            'tanggal_dari' => now()->subDay()->toDateString(),
+            'tanggal_sampai' => now()->toDateString(),
+        ]));
+        $ids = collect($response->json())->pluck('id');
+
+        $this->assertTrue($ids->contains($rambuBaru->id));
+        $this->assertFalse($ids->contains($rambuLama->id));
+    }
+
+    public function test_admin_can_export_peta_pdf(): void
+    {
+        $this->actingAs(User::factory()->admin()->create());
+
+        $response = $this->get(route('peta.export'));
+
+        $response->assertOk();
+        $response->assertHeader('content-type', 'application/pdf');
+    }
+
+    public function test_petugas_can_also_export_peta_pdf(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $response = $this->get(route('peta.export'));
+
+        $response->assertOk();
+        $response->assertHeader('content-type', 'application/pdf');
+    }
+
+    public function test_peta_data_analytics_are_computed_correctly(): void
+    {
+        $jenis = JenisRambu::create(['nama_jenis' => 'Rambu Peringatan']);
+
+        Rambu::create([
+            'jenis_rambu_id' => $jenis->id,
+            'wilayah' => 'Banjarmasin Tengah',
+            'lokasi' => 'A',
+            'koordinat' => '-3.30,114.59',
+            'sudah_terpasang' => true,
+            'kondisi_terkini' => 'baik',
+        ]);
+
+        Rambu::create([
+            'jenis_rambu_id' => $jenis->id,
+            'wilayah' => 'Banjarmasin Utara',
+            'lokasi' => 'B',
+            'koordinat' => '-3.31,114.60',
+            'sudah_terpasang' => true,
+            'kondisi_terkini' => 'rusak',
+        ]);
+
+        $data = PetaData::build([]);
+
+        $this->assertSame(2, $data['total']);
+        $this->assertSame(1, $data['perTingkat']['selesai']);
+        $this->assertSame(1, $data['perTingkat']['rusak']);
+        $this->assertSame(1, $data['perWilayah']['Banjarmasin Tengah']);
+        $this->assertSame(1, $data['perWilayah']['Banjarmasin Utara']);
+        $this->assertSame(2, $data['perJenis']['Rambu Peringatan']);
     }
 }

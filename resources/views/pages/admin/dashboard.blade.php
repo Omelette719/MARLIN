@@ -31,37 +31,71 @@
                 </div>
             </flux:card>
 
-            <flux:card class="flex items-center gap-4 border-l-4 border-l-cyan-500">
-                <div class="flex size-12 shrink-0 items-center justify-center rounded-xl bg-cyan-100 text-cyan-700">
-                    <flux:icon icon="document-text" class="size-6" />
-                </div>
-                <div class="min-w-0">
-                    <flux:text class="text-sm text-zinc-500">SPK Aktif</flux:text>
-                    <flux:heading size="xl">{{ $spkAktifCount }}</flux:heading>
-                </div>
-            </flux:card>
+            <a href="{{ route('admin.spk.index') }}" wire:navigate class="block">
+                <flux:card class="flex items-center gap-4 border-l-4 border-l-cyan-500 transition hover:shadow-md">
+                    <div class="flex size-12 shrink-0 items-center justify-center rounded-xl bg-cyan-100 text-cyan-700">
+                        <flux:icon icon="document-text" class="size-6" />
+                    </div>
+                    <div class="min-w-0">
+                        <flux:text class="text-sm text-zinc-500">SPK Aktif</flux:text>
+                        <flux:heading size="xl">{{ $spkAktifCount }}</flux:heading>
+                    </div>
+                </flux:card>
+            </a>
 
-            <flux:card class="flex items-center gap-4 border-l-4 border-l-violet-500">
-                <div class="flex size-12 shrink-0 items-center justify-center rounded-xl bg-violet-100 text-violet-600">
-                    <flux:icon icon="clipboard-document-check" class="size-6" />
-                </div>
-                <div class="min-w-0">
-                    <flux:text class="text-sm text-zinc-500">Menunggu Validasi</flux:text>
-                    <flux:heading size="xl">{{ $menungguValidasiCount }}</flux:heading>
-                </div>
-            </flux:card>
+            <a href="{{ route('admin.validasi.index') }}" wire:navigate class="block">
+                <flux:card class="flex items-center gap-4 border-l-4 border-l-violet-500 transition hover:shadow-md">
+                    <div class="flex size-12 shrink-0 items-center justify-center rounded-xl bg-violet-100 text-violet-600">
+                        <flux:icon icon="clipboard-document-check" class="size-6" />
+                    </div>
+                    <div class="min-w-0">
+                        <flux:text class="text-sm text-zinc-500">Menunggu Validasi</flux:text>
+                        <flux:heading size="xl">{{ $menungguValidasiCount }}</flux:heading>
+                    </div>
+                </flux:card>
+            </a>
         </div>
 
         <flux:card class="flex flex-col gap-3">
-            <div>
-                <flux:heading size="lg">Peta Rambu Perlu Perhatian</flux:heading>
-                <flux:subheading>Hanya rambu belum terpasang, rusak, atau menunggu validasi — yang sudah terpasang dan aman tidak ditampilkan.</flux:subheading>
+            <div class="flex items-end justify-between gap-3">
+                <div>
+                    <flux:heading size="lg">Peta Rambu Perlu Perhatian</flux:heading>
+                    <flux:subheading>Default: hanya rambu belum terpasang, rusak, atau menunggu validasi. Gunakan filter untuk melihat tingkat lain.</flux:subheading>
+                </div>
+                <flux:button id="dashboard-peta-unduh-pdf" variant="ghost" icon="arrow-down-tray" href="{{ route('peta.export') }}" target="_blank">
+                    Unduh PDF
+                </flux:button>
+            </div>
+
+            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
+                <flux:select id="dashboard-peta-jenis" label="Jenis Rambu" placeholder="Semua Jenis" size="sm">
+                    <flux:select.option value="">Semua Jenis</flux:select.option>
+                    @foreach ($jenisRambuOptions as $j)
+                        <flux:select.option value="{{ $j->id }}">{{ $j->nama_jenis }}</flux:select.option>
+                    @endforeach
+                </flux:select>
+
+                <flux:select id="dashboard-peta-tingkat" label="Tingkat" placeholder="Default (perlu perhatian)" size="sm">
+                    <flux:select.option value="">Default (perlu perhatian)</flux:select.option>
+                    @foreach ($tingkatOptions as $value => $label)
+                        <flux:select.option value="{{ $value }}">{{ $label }}</flux:select.option>
+                    @endforeach
+                </flux:select>
+
+                <flux:input id="dashboard-peta-tanggal-dari" type="date" label="Tugas Dari Tanggal" size="sm" />
+                <flux:input id="dashboard-peta-tanggal-sampai" type="date" label="Tugas Sampai Tanggal" size="sm" />
+
+                <div class="flex items-end gap-2">
+                    <flux:button size="sm" variant="primary" class="flex-1" onclick="terapkanFilterPetaDashboard()">Terapkan</flux:button>
+                    <flux:button size="sm" variant="ghost" onclick="resetFilterPetaDashboard()">Reset</flux:button>
+                </div>
             </div>
 
             <div class="flex flex-wrap items-center gap-4 text-sm">
                 <div class="flex items-center gap-2"><span class="inline-block size-3 rounded-full" style="background:#ba1a1a"></span> Urgent / Prioritas / Tinggi</div>
                 <div class="flex items-center gap-2"><span class="inline-block size-3 rounded-full" style="background:#eab308"></span> Rusak / Perbaikan Berjalan</div>
                 <div class="flex items-center gap-2"><span class="inline-block size-3 rounded-full" style="background:#22d3ee"></span> Menunggu Validasi</div>
+                <div class="flex items-center gap-2"><span class="inline-block size-3 rounded-full" style="background:#004655"></span> Selesai / Kondisi Baik</div>
                 <div class="flex items-center gap-2"><span class="inline-block size-3 rounded-full" style="background:#9ca3af"></span> Belum Dikerjakan</div>
             </div>
 
@@ -72,15 +106,51 @@
 
         @script
         <script>
-            initPetaRambu(
-                'dashboard-peta',
-                @js(route('peta.data')),
-                null,
-                @js(route('rambu.show', ['rambu' => '__ID__'])),
-                null,
-                null,
-                true
-            );
+            function terapkanFilterPetaDashboard() {
+                const params = new URLSearchParams();
+                const jenis = document.getElementById('dashboard-peta-jenis').value;
+                const tingkat = document.getElementById('dashboard-peta-tingkat').value;
+                const dari = document.getElementById('dashboard-peta-tanggal-dari').value;
+                const sampai = document.getElementById('dashboard-peta-tanggal-sampai').value;
+
+                if (jenis) params.set('jenis_rambu_id', jenis);
+                if (tingkat) params.set('tingkat', tingkat);
+                if (dari) params.set('tanggal_dari', dari);
+                if (sampai) params.set('tanggal_sampai', sampai);
+
+                const query = params.toString();
+
+                // Only fall back to hiding "tenang" pins when no specific tingkat
+                // was chosen — if the admin explicitly asks for e.g. "Selesai /
+                // Kondisi Baik", that tingkat filter already narrows the result to
+                // exactly those pins, so hiding them again here would show nothing.
+                const hideTenang = ! tingkat;
+
+                initPetaRambu(
+                    'dashboard-peta',
+                    @js(route('peta.data')) + (query ? '?' + query : ''),
+                    null,
+                    @js(route('rambu.show', ['rambu' => '__ID__'])),
+                    null,
+                    null,
+                    hideTenang
+                );
+
+                const unduhLink = document.getElementById('dashboard-peta-unduh-pdf');
+                if (unduhLink) {
+                    unduhLink.href = @js(route('peta.export')) + (query ? '?' + query : '');
+                }
+            }
+
+            function resetFilterPetaDashboard() {
+                document.getElementById('dashboard-peta-jenis').value = '';
+                document.getElementById('dashboard-peta-tingkat').value = '';
+                document.getElementById('dashboard-peta-tanggal-dari').value = '';
+                document.getElementById('dashboard-peta-tanggal-sampai').value = '';
+                terapkanFilterPetaDashboard();
+            }
+
+            terapkanFilterPetaDashboard();
         </script>
         @endscript
 

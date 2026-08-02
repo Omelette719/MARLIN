@@ -3,6 +3,7 @@
 use App\Http\Controllers\LaporanBulananController;
 use App\Http\Controllers\LaporanRambuController;
 use App\Http\Controllers\PetaController;
+use App\Http\Controllers\PetaExportController;
 use App\Http\Controllers\SuratPengantarController;
 use App\Livewire\Admin\Dashboard;
 use App\Livewire\Admin\JenisRambu\Index;
@@ -29,6 +30,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::livewire('peta', Peta::class)->name('peta');
     Route::get('peta/data', [PetaController::class, 'data'])->name('peta.data');
+    Route::get('peta/export', [PetaExportController::class, 'export'])->name('peta.export');
     Route::livewire('rambu/{rambu}', Show::class)->name('rambu.show');
     Route::livewire('jenis-rambu', Index::class)->name('jenis-rambu.index');
     Route::livewire('rambu', App\Livewire\Admin\Rambu\Index::class)->name('rambu.index');
