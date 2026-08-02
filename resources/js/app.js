@@ -1,5 +1,6 @@
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import leafletImage from 'leaflet-image';
 
 const STATUS_LABEL = {
     belum: 'Belum Dikerjakan',
@@ -182,6 +183,10 @@ window.initPetaRambu = function (containerId, dataUrl, coordDisplayId, rambuDeta
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; OpenStreetMap contributors',
         maxZoom: 19,
+        // Needed so exportPetaGambar() (leaflet-image) can read tile pixels
+        // into a canvas for the PDF export — without this the canvas is
+        // "tainted" by cross-origin image data and toBlob()/toDataURL() throws.
+        crossOrigin: true,
     }).addTo(map);
 
     if (coordDisplayId) {
@@ -274,3 +279,86 @@ window.initPetaRambu = function (containerId, dataUrl, coordDisplayId, rambuDeta
             }
         });
 };
+
+// Rasterizes the currently-live map (via leaflet-image) and POSTs it together
+// with exportUrl's own query-string filters to the PDF export endpoint, then
+// triggers a normal file download from the response. A plain <a href> link
+// can't do this — the endpoint needs the actual pixels of what's on screen
+// right now, not just the filter params, since dompdf can't render Leaflet
+// itself. Falls back to a PDF with no map image (rather than failing the
+// whole export) if the capture itself errors out, e.g. a tile host that
+// doesn't cooperate with canvas export.
+window.unduhPetaGambarPdf = function (exportUrl, tombolId) {
+    const tombol = tombolId ? document.getElementById(tombolId) : null;
+    const teksAsli = tombol?.textContent;
+
+    const setSedangProses = (pesan) => {
+        if (tombol) {
+            tombol.disabled = true;
+            tombol.textContent = pesan;
+        }
+    };
+
+    const selesai = () => {
+        if (tombol) {
+            tombol.disabled = false;
+            tombol.textContent = teksAsli;
+        }
+    };
+
+    if (! mapInstance) {
+        window.open(exportUrl, '_blank');
+        return;
+    }
+
+    setSedangProses('Menyiapkan gambar peta...');
+
+    leafletImage(mapInstance, (err, canvas) => {
+        if (err || ! canvas) {
+            console.error('Gagal mengambil gambar peta, PDF akan dibuat tanpa gambar peta:', err);
+            kirimPetaPdf(exportUrl, null, setSedangProses, selesai);
+            return;
+        }
+
+        canvas.toBlob((blob) => kirimPetaPdf(exportUrl, blob, setSedangProses, selesai), 'image/png');
+    });
+};
+
+function kirimPetaPdf(exportUrl, gambarBlob, setSedangProses, selesai) {
+    setSedangProses('Membuat PDF...');
+
+    const formData = new FormData();
+
+    if (gambarBlob) {
+        formData.append('gambar_peta', gambarBlob, 'peta.png');
+    }
+
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+
+    fetch(exportUrl, {
+        method: 'POST',
+        headers: csrfToken ? { 'X-CSRF-TOKEN': csrfToken } : {},
+        body: formData,
+    })
+        .then((res) => {
+            if (! res.ok) {
+                throw new Error('Server merespons dengan status ' + res.status);
+            }
+
+            return res.blob();
+        })
+        .then((blob) => {
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'peta-rambu-' + new Date().toISOString().slice(0, 10) + '.pdf';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);
+        })
+        .catch((e) => {
+            alert('Gagal mengunduh PDF peta: ' + e.message);
+        })
+        .finally(selesai);
+}

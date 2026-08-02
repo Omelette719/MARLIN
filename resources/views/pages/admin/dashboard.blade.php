@@ -60,34 +60,33 @@
             <div class="flex items-end justify-between gap-3">
                 <div>
                     <flux:heading size="lg">Peta Rambu Perlu Perhatian</flux:heading>
-                    <flux:subheading>Default: hanya rambu belum terpasang, rusak, atau menunggu validasi. Gunakan filter untuk melihat tingkat lain.</flux:subheading>
+                    <flux:subheading>Default: hanya rambu belum terpasang, rusak, atau menunggu validasi. Filter diterapkan otomatis begitu dipilih.</flux:subheading>
                 </div>
-                <flux:button id="dashboard-peta-unduh-pdf" variant="ghost" icon="arrow-down-tray" href="{{ route('peta.export') }}" target="_blank">
+                <flux:button type="button" id="dashboard-peta-unduh-pdf" variant="ghost" icon="arrow-down-tray" onclick="unduhPetaGambarPdf(getPetaFilterQueryDashboard(), 'dashboard-peta-unduh-pdf')">
                     Unduh PDF
                 </flux:button>
             </div>
 
             <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
-                <flux:select id="dashboard-peta-jenis" label="Jenis Rambu" placeholder="Semua Jenis" size="sm">
+                <flux:select id="dashboard-peta-jenis" label="Jenis Rambu" placeholder="Semua Jenis" size="sm" onchange="terapkanFilterPetaDashboard()">
                     <flux:select.option value="">Semua Jenis</flux:select.option>
                     @foreach ($jenisRambuOptions as $j)
                         <flux:select.option value="{{ $j->id }}">{{ $j->nama_jenis }}</flux:select.option>
                     @endforeach
                 </flux:select>
 
-                <flux:select id="dashboard-peta-tingkat" label="Tingkat" placeholder="Default (perlu perhatian)" size="sm">
+                <flux:select id="dashboard-peta-tingkat" label="Tingkat" placeholder="Default (perlu perhatian)" size="sm" onchange="terapkanFilterPetaDashboard()">
                     <flux:select.option value="">Default (perlu perhatian)</flux:select.option>
                     @foreach ($tingkatOptions as $value => $label)
                         <flux:select.option value="{{ $value }}">{{ $label }}</flux:select.option>
                     @endforeach
                 </flux:select>
 
-                <flux:input id="dashboard-peta-tanggal-dari" type="date" label="Tugas Dari Tanggal" size="sm" />
-                <flux:input id="dashboard-peta-tanggal-sampai" type="date" label="Tugas Sampai Tanggal" size="sm" />
+                <flux:input id="dashboard-peta-tanggal-dari" type="date" label="Tugas Dari Tanggal" size="sm" onchange="terapkanFilterPetaDashboard()" />
+                <flux:input id="dashboard-peta-tanggal-sampai" type="date" label="Tugas Sampai Tanggal" size="sm" onchange="terapkanFilterPetaDashboard()" />
 
-                <div class="flex items-end gap-2">
-                    <flux:button size="sm" variant="primary" class="flex-1" onclick="terapkanFilterPetaDashboard()">Terapkan</flux:button>
-                    <flux:button size="sm" variant="ghost" onclick="resetFilterPetaDashboard()">Reset</flux:button>
+                <div class="flex items-end">
+                    <flux:button type="button" size="sm" variant="primary" class="w-full" onclick="resetFilterPetaDashboard()">Clear All</flux:button>
                 </div>
             </div>
 
@@ -106,7 +105,7 @@
 
         @script
         <script>
-            function terapkanFilterPetaDashboard() {
+            function petaFilterQueryDashboard() {
                 const params = new URLSearchParams();
                 const jenis = document.getElementById('dashboard-peta-jenis').value;
                 const tingkat = document.getElementById('dashboard-peta-tingkat').value;
@@ -118,13 +117,23 @@
                 if (dari) params.set('tanggal_dari', dari);
                 if (sampai) params.set('tanggal_sampai', sampai);
 
-                const query = params.toString();
+                return params.toString();
+            }
+
+            function getPetaFilterQueryDashboard() {
+                const query = petaFilterQueryDashboard();
+
+                return @js(route('peta.export')) + (query ? '?' + query : '');
+            }
+
+            function terapkanFilterPetaDashboard() {
+                const query = petaFilterQueryDashboard();
 
                 // Only fall back to hiding "tenang" pins when no specific tingkat
                 // was chosen — if the admin explicitly asks for e.g. "Selesai /
                 // Kondisi Baik", that tingkat filter already narrows the result to
                 // exactly those pins, so hiding them again here would show nothing.
-                const hideTenang = ! tingkat;
+                const hideTenang = ! document.getElementById('dashboard-peta-tingkat').value;
 
                 initPetaRambu(
                     'dashboard-peta',
@@ -135,11 +144,6 @@
                     null,
                     hideTenang
                 );
-
-                const unduhLink = document.getElementById('dashboard-peta-unduh-pdf');
-                if (unduhLink) {
-                    unduhLink.href = @js(route('peta.export')) + (query ? '?' + query : '');
-                }
             }
 
             function resetFilterPetaDashboard() {

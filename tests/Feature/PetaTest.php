@@ -9,6 +9,7 @@ use App\Models\Spk;
 use App\Models\User;
 use App\Support\PetaData;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Tests\TestCase;
 
 class PetaTest extends TestCase
@@ -378,6 +379,29 @@ class PetaTest extends TestCase
 
         $response->assertOk();
         $response->assertHeader('content-type', 'application/pdf');
+    }
+
+    public function test_peta_export_accepts_post_with_captured_map_image(): void
+    {
+        $this->actingAs(User::factory()->admin()->create());
+
+        $response = $this->post(route('peta.export'), [
+            'gambar_peta' => UploadedFile::fake()->image('peta.png'),
+        ]);
+
+        $response->assertOk();
+        $response->assertHeader('content-type', 'application/pdf');
+    }
+
+    public function test_peta_export_rejects_non_image_upload(): void
+    {
+        $this->actingAs(User::factory()->admin()->create());
+
+        $response = $this->post(route('peta.export'), [
+            'gambar_peta' => UploadedFile::fake()->create('bukan-gambar.pdf', 100, 'application/pdf'),
+        ]);
+
+        $response->assertSessionHasErrors('gambar_peta');
     }
 
     public function test_peta_data_analytics_are_computed_correctly(): void

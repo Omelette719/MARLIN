@@ -36,6 +36,8 @@
 
         .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px; }
 
+        .peta-gambar { width: 100%; max-height: 320px; border: 1px solid #bfc8cc; border-radius: 4px; object-fit: contain; margin-bottom: 10px; }
+
         .footer-note { margin-top: 20px; font-size: 9px; color: #6f797c; }
     </style>
 </head>
@@ -50,6 +52,10 @@
     <p class="filter-info">
         Jenis: {{ $jenisLabel }} &nbsp;|&nbsp; Tingkat: {{ $tingkatLabel }} &nbsp;|&nbsp; Periode Tugas: {{ $periodeLabel }}
     </p>
+
+    @if ($gambarPetaDataUri)
+        <img src="{{ $gambarPetaDataUri }}" class="peta-gambar" />
+    @endif
 
     <h2 class="section">Analitik</h2>
     <table class="ringkasan">
@@ -131,7 +137,12 @@
     </table>
 
     <p class="footer-note">
-        Dokumen ini adalah rekap data dari peta interaktif (bukan cuplikan tampilan peta), dibuat otomatis oleh Sistem MARLIN pada {{ now()->translatedFormat('d M Y H:i') }}.
+        @if ($gambarPetaDataUri)
+            Gambar peta di atas adalah cuplikan tampilan peta interaktif saat PDF ini diunduh.
+        @else
+            Gambar peta tidak berhasil disertakan saat PDF ini dibuat — data di bawah tetap lengkap sesuai filter yang dipilih.
+        @endif
+        Dokumen ini dibuat otomatis oleh Sistem MARLIN pada {{ now()->translatedFormat('d M Y H:i') }}.
     </p>
 </body>
 </html>
