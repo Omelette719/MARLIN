@@ -128,7 +128,11 @@
                 @endforeach
 
                 <div class="flex justify-end">
-                    <flux:button variant="primary" wire:click="lanjutkan">Proses Validasi</flux:button>
+                    <flux:button
+                        variant="primary"
+                        wire:click="lanjutkan"
+                        wire:confirm="Lanjutkan proses validasi? Rambu yang dicentang akan langsung disetujui dan tidak bisa dibatalkan."
+                    >Proses Validasi</flux:button>
                 </div>
             </div>
         @else
@@ -160,7 +164,11 @@
 
                 <div class="flex justify-end gap-3">
                     <flux:button type="button" variant="ghost" wire:click="kembali">Kembali</flux:button>
-                    <flux:button variant="danger" wire:click="konfirmasiPenolakan">Konfirmasi & Selesaikan</flux:button>
+                    <flux:button
+                        variant="danger"
+                        wire:click="konfirmasiPenolakan"
+                        wire:confirm="Konfirmasi hasil validasi ini? Tindakan ini tidak bisa dibatalkan."
+                    >Konfirmasi & Selesaikan</flux:button>
                 </div>
             </flux:card>
         @endif

@@ -69,7 +69,11 @@
                     Surat ini belum didaftarkan timnya. Kalau kamu yang akan mengerjakan, daftarkan dirimu sebagai perwakilan beserta anggota timmu.
                 </flux:text>
 
-                <form wire:submit="daftarkanTim" class="flex flex-col gap-3 rounded-lg border border-zinc-200 bg-zinc-50 p-4">
+                <form
+                    wire:submit="daftarkanTim"
+                    wire:confirm="Daftarkan dirimu sebagai perwakilan untuk surat ini? Tindakan ini tidak bisa dibatalkan."
+                    class="flex flex-col gap-3 rounded-lg border border-zinc-200 bg-zinc-50 p-4"
+                >
                     <x-searchable-multiselect
                         wire-model="anggotaIds"
                         :options="$userOptions"
@@ -92,7 +96,13 @@
                             + Tambah Anggota
                         </flux:button>
 
-                        <form wire:submit="tambahAnggota" x-show="tambah" x-cloak class="flex flex-col gap-3">
+                        <form
+                            wire:submit="tambahAnggota"
+                            wire:confirm="Tambahkan anggota yang dipilih ke tim ini? Anggota yang sudah ditambahkan tidak bisa dihapus lagi."
+                            x-show="tambah"
+                            x-cloak
+                            class="flex flex-col gap-3"
+                        >
                             <x-searchable-multiselect wire-model="anggotaIds" :options="$userOptions" label="Anggota Baru" />
                             <flux:button type="submit" variant="primary" size="sm" class="self-start">Tambahkan</flux:button>
                         </form>
