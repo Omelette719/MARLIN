@@ -105,7 +105,15 @@
 
         @script
         <script>
-            function petaFilterQueryDashboard() {
+            // Livewire's script/endscript directives run this whole block through
+            // `new AsyncFunction(...)` (see SupportScriptsAndAssets), which gives
+            // it its own isolated function scope — plain `function foo() {}` declarations
+            // here are NOT reachable from separate inline onclick/onchange HTML
+            // attributes elsewhere on the page (those execute in the real global
+            // scope). Every handler the filter controls/buttons call by name
+            // has to be attached to `window` explicitly, same as initPetaRambu
+            // and unduhPetaGambarPdf already are in app.js.
+            window.petaFilterQueryDashboard = function () {
                 const params = new URLSearchParams();
                 const jenis = document.getElementById('dashboard-peta-jenis').value;
                 const tingkat = document.getElementById('dashboard-peta-tingkat').value;
@@ -118,16 +126,16 @@
                 if (sampai) params.set('tanggal_sampai', sampai);
 
                 return params.toString();
-            }
+            };
 
-            function getPetaFilterQueryDashboard() {
-                const query = petaFilterQueryDashboard();
+            window.getPetaFilterQueryDashboard = function () {
+                const query = window.petaFilterQueryDashboard();
 
                 return @js(route('peta.export')) + (query ? '?' + query : '');
-            }
+            };
 
-            function terapkanFilterPetaDashboard() {
-                const query = petaFilterQueryDashboard();
+            window.terapkanFilterPetaDashboard = function () {
+                const query = window.petaFilterQueryDashboard();
 
                 // Only fall back to hiding "tenang" pins when no specific tingkat
                 // was chosen — if the admin explicitly asks for e.g. "Selesai /
@@ -144,17 +152,17 @@
                     null,
                     hideTenang
                 );
-            }
+            };
 
-            function resetFilterPetaDashboard() {
+            window.resetFilterPetaDashboard = function () {
                 document.getElementById('dashboard-peta-jenis').value = '';
                 document.getElementById('dashboard-peta-tingkat').value = '';
                 document.getElementById('dashboard-peta-tanggal-dari').value = '';
                 document.getElementById('dashboard-peta-tanggal-sampai').value = '';
-                terapkanFilterPetaDashboard();
-            }
+                window.terapkanFilterPetaDashboard();
+            };
 
-            terapkanFilterPetaDashboard();
+            window.terapkanFilterPetaDashboard();
         </script>
         @endscript
 
