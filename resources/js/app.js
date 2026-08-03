@@ -313,14 +313,50 @@ window.unduhPetaGambarPdf = function (exportUrl, tombolId) {
 
     setSedangProses('Menyiapkan gambar peta...');
 
-    leafletImage(mapInstance, (err, canvas) => {
-        if (err || ! canvas) {
-            console.error('Gagal mengambil gambar peta, PDF akan dibuat tanpa gambar peta:', err);
-            kirimPetaPdf(exportUrl, null, setSedangProses, selesai);
+    // leaflet-image has no timeout of its own: if even a single tile image
+    // never finishes loading (e.g. the public OSM tile servers throttling
+    // or blocking the request — they actively rate-limit/deny non-browser
+    // or high-volume traffic per their tile usage policy), its callback
+    // simply never fires and the button is stuck on "Menyiapkan gambar
+    // peta..." forever. Race it against a timeout so the export always
+    // completes one way or another, falling back to a PDF without the map
+    // image exactly like the existing error-callback path below.
+    let selesaiDipanggil = false;
+
+    const jatuhKeFallback = (alasan) => {
+        if (selesaiDipanggil) {
             return;
         }
 
-        canvas.toBlob((blob) => kirimPetaPdf(exportUrl, blob, setSedangProses, selesai), 'image/png');
+        selesaiDipanggil = true;
+        console.error('Gagal mengambil gambar peta, PDF akan dibuat tanpa gambar peta:', alasan);
+        kirimPetaPdf(exportUrl, null, setSedangProses, selesai);
+    };
+
+    const timeoutId = setTimeout(() => jatuhKeFallback('timeout menunggu tile peta'), 15000);
+
+    leafletImage(mapInstance, (err, canvas) => {
+        if (selesaiDipanggil) {
+            return;
+        }
+
+        clearTimeout(timeoutId);
+
+        if (err || ! canvas) {
+            jatuhKeFallback(err);
+            return;
+        }
+
+        try {
+            canvas.toBlob((blob) => {
+                selesaiDipanggil = true;
+                kirimPetaPdf(exportUrl, blob, setSedangProses, selesai);
+            }, 'image/png');
+        } catch (e) {
+            // Canvas tainted by a tile image that loaded without valid CORS
+            // headers — toBlob() throws synchronously in that case.
+            jatuhKeFallback(e);
+        }
     });
 };
 
