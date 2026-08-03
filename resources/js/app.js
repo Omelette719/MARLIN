@@ -202,19 +202,14 @@ window.initPetaRambu = function (containerId, dataUrl, coordDisplayId, rambuDeta
     const map = L.map(containerId).setView([-3.3194, 114.5908], 13);
     mapInstance = map;
 
-    // CARTO's basemap tiles, not the raw tile.openstreetmap.org servers —
-    // OSM's own tile servers actively throttle/deny non-browser or
-    // high-volume traffic per their tile usage policy (confirmed via an
-    // `x-blocked` response header when probing them directly), which is
-    // exactly what silently broke the PDF map-image export: the canvas
-    // capture in unduhPetaGambarPdf() needs every tile to load cleanly
-    // through CORS, and OSM's blocking made that fail every time even
-    // though the tiles still displayed fine for ordinary browsing.
-    // CARTO's tiles are explicitly meant to be used this way (proper
-    // Access-Control-Allow-Origin, no blocking) and are still OSM data
-    // underneath, just served through a CDN that supports this.
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; OpenStreetMap contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+    // Standard OSM tiles, for the familiar OSM look. (A CARTO tile switch
+    // was tried here while chasing the PDF map-image export bug — the
+    // actual cause turned out to be unrelated, a leaflet-image/marker issue
+    // fixed in unduhPetaGambarPdf() below, so there was no need to move off
+    // OSM after all.) crossOrigin is still needed so that function can read
+    // tile pixels into a canvas.
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors',
         maxZoom: 19,
         crossOrigin: true,
     }).addTo(map);
