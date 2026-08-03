@@ -81,6 +81,28 @@ function markerHtml(pin) {
         + `</div>`;
 }
 
+// A standalone image (plain color/shape SVG data URI, or the pin's own real
+// icon file) representing this marker for the PDF map-image export — see
+// unduhPetaGambarPdf(). Kept separate from markerHtml() because the export
+// capture (leaflet-image) draws each marker from a single <img>-like source
+// rather than the live styled DOM, so it can't reuse the HTML/CSS above
+// (divs with a background-color aren't image sources) or the "radar" glow
+// animation (meaningless in a still image).
+function pinCaptureIconSrc(pin) {
+    if (pin.ikon) {
+        return pin.ikon;
+    }
+
+    const color = pinColor(pin);
+    const shape = pin.bentuk_ikon === 'kotak'
+        ? '<rect x="2" y="2" width="22" height="22" rx="5" fill="' + color + '" stroke="white" stroke-width="2"/>'
+        : '<circle cx="13" cy="13" r="11" fill="' + color + '" stroke="white" stroke-width="2"/>';
+
+    return 'data:image/svg+xml;utf8,' + encodeURIComponent(
+        `<svg xmlns="http://www.w3.org/2000/svg" width="26" height="26">${shape}</svg>`
+    );
+}
+
 function infoRow(label, value) {
     if (! value) {
         return '';
@@ -231,6 +253,8 @@ window.initPetaRambu = function (containerId, dataUrl, coordDisplayId, rambuDeta
                 });
 
                 const marker = L.marker([pin.lat, pin.lng], { icon }).addTo(map);
+                // Stashed for unduhPetaGambarPdf() — see pinCaptureIconSrc().
+                marker._captureIconSrc = pinCaptureIconSrc(pin);
 
                 // A bound Tooltip's content sits under the same click-dispatch path as
                 // the marker itself, so links/buttons inside it never reliably receive
@@ -288,14 +312,37 @@ window.initPetaRambu = function (containerId, dataUrl, coordDisplayId, rambuDeta
         });
 };
 
-// Rasterizes the currently-live map (via leaflet-image) and POSTs it together
-// with exportUrl's own query-string filters to the PDF export endpoint, then
-// triggers a normal file download from the response. A plain <a href> link
-// can't do this — the endpoint needs the actual pixels of what's on screen
-// right now, not just the filter params, since dompdf can't render Leaflet
-// itself. Falls back to a PDF with no map image (rather than failing the
-// whole export) if the capture itself errors out, e.g. a tile host that
-// doesn't cooperate with canvas export.
+// Rasterizes the currently-live map (via leaflet-image, which redraws each
+// tile/marker onto a canvas by walking Leaflet's internal layer objects)
+// and POSTs it together with exportUrl's own query-string filters to the
+// PDF export endpoint, then triggers a normal file download from the
+// response. A plain <a href> link can't do this — the endpoint needs the
+// actual pixels of what's on screen right now, not just the filter params,
+// since dompdf can't render Leaflet itself.
+//
+// Two other approaches were tried and rejected before landing here, both
+// for concrete reasons hit in testing rather than guesses:
+// - Screenshotting the map container's DOM directly (html2canvas, then
+//   modern-screenshot) sidesteps leaflet-image's marker bug below, but
+//   both choked on Tailwind v4's `oklch()` colors, which show up in this
+//   app's computed styles everywhere (even a 0px, inherited border-color
+//   counts). html2canvas's bundled CSS parser threw outright on them.
+//   modern-screenshot's SVG-serialization approach didn't throw, but the
+//   resulting `data:image/svg+xml` silently failed to load as an image at
+//   all — the capture "succeeded" with a blank canvas every time.
+// - leaflet-image itself crashes on this app's pins specifically: it
+//   assumes every marker icon is an `<img>`-backed L.Icon and reads
+//   `marker._icon.src` unconditionally, but our pins use L.divIcon (a
+//   colored circle drawn with CSS, not an image file) — `_icon` is a plain
+//   `<div>` with no `.src`, so it threw `Cannot read properties of
+//   undefined (reading 'match')` on every export. Fixed below by giving
+//   every marker a real image source (its own icon file, or a synthesized
+//   circle/rounded-square SVG matching pinColor()) before capture — see
+//   pinCaptureIconSrc() and the marker creation loop above, which stashes
+//   it as `marker._captureIconSrc`.
+//
+// Falls back to a PDF with no map image (rather than failing the whole
+// export) if the capture itself errors out or times out.
 window.unduhPetaGambarPdf = function (exportUrl, tombolId) {
     const tombol = tombolId ? document.getElementById(tombolId) : null;
     const teksAsli = tombol?.textContent;
@@ -321,14 +368,16 @@ window.unduhPetaGambarPdf = function (exportUrl, tombolId) {
 
     setSedangProses('Menyiapkan gambar peta...');
 
-    // leaflet-image has no timeout of its own: if even a single tile image
-    // never finishes loading (e.g. the public OSM tile servers throttling
-    // or blocking the request — they actively rate-limit/deny non-browser
-    // or high-volume traffic per their tile usage policy), its callback
-    // simply never fires and the button is stuck on "Menyiapkan gambar
-    // peta..." forever. Race it against a timeout so the export always
-    // completes one way or another, falling back to a PDF without the map
-    // image exactly like the existing error-callback path below.
+    // DivIcon markers' _icon is a <div>, which never has a real .src to
+    // begin with — set one now (harmless expando property, doesn't touch
+    // rendering) so leaflet-image's marker handling has something to load
+    // instead of crashing on undefined.
+    mapInstance.eachLayer((layer) => {
+        if (layer instanceof L.Marker && layer._captureIconSrc && layer._icon && ! layer._icon.src) {
+            layer._icon.src = layer._captureIconSrc;
+        }
+    });
+
     let selesaiDipanggil = false;
 
     const jatuhKeFallback = (alasan) => {
@@ -341,7 +390,12 @@ window.unduhPetaGambarPdf = function (exportUrl, tombolId) {
         kirimPetaPdf(exportUrl, null, setSedangProses, selesai);
     };
 
-    const timeoutId = setTimeout(() => jatuhKeFallback('timeout menunggu tile peta'), 15000);
+    // leaflet-image has no timeout of its own — if even a single tile or
+    // marker image never finishes loading, its callback simply never
+    // fires. Race it against a timeout so the export always completes one
+    // way or another instead of leaving the button stuck on "Menyiapkan
+    // gambar peta..." forever.
+    const timeoutId = setTimeout(() => jatuhKeFallback('timeout menyiapkan gambar peta'), 15000);
 
     leafletImage(mapInstance, (err, canvas) => {
         if (selesaiDipanggil) {
@@ -361,8 +415,8 @@ window.unduhPetaGambarPdf = function (exportUrl, tombolId) {
                 kirimPetaPdf(exportUrl, blob, setSedangProses, selesai);
             }, 'image/png');
         } catch (e) {
-            // Canvas tainted by a tile image that loaded without valid CORS
-            // headers — toBlob() throws synchronously in that case.
+            // Canvas tainted by a tile/marker image that loaded without
+            // valid CORS headers — toBlob() throws synchronously in that case.
             jatuhKeFallback(e);
         }
     });
