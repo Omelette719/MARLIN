@@ -119,4 +119,41 @@
                 <flux:text class="text-zinc-500">Belum ada riwayat pekerjaan untuk rambu ini.</flux:text>
             @endforelse
         </flux:card>
+
+        <flux:card class="flex flex-col gap-4">
+            <flux:heading size="lg">Riwayat Temuan Kondisi</flux:heading>
+
+            @forelse ($riwayatKondisi as $laporan)
+                <div wire:key="temuan-{{ $laporan->id }}" class="flex gap-3 rounded-lg border border-zinc-200 p-4">
+                    <div class="h-20 w-28 shrink-0 overflow-hidden rounded-lg bg-zinc-100">
+                        @if ($laporan->foto)
+                            <img src="{{ Storage::url($laporan->foto) }}" class="size-full object-cover" />
+                        @else
+                            <x-photo-placeholder class="size-full" />
+                        @endif
+                    </div>
+
+                    <div class="flex flex-1 flex-col gap-1">
+                        <div class="flex items-center justify-between gap-2">
+                            <flux:badge size="sm" :color="$laporan->kondisi_dilaporkan === KondisiRambu::Rusak ? 'red' : 'green'">
+                                {{ $laporan->kondisi_dilaporkan->label() }}
+                            </flux:badge>
+                            <flux:badge size="sm" :color="match ($laporan->status_tindak_lanjut) {
+                                \App\Enums\StatusTindakLanjut::SudahDibuatkanSpk => 'blue',
+                                \App\Enums\StatusTindakLanjut::Ditolak => 'zinc',
+                                default => 'amber',
+                            }">{{ $laporan->status_tindak_lanjut->label() }}</flux:badge>
+                        </div>
+                        <flux:text class="text-sm text-zinc-600">
+                            Dilaporkan oleh <strong>{{ $laporan->pelapor->name }}</strong>, {{ $laporan->created_at->translatedFormat('d M Y') }}
+                        </flux:text>
+                        @if ($laporan->catatan)
+                            <flux:text class="text-sm text-zinc-600">{{ $laporan->catatan }}</flux:text>
+                        @endif
+                    </div>
+                </div>
+            @empty
+                <flux:text class="text-zinc-500">Belum ada temuan kondisi untuk rambu ini.</flux:text>
+            @endforelse
+        </flux:card>
     </div>

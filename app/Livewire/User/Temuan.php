@@ -45,7 +45,7 @@ class Temuan extends Component
         $rambu = Rambu::findOrFail($this->rambu_id);
 
         DB::transaction(function () use ($rambu) {
-            LaporanKondisi::create([
+            $laporan = LaporanKondisi::create([
                 'rambu_id' => $rambu->id,
                 'dilaporkan_oleh' => Auth::id(),
                 'kondisi_dilaporkan' => $this->kondisi_dilaporkan,
@@ -67,6 +67,7 @@ class Temuan extends Component
                     'judul' => 'Temuan Kondisi Rambu',
                     'pesan' => "Petugas melaporkan rambu di {$rambu->wilayah}, {$rambu->lokasi} berkondisi {$this->kondisi_dilaporkan}.",
                     'url' => route('admin.temuan.index'),
+                    'foto' => $laporan->foto,
                     'dibaca' => false,
                 ]);
             }

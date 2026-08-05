@@ -17,6 +17,7 @@ class Show extends Component
         $this->rambu = $rambu->load([
             'jenisRambu',
             'rambuPasang' => fn ($q) => $q->latest()->with(['spk', 'laporanPengerjaan']),
+            'laporanKondisi' => fn ($q) => $q->latest()->with('pelapor'),
         ]);
     }
 
@@ -26,6 +27,7 @@ class Show extends Component
             'isAdmin' => Auth::user()->isAdmin(),
             'foto' => $this->rambu->fotoUtama(),
             'riwayat' => $this->rambu->rambuPasang,
+            'riwayatKondisi' => $this->rambu->laporanKondisi,
             'googleMapsUrl' => $this->rambu->koordinat && str_contains($this->rambu->koordinat, ',')
                 ? 'https://www.google.com/maps/search/?api=1&query='.$this->rambu->koordinat
                 : null,

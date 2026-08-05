@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('judul');
             $table->string('pesan');
             $table->string('url')->nullable();
+            $table->string('foto')->nullable();
             $table->boolean('dibaca')->default(false);
             $table->timestamp('created_at')->useCurrent();
         });

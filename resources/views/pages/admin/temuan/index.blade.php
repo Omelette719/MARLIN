@@ -1,60 +1,72 @@
+    @php
+        use App\Enums\KondisiRambu;
+        use Illuminate\Support\Facades\Storage;
+    @endphp
+
     <div class="flex w-full flex-1 flex-col gap-6">
         <div>
             <flux:heading size="xl">Temuan Lapangan</flux:heading>
             <flux:subheading>Temuan kondisi rambu dari petugas yang belum ditindaklanjuti.</flux:subheading>
         </div>
 
-        <flux:card class="flex-1">
-            <flux:table>
-                <flux:table.columns>
-                    <flux:table.column>Rambu</flux:table.column>
-                    <flux:table.column>Kondisi</flux:table.column>
-                    <flux:table.column>Pelapor</flux:table.column>
-                    <flux:table.column>Catatan</flux:table.column>
-                    <flux:table.column>Tanggal</flux:table.column>
-                    <flux:table.column align="end">Aksi</flux:table.column>
-                </flux:table.columns>
+        @if ($temuan->isEmpty())
+            <flux:card class="flex-1">
+                <flux:text class="py-8 text-center text-zinc-500">Tidak ada temuan yang belum ditindaklanjuti.</flux:text>
+            </flux:card>
+        @else
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                @foreach ($temuan as $item)
+                    <div wire:key="temuan-{{ $item->id }}" class="flex flex-col overflow-hidden rounded-xl border border-zinc-200">
+                        <div class="aspect-video w-full overflow-hidden bg-zinc-100">
+                            @if ($item->foto)
+                                <img src="{{ Storage::url($item->foto) }}" class="size-full object-cover" />
+                            @else
+                                <x-photo-placeholder class="size-full" />
+                            @endif
+                        </div>
 
-                <flux:table.rows>
-                    @forelse ($temuan as $item)
-                        <flux:table.row>
-                            <flux:table.cell variant="strong">{{ $item->rambu->wilayah }}, {{ $item->rambu->lokasi }}</flux:table.cell>
-                            <flux:table.cell>
-                                <flux:badge size="sm" :color="$item->kondisi_dilaporkan === \App\Enums\KondisiRambu::Rusak ? 'red' : 'green'">
+                        <div class="flex flex-col gap-2 p-4">
+                            <div class="flex items-start justify-between gap-2">
+                                <div class="min-w-0">
+                                    <flux:heading size="sm">{{ $item->rambu->jenisRambu?->nama_jenis }}</flux:heading>
+                                    <flux:text class="truncate text-sm text-zinc-500">{{ $item->rambu->wilayah }}, {{ $item->rambu->lokasi }}</flux:text>
+                                </div>
+                                <flux:badge size="sm" :color="$item->kondisi_dilaporkan === KondisiRambu::Rusak ? 'red' : 'green'">
                                     {{ $item->kondisi_dilaporkan->label() }}
                                 </flux:badge>
-                            </flux:table.cell>
-                            <flux:table.cell>{{ $item->pelapor->name }}</flux:table.cell>
-                            <flux:table.cell>{{ $item->catatan ?: 'Tidak ada catatan' }}</flux:table.cell>
-                            <flux:table.cell>{{ $item->created_at->translatedFormat('d M Y') }}</flux:table.cell>
-                            <flux:table.cell align="end">
-                                <flux:button size="sm" variant="primary" :href="route('admin.spk.create', ['laporan_kondisi' => $item->id])" wire:navigate>
+                            </div>
+
+                            <flux:text class="text-sm text-zinc-600">
+                                Dilaporkan oleh <strong>{{ $item->pelapor->name }}</strong>, {{ $item->created_at->translatedFormat('d M Y') }}
+                            </flux:text>
+
+                            @if ($item->catatan)
+                                <flux:text class="text-sm text-zinc-600">{{ $item->catatan }}</flux:text>
+                            @endif
+
+                            <div class="mt-auto flex gap-2 pt-2">
+                                <flux:button size="sm" variant="primary" class="flex-1" :href="route('admin.spk.create', ['laporan_kondisi' => $item->id])" wire:navigate>
                                     Buat SPK
                                 </flux:button>
+
                                 <flux:modal.trigger name="tolak-temuan-{{ $item->id }}">
                                     <flux:button size="sm" variant="ghost">
                                         Tolak
                                     </flux:button>
                                 </flux:modal.trigger>
+                            </div>
+                        </div>
+                    </div>
 
-                                <x-confirm-modal
-                                    name="tolak-temuan-{{ $item->id }}"
-                                    heading="Tolak temuan ini?"
-                                    text="Temuan akan ditandai sebagai ditolak dan tidak akan muncul lagi di daftar ini."
-                                    action="tolak({{ $item->id }})"
-                                    confirm-label="Ya, Tolak"
-                                    tone="danger"
-                                />
-                            </flux:table.cell>
-                        </flux:table.row>
-                    @empty
-                        <flux:table.row>
-                            <flux:table.cell colspan="6" class="text-center text-zinc-500">
-                                Tidak ada temuan yang belum ditindaklanjuti.
-                            </flux:table.cell>
-                        </flux:table.row>
-                    @endforelse
-                </flux:table.rows>
-            </flux:table>
-        </flux:card>
+                    <x-confirm-modal
+                        name="tolak-temuan-{{ $item->id }}"
+                        heading="Tolak temuan ini?"
+                        text="Temuan akan ditandai sebagai ditolak dan tidak akan muncul lagi di daftar ini."
+                        action="tolak({{ $item->id }})"
+                        confirm-label="Ya, Tolak"
+                        tone="danger"
+                    />
+                @endforeach
+            </div>
+        @endif
     </div>

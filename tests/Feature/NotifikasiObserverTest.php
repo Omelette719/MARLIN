@@ -9,6 +9,7 @@ use App\Services\TelegramService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class NotifikasiObserverTest extends TestCase
@@ -55,5 +56,27 @@ class NotifikasiObserverTest extends TestCase
         (new SendTelegramNotifikasi($notif))->handle(new TelegramService);
 
         Http::assertNothingSent();
+    }
+
+    public function test_telegram_job_sends_photo_instead_of_plain_message_when_notifikasi_has_foto(): void
+    {
+        Storage::fake('public');
+        Storage::disk('public')->put('kendala/contoh.jpg', 'fake-image-bytes');
+
+        $user = User::factory()->create(['telegram_chat_id' => '999']);
+        $notif = Notifikasi::create([
+            'user_id' => $user->id,
+            'judul' => 'Kendala Dilaporkan',
+            'pesan' => 'isi',
+            'foto' => 'kendala/contoh.jpg',
+            'dibaca' => false,
+        ]);
+
+        Http::fake();
+
+        (new SendTelegramNotifikasi($notif))->handle(new TelegramService);
+
+        Http::assertSent(fn ($request) => str_contains($request->url(), '/sendPhoto'));
+        Http::assertNotSent(fn ($request) => str_contains($request->url(), '/sendMessage'));
     }
 }

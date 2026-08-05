@@ -141,6 +141,7 @@ class Show extends Component
                         'judul' => 'Laporan Diterima',
                         'pesan' => "Laporan untuk SPK {$this->spk->nomor_surat} telah diterima.",
                         'url' => route('user.spk.show', $this->spk),
+                        'foto' => $laporan?->foto_sesudah ?? $rambuPasang->kendala->first()?->foto,
                         'dibaca' => false,
                     ]);
                 }
@@ -181,6 +182,7 @@ class Show extends Component
                         'judul' => 'Laporan Ditolak',
                         'pesan' => "Laporan untuk SPK {$this->spk->nomor_surat} ditolak: {$catatan}",
                         'url' => route('user.spk.show', $this->spk),
+                        'foto' => $laporan?->foto_sesudah ?? $rambuPasang->kendala->first()?->foto,
                         'dibaca' => false,
                     ]);
                 }

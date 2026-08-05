@@ -128,8 +128,9 @@ class Kendala extends Component
                     'alasan' => $this->alasan,
                     'foto' => $this->foto ? $this->foto->store('kendala', 'public') : $existing->foto,
                 ]);
+                $kendala = $existing;
             } else {
-                KendalaModel::create([
+                $kendala = KendalaModel::create([
                     'rambu_pasang_id' => $item->id,
                     'dilaporkan_oleh' => Auth::id(),
                     'alasan' => $this->alasan,
@@ -151,6 +152,7 @@ class Kendala extends Component
                 'judul' => 'Kendala Dilaporkan',
                 'pesan' => "Petugas melaporkan kendala untuk SPK {$item->spk->nomor_surat} di {$item->rambu->wilayah}, {$item->rambu->lokasi}: {$this->alasan}",
                 'url' => route('admin.spk.show', $item->spk),
+                'foto' => $kendala->foto,
                 'dibaca' => false,
             ]);
         });

@@ -13,6 +13,7 @@ use App\Models\JenisRambu;
 use App\Models\Notifikasi;
 use App\Models\Rambu;
 use App\Models\RambuPasang;
+use App\Models\RtPerwakilan;
 use App\Models\Spk;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -476,6 +477,35 @@ class AdminSpkShowTest extends TestCase
         $response->assertSee('Durasi Pengerjaan');
         $response->assertSee('10 hari');
         $response->assertSee('12 hari lebih cepat dari deadline');
+    }
+
+    public function test_admin_spk_detail_shows_contact_person_when_present(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $this->actingAs($admin);
+
+        $spk = Spk::create([
+            'nomor_surat' => 'SR-2026/BJM/7009',
+            'dibuat_oleh' => $admin->id,
+            'jenis_spk' => 'pasang_baru',
+            'wilayah' => 'Banjarmasin Tengah',
+            'deadline' => now()->addDays(5),
+            'urgensi' => 'sedang',
+            'status' => 'aktif',
+            'asal_permintaan' => 'internal',
+        ]);
+
+        RtPerwakilan::create([
+            'nama_lengkap' => 'Abdul',
+            'no_telepon' => '08226735526',
+            'rtperwakilan_spk_id' => $spk->id,
+        ]);
+
+        $response = $this->get(route('admin.spk.show', $spk));
+
+        $response->assertOk();
+        $response->assertSee('Contact Person');
+        $response->assertSee('Abdul (08226735526)');
     }
 
     public function test_admin_can_batalkan_spk(): void

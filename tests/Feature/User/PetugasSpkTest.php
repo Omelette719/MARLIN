@@ -16,6 +16,7 @@ use App\Models\LaporanPengerjaan;
 use App\Models\Notifikasi;
 use App\Models\Rambu;
 use App\Models\RambuPasang;
+use App\Models\RtPerwakilan;
 use App\Models\Spk;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -303,6 +304,7 @@ class PetugasSpkTest extends TestCase
             route('admin.spk.show', $rambuPasang->rambu_spk_id),
             Notifikasi::where('user_id', $admin->id)->first()->url
         );
+        $this->assertSame(Kendala::first()->foto, Notifikasi::where('user_id', $admin->id)->first()->foto);
     }
 
     public function test_petugas_cannot_submit_kendala_without_foto(): void
@@ -402,6 +404,7 @@ class PetugasSpkTest extends TestCase
             route('admin.spk.show', $rambuPasang->rambu_spk_id),
             Notifikasi::where('user_id', $admin->id)->first()->url
         );
+        $this->assertSame($laporan->foto_sesudah, Notifikasi::where('user_id', $admin->id)->first()->foto);
     }
 
     public function test_laporan_form_shows_existing_foto_survei_as_before_reference(): void
@@ -559,6 +562,26 @@ class PetugasSpkTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Terlambat 3 hari dari deadline');
+    }
+
+    public function test_user_spk_detail_shows_contact_person_when_present(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $this->actingAs(User::factory()->create());
+
+        $rambuPasang = $this->makeRambuPasang($admin);
+
+        RtPerwakilan::create([
+            'nama_lengkap' => 'Abdul',
+            'no_telepon' => '08226735526',
+            'rtperwakilan_spk_id' => $rambuPasang->rambu_spk_id,
+        ]);
+
+        $response = $this->get(route('user.spk.show', $rambuPasang->spk));
+
+        $response->assertOk();
+        $response->assertSee('Contact Person');
+        $response->assertSee('Abdul (08226735526)');
     }
 
     public function test_petugas_cannot_submit_laporan_if_joined_but_not_perwakilan(): void

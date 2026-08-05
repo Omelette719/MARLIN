@@ -66,6 +66,13 @@
                 </div>
             @endif
 
+            @if ($contactPerson = $spk->rtPerwakilan->first())
+                <div>
+                    <flux:text class="text-sm text-zinc-500">Contact Person</flux:text>
+                    <flux:text>{{ $contactPerson->nama_lengkap }}{{ $contactPerson->no_telepon ? ' ('.$contactPerson->no_telepon.')' : '' }}</flux:text>
+                </div>
+            @endif
+
             @if ($spk->status === \App\Enums\StatusSpk::Selesai && $spk->selesai_pada)
                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div>

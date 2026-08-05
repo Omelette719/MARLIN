@@ -203,6 +203,7 @@ class Laporan extends Component
                 'judul' => 'Laporan Pengerjaan Masuk',
                 'pesan' => "Petugas mengirim laporan pengerjaan untuk SPK {$item->spk->nomor_surat}.",
                 'url' => route('admin.spk.show', $item->spk),
+                'foto' => $laporan->foto_sesudah,
                 'dibaca' => false,
             ]);
         });

@@ -26,10 +26,12 @@ class SendTelegramNotifikasi implements ShouldQueue
             return;
         }
 
-        $telegram->sendMessage(
-            $notifikasi->user->telegram_chat_id,
-            "{$notifikasi->judul}\n\n{$notifikasi->pesan}",
-            $notifikasi->url,
-        );
+        $teks = "{$notifikasi->judul}\n\n{$notifikasi->pesan}";
+
+        if ($notifikasi->foto) {
+            $telegram->sendPhoto($notifikasi->user->telegram_chat_id, $notifikasi->foto, $teks, $notifikasi->url);
+        } else {
+            $telegram->sendMessage($notifikasi->user->telegram_chat_id, $teks, $notifikasi->url);
+        }
     }
 }

@@ -58,6 +58,21 @@ class TemuanTest extends TestCase
         $response->assertSee($temuan->rambu->lokasi);
     }
 
+    public function test_admin_temuan_page_shows_the_reported_photo(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $petugas = User::factory()->create();
+        $this->actingAs($admin);
+
+        $temuan = $this->makeTemuan($petugas);
+        $temuan->update(['foto' => 'laporan-kondisi/contoh-temuan.jpg']);
+
+        $response = $this->get(route('admin.temuan.index'));
+
+        $response->assertOk();
+        $response->assertSee('laporan-kondisi/contoh-temuan.jpg', false);
+    }
+
     public function test_admin_can_reject_temuan(): void
     {
         $admin = User::factory()->admin()->create();
