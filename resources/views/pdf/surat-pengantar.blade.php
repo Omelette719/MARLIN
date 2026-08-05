@@ -104,7 +104,13 @@
                             <div class="foto-placeholder">Belum ada foto</div>
                         @endif
                     </td>
-                    <td>{{ $rp->catatan_instruksi ?: 'Tidak ada catatan khusus' }}</td>
+                    <td>
+                        @if ($rp->status === \App\Enums\StatusRambuPasang::Batal)
+                            DIBATALKAN: {{ $rp->catatan_pembatalan ?: 'Tidak ada alasan tercatat' }}
+                        @else
+                            {{ $rp->catatan_instruksi ?: 'Tidak ada catatan khusus' }}
+                        @endif
+                    </td>
                 </tr>
             @endforeach
         </tbody>

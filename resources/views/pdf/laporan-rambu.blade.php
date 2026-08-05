@@ -64,6 +64,7 @@
                 <th>Lokasi</th>
                 <th style="width: 65px;">Tanggal</th>
                 <th style="width: 70px;">Status</th>
+                <th>Keterangan</th>
             </tr>
         </thead>
         <tbody>
@@ -75,9 +76,14 @@
                     <td>{{ $item->rambu->wilayah }}, {{ $item->rambu->lokasi }}</td>
                     <td>{{ $item->created_at->translatedFormat('d M Y') }}</td>
                     <td>{{ $item->status->label() }}</td>
+                    <td>
+                        @if ($item->status === \App\Enums\StatusRambuPasang::Batal)
+                            Dibatalkan: {{ $item->catatan_pembatalan ?: 'Tidak ada alasan tercatat' }}
+                        @endif
+                    </td>
                 </tr>
             @empty
-                <tr><td colspan="6">Tidak ada data untuk filter ini.</td></tr>
+                <tr><td colspan="7">Tidak ada data untuk filter ini.</td></tr>
             @endforelse
         </tbody>
     </table>

@@ -19,7 +19,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 #[Fillable([
     'nomor_surat', 'dibuat_oleh', 'wilayah', 'jalan', 'rt', 'kelurahan', 'deadline', 'deadline_asli', 'prioritas',
     'urgensi', 'status', 'jenis_spk', 'asal_permintaan', 'keterangan_asal', 'perihal', 'tanggal_survei',
-    'petugas_survei', 'file_referensi', 'catatan_pekerja_tambahan', 'laporan_akhir_diajukan_at',
+    'petugas_survei', 'file_referensi', 'catatan_pekerja_tambahan', 'laporan_akhir_diajukan_at', 'selesai_pada',
 ])]
 class Spk extends Model
 {
@@ -37,7 +37,53 @@ class Spk extends Model
             'asal_permintaan' => AsalPermintaan::class,
             'tanggal_survei' => 'date',
             'laporan_akhir_diajukan_at' => 'datetime',
+            'selesai_pada' => 'datetime',
         ];
+    }
+
+    // Days from creation to completion — only meaningful once selesai_pada
+    // is set (i.e. every rambu under this SPK reached Selesai/Batal; see
+    // Admin\Validasi\Show::finalize()). Null for SPKs not yet finished, and
+    // for any finished before this column existed.
+    public function durasiPengerjaanHari(): ?int
+    {
+        if (! $this->selesai_pada) {
+            return null;
+        }
+
+        return $this->created_at->copy()->startOfDay()->diffInDays($this->selesai_pada->copy()->startOfDay());
+    }
+
+    // Positive: finished N days after the deadline (late). Negative:
+    // finished N days before the deadline (early). Zero: finished on the
+    // deadline day itself.
+    public function selisihDeadlineHari(): ?int
+    {
+        if (! $this->selesai_pada) {
+            return null;
+        }
+
+        return $this->deadline->copy()->startOfDay()->diffInDays($this->selesai_pada->copy()->startOfDay(), false);
+    }
+
+    // Human-readable Indonesian summary of selisihDeadlineHari(), so every
+    // display surface (SPK detail pages, future dashboard/laporan work)
+    // shows the exact same wording instead of re-deriving it from the sign.
+    public function selisihDeadlineLabel(): ?string
+    {
+        $selisih = $this->selisihDeadlineHari();
+
+        if ($selisih === null) {
+            return null;
+        }
+
+        if ($selisih === 0) {
+            return 'Tepat waktu';
+        }
+
+        return $selisih > 0
+            ? "Terlambat {$selisih} hari dari deadline"
+            : abs($selisih).' hari lebih cepat dari deadline';
     }
 
     // Shared by Create/Edit (manual save) and PenyesuaianDeadlineSpk (automatic

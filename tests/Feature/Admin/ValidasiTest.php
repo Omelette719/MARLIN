@@ -108,6 +108,7 @@ class ValidasiTest extends TestCase
         $this->assertSame(StatusRambuPasang::Selesai, $rambuPasang->fresh()->status);
         $this->assertTrue($rambu->fresh()->sudah_terpasang);
         $this->assertSame(StatusSpk::Selesai, $spk->fresh()->status);
+        $this->assertNotNull($spk->fresh()->selesai_pada);
         $this->assertNull($spk->fresh()->laporan_akhir_diajukan_at);
         $this->assertSame(1, AuditLog::where('aksi', 'validasi_diterima')->count());
         $this->assertSame(1, Notifikasi::where('user_id', $petugas->id)->count());

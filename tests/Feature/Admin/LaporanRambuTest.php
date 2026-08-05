@@ -148,4 +148,34 @@ class LaporanRambuTest extends TestCase
         $this->assertSame(2, $data['perStatus']['selesai']);
         $this->assertSame(0, $data['perStatus']['batal']);
     }
+
+    public function test_laporan_rambu_preview_page_shows_catatan_pembatalan_for_batal_status(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $this->actingAs($admin);
+        $jenis = JenisRambu::create(['nama_jenis' => 'Rambu Peringatan']);
+
+        $rp = $this->makeRambuPasang($admin, $jenis, 'batal', 'SR-2026/BJM/1012');
+        $rp->update(['catatan_pembatalan' => 'Lokasi sudah ada rambu lain.']);
+
+        $response = $this->get(route('admin.laporan.rambu'));
+
+        $response->assertOk();
+        $response->assertSee('Lokasi sudah ada rambu lain.');
+    }
+
+    public function test_laporan_rambu_pdf_shows_catatan_pembatalan_for_batal_status(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $jenis = JenisRambu::create(['nama_jenis' => 'Rambu Peringatan']);
+
+        $rp = $this->makeRambuPasang($admin, $jenis, 'batal', 'SR-2026/BJM/1013');
+        $rp->update(['catatan_pembatalan' => 'Rambu rusak parah, diganti baru.']);
+
+        $data = LaporanRambu::build([]);
+        $html = view('pdf.laporan-rambu', $data)->render();
+
+        $this->assertStringContainsString('Rambu rusak parah, diganti baru.', $html);
+        $this->assertStringContainsString('Dibatalkan:', $html);
+    }
 }

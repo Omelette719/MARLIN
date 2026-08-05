@@ -196,7 +196,7 @@ class Show extends Component
                 ->doesntExist();
 
             if ($semuaSelesai) {
-                $this->spk->update(['status' => StatusSpk::Selesai]);
+                $this->spk->update(['status' => StatusSpk::Selesai, 'selesai_pada' => now()]);
             }
         });
 

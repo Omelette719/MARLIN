@@ -33,6 +33,7 @@ return new class extends Migration
             $table->string('file_referensi')->nullable();
             $table->string('catatan_pekerja_tambahan')->nullable();
             $table->timestamp('laporan_akhir_diajukan_at')->nullable();
+            $table->timestamp('selesai_pada')->nullable();
             $table->timestamps();
 
             $table->index('status');

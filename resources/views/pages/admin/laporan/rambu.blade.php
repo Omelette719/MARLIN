@@ -81,6 +81,10 @@
                                     StatusRambuPasang::Batal => 'zinc',
                                     default => 'zinc',
                                 }">{{ $item->status->label() }}</flux:badge>
+
+                                @if ($item->status === StatusRambuPasang::Batal && $item->catatan_pembatalan)
+                                    <flux:text class="mt-1 text-xs text-zinc-500">{{ $item->catatan_pembatalan }}</flux:text>
+                                @endif
                             </flux:table.cell>
                         </flux:table.row>
                     @empty

@@ -539,6 +539,28 @@ class PetugasSpkTest extends TestCase
         $response->assertSee('Budi, Andi');
     }
 
+    public function test_user_spk_detail_shows_durasi_dan_selisih_deadline_when_terlambat(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $this->actingAs(User::factory()->create());
+
+        $rambuPasang = $this->makeRambuPasang($admin);
+        $spk = $rambuPasang->spk;
+        $spk->update(['status' => 'selesai', 'deadline' => now()->subDays(3)]);
+        $spk->created_at = now()->subDays(8);
+        $spk->selesai_pada = now();
+        $spk->save();
+
+        $this->assertSame(8, $spk->durasiPengerjaanHari());
+        $this->assertSame(3, $spk->selisihDeadlineHari());
+        $this->assertSame('Terlambat 3 hari dari deadline', $spk->selisihDeadlineLabel());
+
+        $response = $this->get(route('user.spk.show', $spk));
+
+        $response->assertOk();
+        $response->assertSee('Terlambat 3 hari dari deadline');
+    }
+
     public function test_petugas_cannot_submit_laporan_if_joined_but_not_perwakilan(): void
     {
         $admin = User::factory()->admin()->create();

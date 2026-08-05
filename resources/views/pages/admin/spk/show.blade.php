@@ -88,6 +88,19 @@
                 </div>
             @endif
 
+            @if ($spk->status === \App\Enums\StatusSpk::Selesai && $spk->selesai_pada)
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div>
+                        <flux:text class="text-sm text-zinc-500">Durasi Pengerjaan</flux:text>
+                        <flux:text>{{ $spk->durasiPengerjaanHari() }} hari (dibuat {{ $spk->created_at->translatedFormat('d M Y') }}, selesai {{ $spk->selesai_pada->translatedFormat('d M Y') }})</flux:text>
+                    </div>
+                    <div>
+                        <flux:text class="text-sm text-zinc-500">Selisih dari Deadline</flux:text>
+                        <flux:badge size="sm" :color="$spk->selisihDeadlineHari() > 0 ? 'red' : 'green'">{{ $spk->selisihDeadlineLabel() }}</flux:badge>
+                    </div>
+                </div>
+            @endif
+
             @if ($spk->catatan_pekerja_tambahan)
                 <div>
                     <flux:text class="text-sm text-zinc-500">Catatan</flux:text>

@@ -161,6 +161,22 @@ class SuratPengantarTest extends TestCase
         $this->assertStringNotContainsString('Budi, Andi', $html);
     }
 
+    public function test_surat_pengantar_shows_catatan_pembatalan_for_batal_rambu(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $spk = $this->makeSpk($admin);
+
+        $rp = $spk->rambuPasang()->first();
+        $rp->update(['status' => 'batal', 'catatan_pembatalan' => 'Salah lokasi, sudah ada rambu lain di sana.']);
+
+        $spk->load(['rambuPasang.rambu.jenisRambu', 'dikerjakanOleh.user', 'pembuat', 'rtPerwakilan']);
+
+        $html = view('pdf.surat-pengantar', ['spk' => $spk])->render();
+
+        $this->assertStringContainsString('DIBATALKAN:', $html);
+        $this->assertStringContainsString('Salah lokasi, sudah ada rambu lain di sana.', $html);
+    }
+
     public function test_unjoined_petugas_cannot_download_surat_pengantar(): void
     {
         $admin = User::factory()->admin()->create();

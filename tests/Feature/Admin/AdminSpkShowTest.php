@@ -442,6 +442,42 @@ class AdminSpkShowTest extends TestCase
         $this->get(route('admin.spk.edit', $spk))->assertForbidden();
     }
 
+    public function test_admin_spk_detail_shows_durasi_pengerjaan_dan_selisih_deadline_when_selesai(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $this->actingAs($admin);
+
+        $spk = Spk::create([
+            'nomor_surat' => 'SR-2026/BJM/7008',
+            'dibuat_oleh' => $admin->id,
+            'jenis_spk' => 'pasang_baru',
+            'wilayah' => 'Banjarmasin Tengah',
+            'deadline' => now()->addDays(10),
+            'urgensi' => 'sedang',
+            'status' => 'selesai',
+            'asal_permintaan' => 'internal',
+        ]);
+
+        // Backdate created_at (Eloquent only auto-sets it on insert, not on
+        // later saves) so the duration math is deterministic: created 12
+        // days ago, finished 2 days ago -> 10 hari duration, 2 hari earlier
+        // than the deadline set above (which is 10 days from now).
+        $spk->created_at = now()->subDays(12);
+        $spk->selesai_pada = now()->subDays(2);
+        $spk->save();
+
+        $this->assertSame(10, $spk->durasiPengerjaanHari());
+        $this->assertSame(-12, $spk->selisihDeadlineHari());
+        $this->assertSame('12 hari lebih cepat dari deadline', $spk->selisihDeadlineLabel());
+
+        $response = $this->get(route('admin.spk.show', $spk));
+
+        $response->assertOk();
+        $response->assertSee('Durasi Pengerjaan');
+        $response->assertSee('10 hari');
+        $response->assertSee('12 hari lebih cepat dari deadline');
+    }
+
     public function test_admin_can_batalkan_spk(): void
     {
         $admin = User::factory()->admin()->create();
