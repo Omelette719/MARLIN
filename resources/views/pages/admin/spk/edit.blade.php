@@ -123,8 +123,19 @@
                             </div>
                             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                 <flux:input wire:model="rambuItems.{{ $index }}.lokasi" label="Lokasi" placeholder="Mis. perempatan 1, samping masjid" />
-                                <flux:input wire:model="rambuItems.{{ $index }}.koordinat" label="Koordinat" placeholder="-3.3194,114.5908" />
+                                <flux:input wire:model.live.debounce.500ms="rambuItems.{{ $index }}.koordinat" label="Koordinat" placeholder="-3.3194,114.5908" description="Format: lintang,bujur" />
                             </div>
+
+                            @if (! empty($koordinatWarnings[$index] ?? null))
+                                <flux:callout variant="warning" icon="exclamation-triangle" heading="Ada rambu lain di lokasi yang sama/berdekatan">
+                                    <ul class="list-disc pl-4">
+                                        @foreach ($koordinatWarnings[$index] as $peringatan)
+                                            <li>{{ $peringatan['label'] }} ({{ $peringatan['jarak'] }} m)</li>
+                                        @endforeach
+                                    </ul>
+                                    Periksa dulu supaya rambu ini tidak terdaftar dua kali.
+                                </flux:callout>
+                            @endif
                         @else
                             <x-searchable-select
                                 wire-model="rambuItems.{{ $index }}.rambu_id"

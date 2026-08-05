@@ -263,4 +263,78 @@ class SpkEditRambuTest extends TestCase
         $this->assertSame(StatusRambuPasang::Belum, $rp2->fresh()->status);
         $this->assertSame('aktif', $spk->fresh()->status->value);
     }
+
+    public function test_koordinat_with_unparsable_format_is_rejected_on_edit(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $this->actingAs($admin);
+
+        $spk = $this->makeSpk($admin);
+        $rp = $this->makeRambuPasang($spk);
+
+        Livewire::test(SpkEditComponent::class, ['spk' => $spk])
+            ->set('rambuItems.0.koordinat', 'entah dimana')
+            ->call('save')
+            ->assertHasErrors(['rambuItems.0.koordinat']);
+
+        $this->assertSame('-3.30,114.59', $rp->rambu->fresh()->koordinat);
+    }
+
+    public function test_cannot_swap_a_rambu_to_one_already_used_by_another_item_in_the_same_spk(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $this->actingAs($admin);
+
+        $spk = $this->makeSpk($admin, 'perbaikan');
+        $rp1 = $this->makeRambuPasang($spk, 'perbaikan');
+        $rp2 = $this->makeRambuPasang($spk, 'perbaikan');
+
+        Livewire::test(SpkEditComponent::class, ['spk' => $spk])
+            ->set('rambuItems.1.rambu_terdaftar', true)
+            ->set('rambuItems.1.rambu_id', (string) $rp1->rambu_id)
+            ->call('save')
+            ->assertHasErrors(['rambuItems']);
+
+        $this->assertSame($rp2->rambu_id, $rp2->fresh()->rambu_id);
+    }
+
+    public function test_editing_koordinat_in_place_does_not_warn_about_its_own_rambu(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $this->actingAs($admin);
+
+        $spk = $this->makeSpk($admin);
+        $this->makeRambuPasang($spk);
+
+        $component = Livewire::test(SpkEditComponent::class, ['spk' => $spk])
+            ->set('rambuItems.0.koordinat', '-3.30,114.59');
+
+        $this->assertEmpty($component->get('koordinatWarnings')[0] ?? null);
+    }
+
+    public function test_live_koordinat_input_warns_about_a_different_nearby_rambu_on_edit(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $this->actingAs($admin);
+
+        $spk = $this->makeSpk($admin);
+        $this->makeRambuPasang($spk);
+
+        $jenisLain = JenisRambu::create(['nama_jenis' => 'Rambu Larangan']);
+        Rambu::create([
+            'jenis_rambu_id' => $jenisLain->id,
+            'wilayah' => 'Banjarmasin Utara',
+            'lokasi' => 'Simpang tiga dekat sana',
+            'koordinat' => '-3.29,114.58',
+            'sudah_terpasang' => true,
+        ]);
+
+        $component = Livewire::test(SpkEditComponent::class, ['spk' => $spk])
+            ->set('rambuItems.0.koordinat', '-3.29,114.58');
+
+        $warnings = $component->get('koordinatWarnings');
+
+        $this->assertNotEmpty($warnings[0] ?? null);
+        $this->assertStringContainsString('Simpang tiga dekat sana', $warnings[0][0]['label']);
+    }
 }

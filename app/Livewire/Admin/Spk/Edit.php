@@ -16,6 +16,7 @@ use App\Models\Rambu;
 use App\Models\RambuPasang;
 use App\Models\RtPerwakilan;
 use App\Models\Spk;
+use App\Rules\Koordinat;
 use App\Support\PenyesuaianDeadlineSpk;
 use Carbon\Carbon;
 use Flux\Flux;
@@ -28,7 +29,9 @@ use Livewire\WithFileUploads;
 #[Title('Edit Surat')]
 class Edit extends Component
 {
-    use RejectsNonImageUploads;
+    use RejectsNonImageUploads {
+        RejectsNonImageUploads::updated as rejectNonImageUpload;
+    }
     use WithFileUploads;
 
     public Spk $spk;
@@ -64,6 +67,8 @@ class Edit extends Component
     public string $rt_telepon = '';
 
     public array $rambuItems = [];
+
+    public array $koordinatWarnings = [];
 
     public ?int $batalIndex = null;
 
@@ -137,7 +142,73 @@ class Edit extends Component
         }
 
         unset($this->rambuItems[$index]);
+        unset($this->koordinatWarnings[$index]);
         $this->rambuItems = array_values($this->rambuItems);
+    }
+
+    public function updated($property, $value = null): void
+    {
+        $this->rejectNonImageUpload($property, $value);
+
+        if (! preg_match('/^rambuItems\.(\d+)\.koordinat$/', $property, $m)) {
+            return;
+        }
+
+        $index = (int) $m[1];
+
+        $this->validateOnly($property, [
+            $property => ['nullable', 'string', 'max:255', new Koordinat],
+        ]);
+
+        $this->refreshKoordinatWarning($index);
+    }
+
+    // See Create::refreshKoordinatWarning() for the rationale — advisory,
+    // not blocking, since close-together signs can be legitimate.
+    private function refreshKoordinatWarning(int $index): void
+    {
+        $koordinat = $this->rambuItems[$index]['koordinat'] ?? '';
+        $coords = Rambu::parseKoordinat($koordinat);
+
+        if (! $coords) {
+            unset($this->koordinatWarnings[$index]);
+
+            return;
+        }
+
+        $kecualikanId = ! empty($this->rambuItems[$index]['rambu_id']) ? (int) $this->rambuItems[$index]['rambu_id'] : null;
+
+        $peringatan = Rambu::terdekat($koordinat, kecualikanId: $kecualikanId)
+            ->map(fn (Rambu $r) => [
+                'label' => "{$r->jenisRambu?->nama_jenis} — {$r->wilayah}, {$r->lokasi}",
+                'jarak' => round($r->jarak_meter),
+            ])->all();
+
+        foreach ($this->rambuItems as $i => $other) {
+            if ($i === $index || empty($other['koordinat'])) {
+                continue;
+            }
+
+            $otherCoords = Rambu::parseKoordinat($other['koordinat']);
+
+            if (! $otherCoords) {
+                continue;
+            }
+
+            $jarak = Rambu::jarakMeter($coords[0], $coords[1], $otherCoords[0], $otherCoords[1]);
+
+            if ($jarak <= 20) {
+                $peringatan[] = ['label' => 'Rambu #'.($i + 1).' di formulir ini', 'jarak' => round($jarak)];
+            }
+        }
+
+        if (empty($peringatan)) {
+            unset($this->koordinatWarnings[$index]);
+
+            return;
+        }
+
+        $this->koordinatWarnings[$index] = $peringatan;
     }
 
     public function bukaBatalkanRambu(int $index): void
@@ -275,7 +346,7 @@ class Edit extends Component
                 $this->validate([
                     "rambuItems.$index.jenis_rambu_id" => 'required|exists:jenis_rambu,id',
                     "rambuItems.$index.lokasi" => 'required|string|max:255',
-                    "rambuItems.$index.koordinat" => 'required|string|max:255',
+                    "rambuItems.$index.koordinat" => ['required', 'string', 'max:255', new Koordinat],
                 ]);
             } else {
                 $this->validate([
@@ -287,6 +358,17 @@ class Edit extends Component
                 "rambuItems.$index.jumlah" => 'required|integer|min:1',
                 "rambuItems.$index.foto_survei" => 'nullable|image|max:5120',
             ]);
+        }
+
+        $rambuIdDipilihGanda = collect($this->rambuItems)
+            ->pluck('rambu_id')
+            ->filter()
+            ->duplicates();
+
+        if ($rambuIdDipilihGanda->isNotEmpty()) {
+            $this->addError('rambuItems', 'Ada rambu existing yang sama dipilih lebih dari sekali dalam surat ini.');
+
+            return;
         }
 
         DB::transaction(function () {

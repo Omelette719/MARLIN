@@ -331,4 +331,127 @@ class SpkTest extends TestCase
             ->call('save')
             ->assertHasErrors(['rambuItems']);
     }
+
+    public function test_koordinat_with_unparsable_format_is_rejected(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $this->actingAs($admin);
+
+        $jenisRambu = JenisRambu::create(['nama_jenis' => 'Rambu Peringatan']);
+
+        Livewire::test(SpkCreateComponent::class)
+            ->set('jenis_spk', JenisPekerjaan::PasangBaru->value)
+            ->set('jalan', 'Lambung Mangkurat')
+            ->set('rt', '5')
+            ->set('kelurahan', 'Kertak Baru')
+            ->set('deadline', now()->addDays(5)->toDateString())
+            ->set('asal_permintaan', 'internal')
+            ->set('rambuItems.0.jenis_rambu_id', (string) $jenisRambu->id)
+            ->set('rambuItems.0.lokasi', 'Perempatan dekat masjid')
+            ->set('rambuItems.0.koordinat', 'dekat masjid raya')
+            ->set('rambuItems.0.jumlah', 1)
+            ->call('save')
+            ->assertHasErrors(['rambuItems.0.koordinat']);
+
+        $this->assertSame(0, Spk::count());
+    }
+
+    public function test_koordinat_outside_valid_lat_lng_range_is_rejected(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $this->actingAs($admin);
+
+        $jenisRambu = JenisRambu::create(['nama_jenis' => 'Rambu Peringatan']);
+
+        Livewire::test(SpkCreateComponent::class)
+            ->set('jenis_spk', JenisPekerjaan::PasangBaru->value)
+            ->set('jalan', 'Lambung Mangkurat')
+            ->set('rt', '5')
+            ->set('kelurahan', 'Kertak Baru')
+            ->set('deadline', now()->addDays(5)->toDateString())
+            ->set('asal_permintaan', 'internal')
+            ->set('rambuItems.0.jenis_rambu_id', (string) $jenisRambu->id)
+            ->set('rambuItems.0.lokasi', 'Perempatan dekat masjid')
+            ->set('rambuItems.0.koordinat', '200,300')
+            ->set('rambuItems.0.jumlah', 1)
+            ->call('save')
+            ->assertHasErrors(['rambuItems.0.koordinat']);
+
+        $this->assertSame(0, Spk::count());
+    }
+
+    public function test_cannot_select_the_same_existing_rambu_twice_in_one_spk(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $this->actingAs($admin);
+
+        $jenisRambu = JenisRambu::create(['nama_jenis' => 'Rambu Larangan']);
+        $rambu = Rambu::create([
+            'jenis_rambu_id' => $jenisRambu->id,
+            'wilayah' => 'Banjarmasin Utara',
+            'lokasi' => 'Depan pasar',
+            'koordinat' => '-3.30,114.59',
+            'kondisi_terkini' => 'rusak',
+            'sudah_terpasang' => true,
+        ]);
+
+        Livewire::test(SpkCreateComponent::class)
+            ->set('jenis_spk', JenisPekerjaan::Perbaikan->value)
+            ->set('jalan', 'Veteran')
+            ->set('rt', '10')
+            ->set('kelurahan', 'Antasan Besar')
+            ->set('deadline', now()->addDays(1)->toDateString())
+            ->set('asal_permintaan', 'laporan_masyarakat')
+            ->set('rambuItems.0.rambu_id', (string) $rambu->id)
+            ->set('rambuItems.0.jumlah', 1)
+            ->call('addRambuItem')
+            ->set('rambuItems.1.rambu_id', (string) $rambu->id)
+            ->set('rambuItems.1.jumlah', 1)
+            ->call('save')
+            ->assertHasErrors(['rambuItems']);
+
+        $this->assertSame(0, Spk::count());
+    }
+
+    public function test_live_koordinat_input_warns_about_nearby_existing_rambu(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $this->actingAs($admin);
+
+        $jenisRambuExisting = JenisRambu::create(['nama_jenis' => 'Rambu Larangan']);
+        Rambu::create([
+            'jenis_rambu_id' => $jenisRambuExisting->id,
+            'wilayah' => 'Banjarmasin Utara',
+            'lokasi' => 'Depan pasar lama',
+            'koordinat' => '-3.3194,114.5908',
+            'sudah_terpasang' => true,
+        ]);
+
+        $jenisRambuBaru = JenisRambu::create(['nama_jenis' => 'Rambu Peringatan']);
+
+        $component = Livewire::test(SpkCreateComponent::class)
+            ->set('jenis_spk', JenisPekerjaan::PasangBaru->value)
+            ->set('rambuItems.0.jenis_rambu_id', (string) $jenisRambuBaru->id)
+            ->set('rambuItems.0.koordinat', '-3.3194,114.5908');
+
+        $warnings = $component->get('koordinatWarnings');
+
+        $this->assertNotEmpty($warnings[0] ?? null);
+        $this->assertStringContainsString('Depan pasar lama', $warnings[0][0]['label']);
+    }
+
+    public function test_live_koordinat_input_has_no_warning_when_no_rambu_nearby(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $this->actingAs($admin);
+
+        $jenisRambu = JenisRambu::create(['nama_jenis' => 'Rambu Peringatan']);
+
+        $component = Livewire::test(SpkCreateComponent::class)
+            ->set('jenis_spk', JenisPekerjaan::PasangBaru->value)
+            ->set('rambuItems.0.jenis_rambu_id', (string) $jenisRambu->id)
+            ->set('rambuItems.0.koordinat', '-3.3194,114.5908');
+
+        $this->assertEmpty($component->get('koordinatWarnings')[0] ?? null);
+    }
 }

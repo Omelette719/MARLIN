@@ -83,7 +83,7 @@ class PetaData
             return null;
         }
 
-        $coords = self::parseKoordinat($rambu->koordinat);
+        $coords = Rambu::parseKoordinat($rambu->koordinat);
 
         if (! $coords) {
             return null;
@@ -146,20 +146,5 @@ class PetaData
         }
 
         return 'belum';
-    }
-
-    private static function parseKoordinat(?string $koordinat): ?array
-    {
-        if (! $koordinat || ! str_contains($koordinat, ',')) {
-            return null;
-        }
-
-        [$lat, $lng] = array_map('trim', explode(',', $koordinat, 2));
-
-        if (! is_numeric($lat) || ! is_numeric($lng)) {
-            return null;
-        }
-
-        return [(float) $lat, (float) $lng];
     }
 }
