@@ -147,7 +147,7 @@ class Edit extends Component
         $this->rambuItems = array_values($this->rambuItems);
     }
 
-    public function updated($property, $value = null): void
+    public function updated(string $property, mixed $value = null): void
     {
         $this->rejectNonImageUpload($property, $value);
 

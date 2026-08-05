@@ -22,6 +22,7 @@ use App\Rules\Koordinat;
 use App\Support\PenyesuaianDeadlineSpk;
 use Carbon\Carbon;
 use Flux\Flux;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Title;
@@ -122,7 +123,7 @@ class Create extends Component
         $this->rambuItems = array_values($this->rambuItems);
     }
 
-    public function updated($property, $value = null): void
+    public function updated(string $property, mixed $value = null): void
     {
         $this->rejectNonImageUpload($property, $value);
 
@@ -292,7 +293,7 @@ class Create extends Component
         $spk = DB::transaction(function () use ($urgensi, $nomorSurat, $isPasangBaru) {
             $spk = Spk::create([
                 'nomor_surat' => $nomorSurat,
-                'dibuat_oleh' => auth()->id(),
+                'dibuat_oleh' => Auth::id(),
                 'jenis_spk' => $this->jenis_spk,
                 'jalan' => $this->jalan,
                 'rt' => $this->rt,
@@ -364,7 +365,7 @@ class Create extends Component
             }
 
             AuditLog::create([
-                'user_id' => auth()->id(),
+                'user_id' => Auth::id(),
                 'spk_id' => $spk->id,
                 'aksi' => 'spk_dibuat',
                 'keterangan' => "SPK {$spk->nomor_surat} dibuat untuk wilayah {$spk->wilayah}.",
