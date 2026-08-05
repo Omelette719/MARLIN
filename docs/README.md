@@ -13,9 +13,9 @@ Dokumentasi lengkap sistem, dipecah per topik. Untuk gambaran umum & cara instal
 ## Urutan Baca yang Disarankan
 
 Kalau baru pertama kali kenal proyek ini:
-1. [README.md](../README.md) — apa itu MARLIN, cara jalankan
-2. [ALUR-BISNIS.md](ALUR-BISNIS.md) — memahami siklus SPK dari awal sampai akhir
-3. [FITUR.md](FITUR.md) — detail tiap fitur per peran
-4. [HALAMAN.md](HALAMAN.md) — peta URL & akses
-5. [DATABASE.md](DATABASE.md) — kalau perlu ubah/tambah skema
-6. [KEAMANAN.md](KEAMANAN.md) — sebelum deploy ke produksi
+1. [README.md](../README.md): apa itu MARLIN, cara jalankan
+2. [ALUR-BISNIS.md](ALUR-BISNIS.md): memahami siklus SPK dari awal sampai akhir
+3. [FITUR.md](FITUR.md): detail tiap fitur per peran
+4. [HALAMAN.md](HALAMAN.md): peta URL & akses
+5. [DATABASE.md](DATABASE.md): kalau perlu ubah/tambah skema
+6. [KEAMANAN.md](KEAMANAN.md): sebelum deploy ke produksi

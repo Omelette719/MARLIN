@@ -8,8 +8,8 @@ Database dev: SQLite (`database/database.sqlite`). Setiap tabel domain punya sat
 
 ## Tabel Bawaan Laravel
 
-- `users` — lihat detail di bawah (tabel ini dimodifikasi dari bawaan starter kit, bukan murni bawaan).
-- `sessions`, `cache`, `cache_locks`, `jobs`, `job_batches`, `failed_jobs` — bawaan Laravel standar, tidak dimodifikasi.
+- `users`: lihat detail di bawah (tabel ini dimodifikasi dari bawaan starter kit, bukan murni bawaan).
+- `sessions`, `cache`, `cache_locks`, `jobs`, `job_batches`, `failed_jobs`: bawaan Laravel standar, tidak dimodifikasi.
 
 ## `users`
 
@@ -17,17 +17,19 @@ Database dev: SQLite (`database/database.sqlite`). Setiap tabel domain punya sat
 |---|---|---|
 | `name` | string | Nama lengkap |
 | `nama_panggilan` | string, nullable | Nama panggilan (ditampilkan di header, mis. "Halo, Budi") |
-| `nip` | string, unique | Nomor Induk Pegawai — dipakai untuk login |
+| `nip` | string, unique | Nomor Induk Pegawai, dipakai untuk login |
 | `username` | string, unique, nullable | Belum dipakai untuk fitur apapun saat ini, disiapkan untuk kebutuhan masa depan |
-| `role` | string, default `user` | `admin` atau `user` (petugas) — lihat enum `Role` |
+| `role` | string, default `user` | `admin` atau `user` (petugas), lihat enum `Role` |
 | `tanggal_lahir` | date, nullable | |
 | `jenis_kelamin` | string(1), nullable | `L` atau `P` |
 | `bidang` | string, nullable | Bidang/divisi di Dishub |
 | `jabatan` | string, nullable | |
 | `no_telepon` | string(20), nullable | |
 | `aktif` | boolean, default `true` | Nonaktifkan akun tanpa menghapusnya |
+| `telegram_chat_id` | string, unique, nullable | Diisi otomatis setelah akun berhasil dihubungkan ke bot Telegram |
+| `telegram_link_token` | string, unique, nullable | Token sekali pakai buat proses hubungkan Telegram, dikosongkan lagi begitu berhasil atau digenerate ulang |
 | `password` | string | Di-hash otomatis (cast `hashed`) |
-| `two_factor_secret`, `two_factor_recovery_codes`, `two_factor_confirmed_at` | — | Dikelola Fortify untuk 2FA |
+| `two_factor_secret`, `two_factor_recovery_codes`, `two_factor_confirmed_at` | (berbagai tipe) | Dikelola Fortify untuk 2FA |
 
 ## `jenis_rambu`
 
@@ -38,7 +40,7 @@ Master kategori rambu.
 | `nama_jenis` | string | |
 | `spesifikasi_standar` | text, nullable | |
 | `gambar_referensi` | string, nullable | Path file di disk `public` |
-| `bentuk_ikon` | string, default `bulat` | `bulat` atau `kotak` — bentuk ikon pin di peta |
+| `bentuk_ikon` | string, default `bulat` | `bulat` atau `kotak`, bentuk ikon pin di peta |
 
 **Relasi**: `hasMany` &rarr; `rambu`.
 
@@ -55,37 +57,40 @@ Satu baris = satu rambu fisik.
 | `kelurahan` | string, nullable | |
 | `lokasi` | string | Lokasi spesifik, mis. "perempatan 1" |
 | `koordinat` | string | Format `"lat,lng"` |
-| `kondisi_terkini` | string, default `baik` | `baik` atau `rusak` — enum `KondisiRambu` |
+| `kondisi_terkini` | string, default `baik` | `baik` atau `rusak`, enum `KondisiRambu` |
 | `sudah_terpasang` | boolean, default `false` | |
 
 **Relasi**: `belongsTo` &rarr; `jenis_rambu`; `hasMany` &rarr; `rambu_pasang`, `laporan_kondisi`.
 
 ## `spk`
 
-Surat Perintah Kerja — entitas utama sistem.
+Surat Perintah Kerja: entitas utama sistem.
 
 | Kolom | Tipe | Keterangan |
 |---|---|---|
 | `nomor_surat` | string, unique | Format `SR-{tahun}/BJM/{urutan 4 digit}` |
 | `dibuat_oleh` | FK &rarr; `users`, **restrict** | Selalu admin |
-| `wilayah` | string | Sama seperti di `rambu` — komposit otomatis |
+| `wilayah` | string | Sama seperti di `rambu`, komposit otomatis |
 | `jalan`, `rt`, `kelurahan` | string, nullable | |
 | `deadline` | date | |
+| `deadline_asli` | date, nullable | Deadline asli sebelum digeser otomatis oleh `App\Support\PenyesuaianDeadlineSpk` saat SPK prioritas lain dibuat |
 | `prioritas` | boolean, default `false` | Kalau `true`, urgensi otomatis `tinggi` |
-| `urgensi` | string | `rendah`/`sedang`/`tinggi` — enum `Urgensi`, dihitung otomatis dari deadline+prioritas |
-| `status` | string, default `aktif`, indexed | `aktif`/`selesai`/`dibatalkan` — enum `StatusSpk` |
-| `jenis_spk` | string, default `pasang_baru` | `pasang_baru`/`perbaikan` — enum `JenisPekerjaan` |
+| `urgensi` | string | `rendah`/`sedang`/`tinggi`, enum `Urgensi`, dihitung otomatis dari deadline+prioritas |
+| `status` | string, default `aktif`, indexed | `aktif`/`selesai`/`dibatalkan`, enum `StatusSpk` |
+| `jenis_spk` | string, default `pasang_baru` | `pasang_baru`/`perbaikan`, enum `JenisPekerjaan` |
 | `asal_permintaan` | string | Lihat enum `AsalPermintaan` |
 | `keterangan_asal` | string, nullable | Mis. nama pelapor/instansi |
 | `perihal` | string, nullable | Kalau kosong, dibuat otomatis saat render PDF |
 | `tanggal_survei` | date, nullable | |
+| `petugas_survei` | string, nullable | Nama petugas survei, dicatat manual. Wajib diisi kalau `tanggal_survei` diisi |
 | `file_referensi` | string, nullable | Path scan surat permohonan asli |
 | `catatan_pekerja_tambahan` | string, nullable | |
-| `laporan_akhir_diajukan_at` | timestamp, nullable | Gate untuk masuk antrean validasi — lihat [ALUR-BISNIS.md](ALUR-BISNIS.md) |
+| `laporan_akhir_diajukan_at` | timestamp, nullable | Gate untuk masuk antrean validasi, lihat [ALUR-BISNIS.md](ALUR-BISNIS.md) |
+| `selesai_pada` | timestamp, nullable | Diisi sekali saat `status` berubah jadi `selesai`. Dipakai untuk menghitung Durasi Pengerjaan & Selisih dari Deadline |
 
 **Relasi**: `hasMany` &rarr; `rambu_pasang`, `dikerjakan_oleh`, `rt_perwakilan`, `audit_log`; `belongsToMany` &rarr; `users` lewat `dikerjakan_oleh`.
 
-**SPK tidak pernah dihapus** — dibatalkan lewat perubahan `status`, bukan `DELETE`.
+**SPK tidak pernah dihapus**, dibatalkan lewat perubahan `status`, bukan `DELETE`.
 
 ## `rambu_pasang`
 
@@ -100,7 +105,8 @@ Baris pekerjaan per rambu, dalam konteks satu SPK. Ini "jembatan" antara `spk` d
 | `jumlah` | unsigned int, default `1` | |
 | `foto_survei` | string, nullable | |
 | `catatan_instruksi` | string, nullable | |
-| `status` | string, default `belum`, indexed | `belum`/`urgent`/`tertunda`/`menunggu_validasi`/`revisi`/`selesai`/`batal` — enum `StatusRambuPasang` |
+| `catatan_pembatalan` | string, nullable | Alasan pembatalan, diisi kalau admin membatalkan rambu ini secara individual (bukan lewat Batalkan SPK) |
+| `status` | string, default `belum`, indexed | `belum`/`urgent`/`tertunda`/`menunggu_validasi`/`revisi`/`selesai`/`batal`, enum `StatusRambuPasang` |
 
 **Relasi**: `belongsTo` &rarr; `spk`, `rambu`, `laporan_kondisi`; `hasMany` &rarr; `laporan_pengerjaan`, `kendala`.
 
@@ -127,14 +133,16 @@ Laporan hasil kerja petugas, per `rambu_pasang`.
 | `foto_sesudah` | string, nullable | |
 | `koordinat_gps` | string, nullable | |
 | `catatan_lapangan` | string, nullable | |
-| `status` | string, default `diajukan` | `diajukan`/`diterima`/`ditolak` — enum `StatusLaporan` |
+| `status` | string, default `diajukan` | `diajukan`/`diterima`/`ditolak`, enum `StatusLaporan` |
 | `catatan_penolakan` | string, nullable | Wajib diisi admin kalau menolak |
 | `divalidasi_oleh` | FK &rarr; `users`, nullable, **restrict** | |
 | `divalidasi_pada` | timestamp, nullable | |
 
 **Relasi**: `belongsTo` &rarr; `rambu_pasang`, `users` (pelapor & validator); `hasMany` &rarr; `barang_bahan`.
 
-Satu `rambu_pasang` bisa punya **lebih dari satu** `laporan_pengerjaan` sepanjang waktu (kalau laporan pertama ditolak lalu direvisi dan diajukan ulang) — riwayat penolakan tidak ditimpa, tapi jadi baris baru.
+Satu `rambu_pasang` bisa punya **lebih dari satu** `laporan_pengerjaan` sepanjang waktu (kalau laporan pertama ditolak lalu direvisi dan diajukan ulang). Riwayat penolakan tidak ditimpa, tapi jadi baris baru.
+
+Baris `laporan_pengerjaan` yang masih aktif (belum digantikan revisi) bisa diedit di tempat selama SPK-nya belum mengajukan Laporan Akhir, lewat form Laporan Pengerjaan yang sama.
 
 ## `barang_bahan`
 
@@ -169,7 +177,7 @@ Temuan kondisi rambu rusak, independen dari SPK aktif manapun.
 | `kondisi_dilaporkan` | string | |
 | `foto` | string, nullable | |
 | `catatan` | string, nullable | |
-| `status_tindak_lanjut` | string, default `baru` | `baru`/`sudah_dibuatkan_spk`/`ditolak` — enum `StatusTindakLanjut` |
+| `status_tindak_lanjut` | string, default `baru` | `baru`/`sudah_dibuatkan_spk`/`ditolak`, enum `StatusTindakLanjut` |
 | `ditindaklanjuti_oleh` | FK &rarr; `users`, nullable, **restrict** | |
 
 ## `rt_perwakilan`
@@ -184,13 +192,13 @@ Kontak RT/perwakilan warga per SPK, untuk tanda tangan manual di kertas. Hanya `
 
 ## `audit_log`
 
-Jejak aksi bisnis kunci. Hanya `created_at` — append-only, tidak ada `updated_at`.
+Jejak aksi bisnis kunci. Hanya `created_at`, append-only, tidak ada `updated_at`.
 
 | Kolom | Tipe | Keterangan |
 |---|---|---|
 | `user_id` | FK &rarr; `users`, **restrict** | Siapa yang melakukan aksi |
 | `spk_id` | FK &rarr; `spk`, nullable, **set null**, indexed | Kalau SPK-nya dihapus (skenario non-aplikasi), log tidak ikut hilang, cuma referensinya di-null-kan |
-| `aksi` | string | Mis. `spk_dibuat`, `laporan_dikirim`, `validasi_diterima`, `spk_dibatalkan`, `spk_diedit` |
+| `aksi` | string | Mis. `spk_dibuat`, `laporan_dikirim`, `validasi_diterima`, `spk_dibatalkan`, `spk_diedit`, `rambu_pasang_dibatalkan`, `rambu_pasang_dihapus`, `temuan_ditolak`, `deadline_disesuaikan` |
 | `tabel_terkait`, `record_id_terkait` | nullable | Belum dipakai secara konsisten di kode saat ini |
 | `keterangan` | string, nullable | Deskripsi singkat aksi |
 
@@ -198,12 +206,15 @@ Jejak aksi bisnis kunci. Hanya `created_at` — append-only, tidak ada `updated_
 
 Notifikasi in-app per user. Hanya `created_at`.
 
-| Kolom | Tipe |
-|---|---|
-| `user_id` | FK &rarr; `users`, **restrict** |
-| `judul` | string |
-| `pesan` | string |
-| `dibaca` | boolean, default `false` |
+| Kolom | Tipe | Keterangan |
+|---|---|---|
+| `user_id` | FK &rarr; `users`, **restrict** | |
+| `judul` | string | |
+| `pesan` | string | |
+| `url` | string, nullable | Link tujuan kalau notifikasi ini punya halaman terkait yang relevan (ditampilkan sebagai tombol Lihat). Sebagian notifikasi (mis. temuan ditolak) sengaja tidak punya `url` kalau memang tidak ada halaman yang pas dituju |
+| `dibaca` | boolean, default `false` | |
+
+Setiap baris `notifikasi` yang dibuat untuk user yang sudah menghubungkan Telegram-nya otomatis memicu pengiriman pesan yang sama lewat bot (lewat `NotifikasiObserver`), tanpa perlu ubah kode di titik-titik yang membuat notifikasi.
 
 ## `system_error_log`
 
@@ -211,19 +222,19 @@ Exception tak terduga yang tertangkap otomatis oleh exception handler global (`b
 
 | Kolom | Tipe | Keterangan |
 |---|---|---|
-| `level` | string | `info`/`warning`/`error`/`critical` — enum `ErrorLevel` |
+| `level` | string | `info`/`warning`/`error`/`critical`, enum `ErrorLevel` |
 | `pesan` | string | |
 | `detail` | text, nullable | Stack trace lengkap |
 | `endpoint` | string, nullable | URL yang diakses saat error terjadi |
 | `user_id` | FK &rarr; `users`, nullable, **restrict** | |
 
-Hanya exception "beneran" yang tercatat — validasi gagal, redirect auth, 404, dan HTTP error di bawah 500 sengaja **tidak** dicatat di sini (bukan bug, memang bukan "error sistem").
+Hanya exception "beneran" yang tercatat: validasi gagal, redirect auth, 404, dan HTTP error di bawah 500 sengaja **tidak** dicatat di sini (bukan bug, memang bukan "error sistem").
 
 ---
 
 ## Enum
 
-Semua kolom status/jenis disimpan sebagai string di database, tapi di-cast ke [PHP backed enum](../app/Enums) di level model — jadi di kode selalu berupa objek enum, bukan string mentah.
+Semua kolom status/jenis disimpan sebagai string di database, tapi di-cast ke [PHP backed enum](../app/Enums) di level model, jadi di kode selalu berupa objek enum, bukan string mentah.
 
 | Enum | Nilai |
 |---|---|
