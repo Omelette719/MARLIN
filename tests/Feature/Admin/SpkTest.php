@@ -440,6 +440,30 @@ class SpkTest extends TestCase
         $this->assertStringContainsString('Depan pasar lama', $warnings[0][0]['label']);
     }
 
+    public function test_invalid_asal_permintaan_value_is_rejected(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $this->actingAs($admin);
+
+        $jenisRambu = JenisRambu::create(['nama_jenis' => 'Rambu Peringatan']);
+
+        Livewire::test(SpkCreateComponent::class)
+            ->set('jenis_spk', JenisPekerjaan::PasangBaru->value)
+            ->set('jalan', 'Lambung Mangkurat')
+            ->set('rt', '5')
+            ->set('kelurahan', 'Kertak Baru')
+            ->set('deadline', now()->addDays(5)->toDateString())
+            ->set('asal_permintaan', 'bukan_asal_yang_valid')
+            ->set('rambuItems.0.jenis_rambu_id', (string) $jenisRambu->id)
+            ->set('rambuItems.0.lokasi', 'Perempatan dekat masjid')
+            ->set('rambuItems.0.koordinat', '-3.3194,114.5908')
+            ->set('rambuItems.0.jumlah', 1)
+            ->call('save')
+            ->assertHasErrors(['asal_permintaan']);
+
+        $this->assertSame(0, Spk::count());
+    }
+
     public function test_live_koordinat_input_has_no_warning_when_no_rambu_nearby(): void
     {
         $admin = User::factory()->admin()->create();

@@ -22,6 +22,7 @@ use Carbon\Carbon;
 use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -321,7 +322,7 @@ class Edit extends Component
             'kelurahan' => 'required|string|max:255',
             'perihal' => 'nullable|string|max:500',
             'deadline' => 'required|date',
-            'asal_permintaan' => 'required|string',
+            'asal_permintaan' => ['required', Rule::enum(AsalPermintaan::class)],
             'keterangan_asal' => 'nullable|string|max:1000',
             'tanggal_survei' => 'nullable|date',
             'petugas_survei' => 'nullable|string|max:500|required_with:tanggal_survei',

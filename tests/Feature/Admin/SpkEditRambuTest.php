@@ -264,6 +264,22 @@ class SpkEditRambuTest extends TestCase
         $this->assertSame('aktif', $spk->fresh()->status->value);
     }
 
+    public function test_invalid_asal_permintaan_value_is_rejected_on_edit(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $this->actingAs($admin);
+
+        $spk = $this->makeSpk($admin);
+        $this->makeRambuPasang($spk);
+
+        Livewire::test(SpkEditComponent::class, ['spk' => $spk])
+            ->set('asal_permintaan', 'bukan_asal_yang_valid')
+            ->call('save')
+            ->assertHasErrors(['asal_permintaan']);
+
+        $this->assertSame('internal', $spk->fresh()->asal_permintaan->value);
+    }
+
     public function test_koordinat_with_unparsable_format_is_rejected_on_edit(): void
     {
         $admin = User::factory()->admin()->create();
