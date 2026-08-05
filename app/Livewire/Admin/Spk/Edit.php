@@ -329,9 +329,10 @@ class Edit extends Component
             'file_referensi' => 'nullable|image|max:5120',
             'catatan_pekerja_tambahan' => 'nullable|string|max:2000',
             'rt_nama' => 'nullable|string|max:255',
-            'rt_telepon' => 'nullable|string|max:30',
+            'rt_telepon' => ['nullable', 'string', 'max:30', 'regex:/^[0-9+\-\s()]+$/'],
         ], [
             'petugas_survei.required_with' => 'Isi petugas survei kalau tanggal survei sudah diisi.',
+            'rt_telepon.regex' => 'Nomor telepon hanya boleh berisi angka dan karakter +, -, spasi, atau tanda kurung.',
         ]);
 
         if (count($this->rambuItems) < 1) {

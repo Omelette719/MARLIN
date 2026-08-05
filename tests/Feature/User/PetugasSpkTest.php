@@ -407,6 +407,30 @@ class PetugasSpkTest extends TestCase
         $this->assertSame($laporan->foto_sesudah, Notifikasi::where('user_id', $admin->id)->first()->foto);
     }
 
+    public function test_koordinat_gps_with_unparsable_format_is_rejected(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $petugas = User::factory()->create();
+        $this->actingAs($petugas);
+
+        $rambuPasang = $this->makeRambuPasang($admin);
+
+        DikerjakanOleh::create([
+            'by_spk_id' => $rambuPasang->rambu_spk_id,
+            'by_user_id' => $petugas->id,
+            'is_perwakilan' => true,
+        ]);
+
+        Livewire::test(LaporanComponent::class)
+            ->call('selectItem', $rambuPasang->id)
+            ->set('foto_sesudah', UploadedFile::fake()->image('sesudah.jpg'))
+            ->set('koordinat_gps', 'entah dimana')
+            ->call('submit')
+            ->assertHasErrors(['koordinat_gps']);
+
+        $this->assertSame(0, LaporanPengerjaan::count());
+    }
+
     public function test_laporan_form_shows_existing_foto_survei_as_before_reference(): void
     {
         $admin = User::factory()->admin()->create();

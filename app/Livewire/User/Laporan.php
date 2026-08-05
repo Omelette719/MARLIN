@@ -11,6 +11,7 @@ use App\Models\DikerjakanOleh;
 use App\Models\LaporanPengerjaan;
 use App\Models\Notifikasi;
 use App\Models\RambuPasang;
+use App\Rules\Koordinat;
 use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -142,7 +143,7 @@ class Laporan extends Component
 
         $this->validate([
             'foto_sesudah' => $editingInPlace ? 'nullable|image|max:5120' : 'required|image|max:5120',
-            'koordinat_gps' => 'nullable|string|max:255',
+            'koordinat_gps' => ['nullable', 'string', 'max:255', new Koordinat],
             'catatan_lapangan' => 'nullable|string|max:2000',
             'barangBahan.*.nama' => 'nullable|string|max:255',
             'barangBahan.*.jumlah' => 'nullable|integer|min:1',

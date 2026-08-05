@@ -40,15 +40,19 @@ class Create extends Component
         $validated = $this->validate([
             'name' => 'required|string|max:255',
             'nama_panggilan' => 'nullable|string|max:255',
-            'nip' => 'required|string|max:30|unique:users,nip',
+            'nip' => ['required', 'string', 'max:30', 'regex:/^[0-9]+$/', 'unique:users,nip'],
             'username' => 'nullable|string|max:255|unique:users,username',
             'role' => 'required|in:admin,user',
-            'tanggal_lahir' => 'nullable|date',
+            'tanggal_lahir' => 'nullable|date|before:today',
             'jenis_kelamin' => 'nullable|in:L,P',
             'bidang' => 'nullable|string|max:255',
             'jabatan' => 'nullable|string|max:255',
-            'no_telepon' => 'nullable|string|max:30',
+            'no_telepon' => ['nullable', 'string', 'max:30', 'regex:/^[0-9+\-\s()]+$/'],
             'password' => 'required|string|min:8',
+        ], [
+            'nip.regex' => 'NIP hanya boleh berisi angka.',
+            'tanggal_lahir.before' => 'Tanggal lahir tidak boleh di masa depan.',
+            'no_telepon.regex' => 'Nomor telepon hanya boleh berisi angka dan karakter +, -, spasi, atau tanda kurung.',
         ]);
 
         foreach (['nama_panggilan', 'username', 'tanggal_lahir', 'jenis_kelamin', 'bidang', 'jabatan', 'no_telepon'] as $field) {

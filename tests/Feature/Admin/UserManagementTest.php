@@ -43,6 +43,67 @@ class UserManagementTest extends TestCase
         $this->assertTrue(Hash::check('password123', $user->password));
     }
 
+    public function test_nip_with_letters_is_rejected_on_create(): void
+    {
+        $this->actingAs(User::factory()->admin()->create());
+
+        Livewire::test(UsersCreateComponent::class)
+            ->set('name', 'Petugas Baru')
+            ->set('nip', '1999BOGUS2020')
+            ->set('role', 'user')
+            ->set('password', 'password123')
+            ->call('save')
+            ->assertHasErrors(['nip' => 'regex']);
+
+        $this->assertSame(0, User::where('name', 'Petugas Baru')->count());
+    }
+
+    public function test_no_telepon_with_letters_is_rejected_on_create(): void
+    {
+        $this->actingAs(User::factory()->admin()->create());
+
+        Livewire::test(UsersCreateComponent::class)
+            ->set('name', 'Petugas Baru')
+            ->set('nip', '199901012020011002')
+            ->set('role', 'user')
+            ->set('no_telepon', 'bukan nomor telepon')
+            ->set('password', 'password123')
+            ->call('save')
+            ->assertHasErrors(['no_telepon' => 'regex']);
+
+        $this->assertSame(0, User::where('name', 'Petugas Baru')->count());
+    }
+
+    public function test_tanggal_lahir_in_future_is_rejected_on_create(): void
+    {
+        $this->actingAs(User::factory()->admin()->create());
+
+        Livewire::test(UsersCreateComponent::class)
+            ->set('name', 'Petugas Baru')
+            ->set('nip', '199901012020011003')
+            ->set('role', 'user')
+            ->set('tanggal_lahir', now()->addYear()->toDateString())
+            ->set('password', 'password123')
+            ->call('save')
+            ->assertHasErrors(['tanggal_lahir' => 'before']);
+
+        $this->assertSame(0, User::where('name', 'Petugas Baru')->count());
+    }
+
+    public function test_nip_with_letters_is_rejected_on_edit(): void
+    {
+        $this->actingAs(User::factory()->admin()->create());
+
+        $user = User::factory()->create(['nip' => '199901012020011004']);
+
+        Livewire::test(UsersEditComponent::class, ['user' => $user])
+            ->set('nip', 'ABC123')
+            ->call('save')
+            ->assertHasErrors(['nip' => 'regex']);
+
+        $this->assertSame('199901012020011004', $user->fresh()->nip);
+    }
+
     public function test_admin_can_edit_user_without_changing_password(): void
     {
         $this->actingAs(User::factory()->admin()->create());
