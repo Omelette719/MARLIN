@@ -98,6 +98,34 @@ class TemuanKondisiTest extends TestCase
         $this->assertSame(0, LaporanKondisi::count());
     }
 
+    // A too-large image passes RejectsNonImageUploads' immediate check (it
+    // only looks at mime type, not size) and only fails later at submit()'s
+    // own validate() — <x-photo-upload> never forwarded label/description
+    // to its inner <flux:input>, so Flux's automatic error text never had
+    // a reason to render; the failure was real but invisible.
+    public function test_oversized_foto_shows_a_visible_error_on_submit(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $jenisRambu = JenisRambu::create(['nama_jenis' => 'Rambu Larangan']);
+        $rambu = Rambu::create([
+            'jenis_rambu_id' => $jenisRambu->id,
+            'wilayah' => 'Banjarmasin Utara',
+            'lokasi' => 'Depan pasar',
+            'koordinat' => '-3.30,114.59',
+        ]);
+
+        Livewire::test(TemuanComponent::class)
+            ->set('rambu_id', (string) $rambu->id)
+            ->set('kondisi_dilaporkan', 'rusak')
+            ->set('foto', UploadedFile::fake()->image('temuan.jpg')->size(6000))
+            ->call('submit')
+            ->assertHasErrors(['foto'])
+            ->assertSee('The foto field must not be greater than 5120 kilobytes.');
+
+        $this->assertSame(0, LaporanKondisi::count());
+    }
+
     public function test_temuan_form_preselects_rambu_from_query_string(): void
     {
         $this->actingAs(User::factory()->create());

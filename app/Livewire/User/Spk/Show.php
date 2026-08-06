@@ -51,7 +51,14 @@ class Show extends Component
     // themselves; the perwakilan adds everyone up front (or later).
     public function daftarkanTim(): void
     {
+        // Normally unreachable — the whole "Daftarkan Tim" section only
+        // renders while $tim is empty — but two petugas can both load this
+        // page while it's still unclaimed and both submit around the same
+        // time. Whoever loses that race gets a silent no-op without this.
         if ($this->sudahBergabung || DikerjakanOleh::where('by_spk_id', $this->spk->id)->exists()) {
+            Flux::toast(variant: 'warning', text: 'Tim untuk surat ini sudah didaftarkan orang lain. Memuat ulang halaman...');
+            $this->redirectRoute('user.spk.show', $this->spk, navigate: true);
+
             return;
         }
 
@@ -164,6 +171,12 @@ class Show extends Component
             ->first();
 
         if (! $anggota) {
+            // Reachable if another session already removed this same member
+            // (or promoted/changed the row) between this page loading and
+            // the click — a stale confirm modal referencing a row that's no
+            // longer there, rather than anything the current user did wrong.
+            Flux::toast(variant: 'warning', text: 'Anggota ini sudah tidak ada di tim (mungkin sudah dihapus sebelumnya).');
+
             return;
         }
 

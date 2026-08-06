@@ -203,8 +203,14 @@ class PetugasSpkTest extends TestCase
         $petugasKedua = User::factory()->create();
         $this->actingAs($petugasKedua);
 
+        // Was a silent no-op: the button that reaches this only renders
+        // while $tim is empty, but two petugas can both load the page
+        // while it's still unclaimed and both submit — whoever loses that
+        // race used to get nothing at all telling them what happened.
         Livewire::test(UserSpkShowComponent::class, ['spk' => $spk])
-            ->call('daftarkanTim');
+            ->call('daftarkanTim')
+            ->assertDispatched('toast-show', fn ($name, $params) => $params['dataset']['variant'] === 'warning')
+            ->assertRedirect(route('user.spk.show', $spk));
 
         $this->assertDatabaseMissing('dikerjakan_oleh', [
             'by_spk_id' => $spk->id,
@@ -408,6 +414,27 @@ class PetugasSpkTest extends TestCase
             'by_spk_id' => $spk->id,
             'by_user_id' => $petugas->id,
         ]);
+    }
+
+    public function test_hapus_anggota_shows_warning_when_member_already_removed(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $petugas = User::factory()->create();
+        $this->actingAs($petugas);
+
+        $rambuPasang = $this->makeRambuPasang($admin);
+        $spk = $rambuPasang->spk;
+
+        DikerjakanOleh::create(['by_spk_id' => $spk->id, 'by_user_id' => $petugas->id, 'is_perwakilan' => true]);
+
+        // Simulates another session already removing this member (or it
+        // never existing) rather than actually deleting it here, since the
+        // point is exercising the "not found" branch, not the happy path.
+        $sudahHilangId = 99999;
+
+        Livewire::test(UserSpkShowComponent::class, ['spk' => $spk])
+            ->call('hapusAnggota', $sudahHilangId)
+            ->assertDispatched('toast-show', fn ($name, $params) => $params['dataset']['variant'] === 'warning');
     }
 
     public function test_non_perwakilan_cannot_remove_members(): void

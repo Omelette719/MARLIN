@@ -75,4 +75,6 @@
         </template>
         <div x-show="filtered.length === 0" class="px-3 py-2 text-sm text-zinc-400">Tidak ditemukan</div>
     </div>
+
+    <flux:error name="{{ $wireModel }}" />
 </div>
