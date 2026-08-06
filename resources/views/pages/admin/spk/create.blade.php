@@ -62,7 +62,7 @@
             <flux:card class="flex flex-col gap-4">
                 <flux:heading size="lg">Daftar Rambu</flux:heading>
 
-                @error('rambuItems') <flux:error>{{ $message }}</flux:error> @enderror
+                <flux:error name="rambuItems" />
 
                 @foreach ($rambuItems as $index => $item)
                     <flux:card wire:key="rambu-{{ $index }}" class="flex flex-col gap-4 bg-zinc-50">

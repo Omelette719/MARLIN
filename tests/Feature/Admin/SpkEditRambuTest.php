@@ -197,6 +197,24 @@ class SpkEditRambuTest extends TestCase
             ->assertSeeHtml('wire:key="hapus-rambu-modal-'.$rp->id.'"');
     }
 
+    public function test_edit_shows_visible_error_when_last_rambu_is_removed(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $this->actingAs($admin);
+
+        $spk = $this->makeSpk($admin);
+        $this->makeRambuPasang($spk);
+
+        Livewire::test(SpkEditComponent::class, ['spk' => $spk])
+            ->call('hapusRambu', 0)
+            ->call('save')
+            ->assertHasErrors(['rambuItems'])
+            // Same <flux:error> slot-content bug as Create's version of this
+            // check — the message never rendered even though the validation
+            // itself correctly blocked the save.
+            ->assertSee('Minimal harus ada satu rambu.');
+    }
+
     public function test_admin_can_hapus_rambu_pasang_with_no_progress(): void
     {
         $admin = User::factory()->admin()->create();

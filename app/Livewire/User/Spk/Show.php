@@ -94,12 +94,23 @@ class Show extends Component
         // perwakilan" is a real, valid action — this action's entire purpose
         // is adding members. An empty/no-op submission has nothing to
         // legitimately report as a success.
+        //
+        // Handled as an explicit toast, not just a validation error: the
+        // multiselect field lives on the page *behind* this action's own
+        // confirm modal (the "Ya, Tambahkan" button is inside
+        // <x-confirm-modal>), so an inline @error on the field is invisible
+        // while that modal is still open over it — a toast is the only
+        // feedback guaranteed to actually be seen at the moment it matters.
+        if (empty($this->anggotaIds)) {
+            $pesan = 'Pilih minimal satu anggota untuk ditambahkan.';
+            $this->addError('anggotaIds', $pesan);
+            Flux::toast(variant: 'danger', text: $pesan);
+
+            return;
+        }
+
         $this->validate([
-            'anggotaIds' => 'required|array|min:1',
             'anggotaIds.*' => 'exists:users,id',
-        ], [
-            'anggotaIds.required' => 'Pilih minimal satu anggota untuk ditambahkan.',
-            'anggotaIds.min' => 'Pilih minimal satu anggota untuk ditambahkan.',
         ]);
 
         $existing = $this->existingTeamUserIds();

@@ -455,7 +455,13 @@ class SpkTest extends TestCase
             ->set('asal_permintaan', 'internal')
             ->set('rambuItems', [])
             ->call('save')
-            ->assertHasErrors(['rambuItems']);
+            ->assertHasErrors(['rambuItems'])
+            // <flux:error>{{ $message }}</flux:error> never actually renders
+            // the message (the component only reads its own `message`/`name`
+            // props, it ignores slot content) — the validation blocked save()
+            // correctly, but the admin had no visible explanation why nothing
+            // happened. Confirms <flux:error name="rambuItems" /> now does.
+            ->assertSee('Tambahkan minimal satu rambu.');
     }
 
     public function test_koordinat_with_unparsable_format_is_rejected(): void

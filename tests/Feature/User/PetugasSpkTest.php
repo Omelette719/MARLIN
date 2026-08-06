@@ -254,10 +254,16 @@ class PetugasSpkTest extends TestCase
             'is_perwakilan' => true,
         ]);
 
+        // Asserted as a dispatched toast, not just a validation error: the
+        // multiselect field this error would normally render under sits
+        // behind this action's own confirm modal, so a toast is the only
+        // feedback actually visible at the moment the click happens.
         Livewire::test(UserSpkShowComponent::class, ['spk' => $spk])
             ->set('anggotaIds', [])
             ->call('tambahAnggota')
-            ->assertHasErrors(['anggotaIds']);
+            ->assertHasErrors(['anggotaIds'])
+            ->assertSee('Pilih minimal satu anggota untuk ditambahkan.')
+            ->assertDispatched('toast-show', fn ($name, $params) => $params['dataset']['variant'] === 'danger');
 
         $this->assertSame(1, DikerjakanOleh::where('by_spk_id', $spk->id)->count());
     }
@@ -289,7 +295,8 @@ class PetugasSpkTest extends TestCase
         Livewire::test(UserSpkShowComponent::class, ['spk' => $spk])
             ->set('anggotaIds', [(string) $sudahAnggota->id])
             ->call('tambahAnggota')
-            ->assertHasNoErrors();
+            ->assertHasNoErrors()
+            ->assertDispatched('toast-show', fn ($name, $params) => $params['dataset']['variant'] === 'warning');
 
         $this->assertSame(2, DikerjakanOleh::where('by_spk_id', $spk->id)->count());
     }
