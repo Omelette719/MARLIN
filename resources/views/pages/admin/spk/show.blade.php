@@ -180,6 +180,10 @@
 
                             @if ($rp->status === StatusRambuPasang::Batal && $rp->catatan_pembatalan)
                                 <flux:text class="text-sm text-red-600">Dibatalkan: {{ $rp->catatan_pembatalan }}</flux:text>
+                            @elseif ($rp->status === StatusRambuPasang::Tertunda && $rp->kendala->first())
+                                <flux:callout variant="warning" icon="exclamation-triangle" heading="Kendala yang dilaporkan">
+                                    {{ $rp->kendala->first()->alasan }}
+                                </flux:callout>
                             @endif
 
                             <div class="mt-auto flex gap-2 pt-2">

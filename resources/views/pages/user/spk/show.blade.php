@@ -243,6 +243,10 @@
                                 <flux:callout variant="danger" icon="exclamation-triangle" heading="Perlu direvisi">
                                     {{ $rp->laporanPengerjaan->first()->catatan_penolakan }}
                                 </flux:callout>
+                            @elseif ($rp->status === StatusRambuPasang::Tertunda && $rp->kendala->first())
+                                <flux:callout variant="warning" icon="exclamation-triangle" heading="Kendala yang dilaporkan">
+                                    {{ $rp->kendala->first()->alasan }}
+                                </flux:callout>
                             @endif
 
                             <div class="mt-auto flex gap-2 pt-2">

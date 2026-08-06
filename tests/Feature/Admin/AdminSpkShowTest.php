@@ -10,6 +10,7 @@ use App\Livewire\Admin\Spk\Riwayat;
 use App\Livewire\Admin\Spk\Show as SpkShowComponent;
 use App\Models\DikerjakanOleh;
 use App\Models\JenisRambu;
+use App\Models\Kendala;
 use App\Models\Notifikasi;
 use App\Models\Rambu;
 use App\Models\RambuPasang;
@@ -550,6 +551,52 @@ class AdminSpkShowTest extends TestCase
         $response->assertOk();
         $response->assertSee('Contact Person');
         $response->assertSee('Abdul (08226735526)');
+    }
+
+    public function test_admin_spk_detail_shows_kendala_reason_for_tertunda_rambu(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $petugas = User::factory()->create();
+        $this->actingAs($admin);
+
+        $spk = Spk::create([
+            'nomor_surat' => 'SR-2026/BJM/7010',
+            'dibuat_oleh' => $admin->id,
+            'jenis_spk' => 'pasang_baru',
+            'wilayah' => 'Banjarmasin Tengah',
+            'deadline' => now()->addDays(5),
+            'urgensi' => 'sedang',
+            'status' => 'aktif',
+            'asal_permintaan' => 'internal',
+        ]);
+
+        $jenis = JenisRambu::create(['nama_jenis' => 'Rambu Peringatan']);
+        $rambu = Rambu::create([
+            'jenis_rambu_id' => $jenis->id,
+            'wilayah' => 'Banjarmasin Tengah',
+            'lokasi' => 'Depan kantor lurah',
+            'koordinat' => '-3.30,114.59',
+        ]);
+        $rp = RambuPasang::create([
+            'rambu_spk_id' => $spk->id,
+            'rambu_id' => $rambu->id,
+            'jenis_pekerjaan' => 'pasang_baru',
+            'jumlah' => 1,
+            'status' => 'tertunda',
+        ]);
+
+        Kendala::create([
+            'rambu_pasang_id' => $rp->id,
+            'dilaporkan_oleh' => $petugas->id,
+            'alasan' => 'Warga menolak, minta dipindah ke gang sebelah.',
+            'foto' => 'kendala/fake.jpg',
+        ]);
+
+        $response = $this->get(route('admin.spk.show', $spk));
+
+        $response->assertOk();
+        $response->assertSee('Kendala yang dilaporkan');
+        $response->assertSee('Warga menolak, minta dipindah ke gang sebelah.');
     }
 
     public function test_admin_can_batalkan_spk(): void

@@ -363,6 +363,28 @@ class PetugasSpkTest extends TestCase
         $response->assertSee('https://www.google.com/maps/search/?api=1&query=-3.3194,114.5908');
     }
 
+    public function test_user_spk_detail_shows_kendala_reason_for_tertunda_rambu(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $petugas = User::factory()->create();
+        $this->actingAs(User::factory()->create());
+
+        $rambuPasang = $this->makeRambuPasang($admin, status: 'tertunda');
+
+        Kendala::create([
+            'rambu_pasang_id' => $rambuPasang->id,
+            'dilaporkan_oleh' => $petugas->id,
+            'alasan' => 'Tiang listrik menghalangi titik pasang.',
+            'foto' => 'kendala/fake.jpg',
+        ]);
+
+        $response = $this->get(route('user.spk.show', $rambuPasang->spk));
+
+        $response->assertOk();
+        $response->assertSee('Kendala yang dilaporkan');
+        $response->assertSee('Tiang listrik menghalangi titik pasang.');
+    }
+
     public function test_user_spk_detail_shows_file_referensi_link_when_present(): void
     {
         $admin = User::factory()->admin()->create();

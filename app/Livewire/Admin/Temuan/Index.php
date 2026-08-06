@@ -29,6 +29,10 @@ class Index extends Component
             'user_id' => $laporan->dilaporkan_oleh,
             'judul' => 'Temuan Ditolak',
             'pesan' => "Temuan kondisi yang kamu laporkan untuk rambu di {$laporan->rambu->wilayah}, {$laporan->rambu->lokasi} ditolak admin.",
+            // No dedicated "temuan saya" page for petugas to land on, so this
+            // points at the rambu itself — its Riwayat Temuan Kondisi section
+            // shows this same report in context.
+            'url' => route('rambu.show', $laporan->rambu),
             'dibaca' => false,
         ]);
 
