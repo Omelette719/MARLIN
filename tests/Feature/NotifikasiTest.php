@@ -121,7 +121,7 @@ class NotifikasiTest extends TestCase
         $this->assertFalse($notif->fresh()->dibaca);
     }
 
-    public function test_notifikasi_page_shows_lihat_button_only_when_url_present(): void
+    public function test_notifikasi_card_is_only_clickable_when_url_present(): void
     {
         $me = User::factory()->create();
         $this->actingAs($me);

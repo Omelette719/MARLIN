@@ -9,7 +9,6 @@ use App\Models\AuditLog;
 use App\Models\BarangBahan;
 use App\Models\DikerjakanOleh;
 use App\Models\LaporanPengerjaan;
-use App\Models\Notifikasi;
 use App\Models\RambuPasang;
 use App\Rules\Koordinat;
 use Flux\Flux;
@@ -199,14 +198,11 @@ class Laporan extends Component
                 'keterangan' => "Laporan pengerjaan dikirim/diperbarui untuk rambu di {$item->rambu->wilayah}, {$item->rambu->lokasi}.",
             ]);
 
-            Notifikasi::create([
-                'user_id' => $item->spk->dibuat_oleh,
-                'judul' => 'Laporan Pengerjaan Masuk',
-                'pesan' => "Petugas mengirim laporan pengerjaan untuk SPK {$item->spk->nomor_surat}.",
-                'url' => route('admin.spk.show', $item->spk),
-                'foto' => $laporan->foto_sesudah,
-                'dibaca' => false,
-            ]);
+            // No per-rambu notification here on purpose — admin can't act on a
+            // laporan pengerjaan until the whole SPK's laporan akhir is
+            // submitted anyway (see User\Spk\Show::ajukanLaporanAkhir()), so
+            // this would just be noise ahead of the one notification that's
+            // actually actionable.
         });
 
         Flux::toast(variant: 'success', text: 'Laporan pengerjaan berhasil disimpan.');

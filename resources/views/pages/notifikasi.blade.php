@@ -8,10 +8,20 @@
             <flux:button variant="ghost" wire:click="tandaiSemuaDibaca">Tandai Semua Dibaca</flux:button>
         </div>
 
-        <flux:card class="flex flex-col divide-y divide-zinc-200 p-0">
+        <div class="flex flex-col gap-3">
             @forelse ($notifikasi as $item)
-                <div wire:key="notif-{{ $item->id }}" class="flex items-start justify-between gap-4 p-4 {{ $item->dibaca ? '' : 'bg-cyan-50' }}">
-                    <div class="min-w-0">
+                {{-- The whole notification is the "open" action (tap-anywhere,
+                like a phone's notification center) instead of a separate
+                "Lihat" button — only notifications with somewhere to go get
+                the pointer cursor/click handler at all. --}}
+                <div
+                    wire:key="notif-{{ $item->id }}"
+                    @if ($item->url) wire:click="bukaNotifikasi({{ $item->id }})" role="button" tabindex="0" @endif
+                    class="flex items-start gap-3 rounded-2xl border p-4 shadow-sm transition
+                        {{ $item->dibaca ? 'border-zinc-200 bg-white' : 'border-cyan-200 bg-cyan-50' }}
+                        {{ $item->url ? 'cursor-pointer hover:shadow-md' : '' }}"
+                >
+                    <div class="min-w-0 flex-1">
                         <div class="flex items-center gap-2">
                             <flux:text class="font-semibold text-zinc-800">{{ $item->judul }}</flux:text>
                             @if (! $item->dibaca)
@@ -22,24 +32,18 @@
                         <flux:text class="text-xs text-zinc-400">{{ $item->created_at->diffForHumans() }}</flux:text>
                     </div>
 
-                    <div class="flex shrink-0 items-center gap-2">
-                        @if ($item->url)
-                            <flux:button size="sm" variant="primary" wire:click="bukaNotifikasi({{ $item->id }})">
-                                Lihat
-                            </flux:button>
-                        @endif
-
-                        @if (! $item->dibaca)
-                            <flux:button size="sm" variant="ghost" wire:click="tandaiDibaca({{ $item->id }})">
-                                Tandai Dibaca
-                            </flux:button>
-                        @endif
-                    </div>
+                    @if (! $item->dibaca)
+                        <flux:button size="sm" variant="ghost" class="shrink-0" wire:click.stop="tandaiDibaca({{ $item->id }})">
+                            Tandai Dibaca
+                        </flux:button>
+                    @endif
                 </div>
             @empty
-                <div class="p-6 text-center text-zinc-500">Belum ada notifikasi.</div>
+                <flux:card>
+                    <flux:text class="block py-6 text-center text-zinc-500">Belum ada notifikasi.</flux:text>
+                </flux:card>
             @endforelse
-        </flux:card>
+        </div>
 
         <div>
             {{ $notifikasi->links() }}

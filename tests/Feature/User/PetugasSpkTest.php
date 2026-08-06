@@ -404,12 +404,9 @@ class PetugasSpkTest extends TestCase
         $this->assertNotNull(Kendala::first()->foto);
         $this->assertSame(StatusRambuPasang::Tertunda, $rambuPasang->fresh()->status);
         $this->assertSame(1, AuditLog::where('aksi', 'kendala_diajukan')->count());
-        $this->assertSame(1, Notifikasi::where('user_id', $admin->id)->count());
-        $this->assertSame(
-            route('admin.spk.show', $rambuPasang->rambu_spk_id),
-            Notifikasi::where('user_id', $admin->id)->first()->url
-        );
-        $this->assertSame(Kendala::first()->foto, Notifikasi::where('user_id', $admin->id)->first()->foto);
+        // No per-rambu notification — admin can't act until laporan akhir is
+        // submitted anyway, see ajukanLaporanAkhir().
+        $this->assertSame(0, Notifikasi::where('user_id', $admin->id)->count());
     }
 
     public function test_petugas_cannot_submit_kendala_without_foto(): void
@@ -504,12 +501,9 @@ class PetugasSpkTest extends TestCase
         $this->assertSame(1, $laporan->barangBahan()->count());
         $this->assertSame(StatusRambuPasang::MenungguValidasi, $rambuPasang->fresh()->status);
         $this->assertSame(1, AuditLog::where('aksi', 'laporan_dikirim')->count());
-        $this->assertSame(1, Notifikasi::where('user_id', $admin->id)->count());
-        $this->assertSame(
-            route('admin.spk.show', $rambuPasang->rambu_spk_id),
-            Notifikasi::where('user_id', $admin->id)->first()->url
-        );
-        $this->assertSame($laporan->foto_sesudah, Notifikasi::where('user_id', $admin->id)->first()->foto);
+        // No per-rambu notification — admin can't act until laporan akhir is
+        // submitted anyway, see ajukanLaporanAkhir().
+        $this->assertSame(0, Notifikasi::where('user_id', $admin->id)->count());
     }
 
     public function test_koordinat_gps_with_unparsable_format_is_rejected(): void

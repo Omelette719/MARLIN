@@ -8,7 +8,6 @@ use App\Livewire\Concerns\RejectsNonImageUploads;
 use App\Models\AuditLog;
 use App\Models\DikerjakanOleh;
 use App\Models\Kendala as KendalaModel;
-use App\Models\Notifikasi;
 use App\Models\RambuPasang;
 use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
@@ -128,9 +127,8 @@ class Kendala extends Component
                     'alasan' => $this->alasan,
                     'foto' => $this->foto ? $this->foto->store('kendala', 'public') : $existing->foto,
                 ]);
-                $kendala = $existing;
             } else {
-                $kendala = KendalaModel::create([
+                KendalaModel::create([
                     'rambu_pasang_id' => $item->id,
                     'dilaporkan_oleh' => Auth::id(),
                     'alasan' => $this->alasan,
@@ -147,14 +145,10 @@ class Kendala extends Component
                 'keterangan' => "Kendala diajukan/diperbarui untuk rambu di {$item->rambu->wilayah}, {$item->rambu->lokasi}.",
             ]);
 
-            Notifikasi::create([
-                'user_id' => $item->spk->dibuat_oleh,
-                'judul' => 'Kendala Dilaporkan',
-                'pesan' => "Petugas melaporkan kendala untuk SPK {$item->spk->nomor_surat} di {$item->rambu->wilayah}, {$item->rambu->lokasi}: {$this->alasan}",
-                'url' => route('admin.spk.show', $item->spk),
-                'foto' => $kendala->foto,
-                'dibaca' => false,
-            ]);
+            // No per-rambu notification here on purpose — admin can't act on a
+            // kendala until the whole SPK's laporan akhir is submitted anyway
+            // (see ajukanLaporanAkhir()), so this would just be noise ahead of
+            // the one notification that's actually actionable.
         });
 
         Flux::toast(variant: 'success', text: 'Kendala berhasil disimpan. Setelah semua rambu ditangani, ajukan laporan akhir dari halaman Detail Surat.');
