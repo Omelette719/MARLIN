@@ -276,5 +276,6 @@ Dokumen ini cuma ringkasan. Untuk detail lebih dalam, lihat folder [`docs/`](doc
 | [docs/FITUR.md](docs/FITUR.md) | Rincian tiap fitur per peran |
 | [docs/HALAMAN.md](docs/HALAMAN.md) | Referensi tiap halaman: URL, akses, fungsinya |
 | [docs/ALUR-BISNIS.md](docs/ALUR-BISNIS.md) | Siklus hidup SPK & aturan bisnis secara detail |
+| [docs/DAFTAR-AKTIVITAS.md](docs/DAFTAR-AKTIVITAS.md) | Katalog aktivitas/interaksi per pasangan aktor, bahan mentah untuk activity diagram |
 | [docs/DATABASE.md](docs/DATABASE.md) | Skema lengkap tiap tabel & aturan foreign key |
 | [docs/KEAMANAN.md](docs/KEAMANAN.md) | Langkah keamanan & keputusan desain terkait akses data |
