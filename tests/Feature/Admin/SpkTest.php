@@ -464,6 +464,35 @@ class SpkTest extends TestCase
             ->assertSee('Tambahkan minimal satu rambu.');
     }
 
+    // <flux:error name="rambuItems"> defaults to Flux's "deep" fallback,
+    // which wildcard-matches "rambuItems.*" whenever the exact "rambuItems"
+    // key has no error — so with exactly one (invalid) rambu item present,
+    // it duplicated whatever per-item field error already renders inline in
+    // that item's own card, using Laravel's raw un-humanized attribute path
+    // ("The rambu items.0.jenis rambu id field is required.") instead of a
+    // clean label. Fixed via deep="false" on that slot plus a
+    // validationAttributes() map for the array fields.
+    public function test_incomplete_rambu_item_shows_a_clean_error_exactly_once(): void
+    {
+        $this->actingAs(User::factory()->admin()->create());
+
+        $response = Livewire::test(SpkCreateComponent::class)
+            ->set('jalan', 'Veteran')
+            ->set('rt', '10')
+            ->set('kelurahan', 'Antasan Besar')
+            ->set('deadline', now()->addDays(10)->toDateString())
+            ->set('asal_permintaan', 'internal')
+            ->set('rambuItems.0.lokasi', 'Perempatan dekat masjid')
+            ->set('rambuItems.0.koordinat', '-3.3194,114.5908')
+            ->set('rambuItems.0.jumlah', 1)
+            ->call('save')
+            ->assertHasErrors(['rambuItems.0.jenis_rambu_id']);
+
+        $response->assertDontSee('rambu items.0.jenis rambu id', false);
+
+        $this->assertSame(1, substr_count($response->html(), 'The Jenis Rambu field is required.'));
+    }
+
     public function test_koordinat_with_unparsable_format_is_rejected(): void
     {
         $admin = User::factory()->admin()->create();

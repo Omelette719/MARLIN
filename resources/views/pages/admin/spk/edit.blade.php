@@ -72,7 +72,13 @@
             <flux:card class="flex flex-col gap-4">
                 <flux:heading size="lg">Daftar Rambu</flux:heading>
 
-                <flux:error name="rambuItems" />
+                {{--
+                    deep="false": see create.blade.php — without it this
+                    array-level slot (meant only for "Minimal harus ada satu
+                    rambu.") duplicates whatever per-item field error already
+                    renders inline inside that item's own card below.
+                --}}
+                <flux:error name="rambuItems" :deep="false" />
 
                 @foreach ($rambuItems as $index => $item)
                     <flux:card wire:key="rambu-{{ $item['id'] ?? 'new-'.$index }}" class="flex flex-col gap-4 bg-zinc-50">

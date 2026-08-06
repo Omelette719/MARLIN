@@ -131,6 +131,31 @@ class SpkEditRambuTest extends TestCase
         $this->assertSame(2, RambuPasang::where('rambu_spk_id', $spk->id)->count());
     }
 
+    // Same bug as Create.php: <flux:error name="rambuItems"> defaulted to
+    // Flux's "deep" wildcard fallback, duplicating whatever nested
+    // "rambuItems.*" field error already renders inline in that item's own
+    // card, with Laravel's raw un-humanized attribute path instead of a
+    // clean label.
+    public function test_incomplete_new_rambu_item_shows_a_clean_error_exactly_once(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $this->actingAs($admin);
+
+        $spk = $this->makeSpk($admin);
+        $this->makeRambuPasang($spk);
+
+        $response = Livewire::test(SpkEditComponent::class, ['spk' => $spk])
+            ->call('addRambuItem')
+            ->set('rambuItems.1.lokasi', 'Depan puskesmas')
+            ->set('rambuItems.1.koordinat', '-3.32,114.61')
+            ->set('rambuItems.1.jumlah', 1)
+            ->call('save')
+            ->assertHasErrors(['rambuItems.1.jenis_rambu_id']);
+
+        $response->assertDontSee('rambu items.1.jenis rambu id', false);
+        $this->assertSame(1, substr_count($response->html(), 'The Jenis Rambu field is required.'));
+    }
+
     public function test_admin_can_batalkan_single_rambu_with_reason(): void
     {
         $admin = User::factory()->admin()->create();

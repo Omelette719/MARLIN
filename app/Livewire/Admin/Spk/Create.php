@@ -239,6 +239,23 @@ class Create extends Component
         return sprintf('SR-%d/BJM/%04d', $year, $sequence);
     }
 
+    // Without this, Laravel's auto-generated message for a nested array rule
+    // like "rambuItems.0.jenis_rambu_id" reads as the raw dotted path ("The
+    // rambu items.0.jenis rambu id field is required.") instead of the
+    // field's own visible label. Livewire merges this into every validate()
+    // call in the component automatically.
+    protected function validationAttributes(): array
+    {
+        return [
+            'rambuItems.*.jenis_rambu_id' => 'Jenis Rambu',
+            'rambuItems.*.lokasi' => 'Lokasi',
+            'rambuItems.*.koordinat' => 'Koordinat',
+            'rambuItems.*.rambu_id' => 'Rambu',
+            'rambuItems.*.jumlah' => 'Jumlah',
+            'rambuItems.*.foto_survei' => 'Foto Tempat',
+        ];
+    }
+
     // A freshly-uploaded photo always wins. Otherwise, if this rambu item
     // came from a temuan report, copy that report's photo into its own file
     // under rambu-pasang/survei so it has independent storage from

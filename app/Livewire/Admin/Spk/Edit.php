@@ -81,6 +81,24 @@ class Edit extends Component
         return ['file_referensi'];
     }
 
+    // Without this, Laravel's auto-generated message for a nested array rule
+    // like "rambuItems.0.jenis_rambu_id" reads as the raw dotted path ("The
+    // rambu items.0.jenis rambu id field is required.") instead of the
+    // field's own visible label. Livewire merges this into every validate()
+    // call in the component automatically.
+    protected function validationAttributes(): array
+    {
+        return [
+            'rambuItems.*.jenis_rambu_id' => 'Jenis Rambu',
+            'rambuItems.*.lokasi' => 'Lokasi',
+            'rambuItems.*.koordinat' => 'Koordinat',
+            'rambuItems.*.rambu_id' => 'Rambu',
+            'rambuItems.*.jumlah' => 'Jumlah',
+            'rambuItems.*.foto_survei' => 'Foto Tempat',
+            'catatan_pembatalan' => 'Catatan Pembatalan',
+        ];
+    }
+
     public function mount(Spk $spk): void
     {
         abort_if($spk->status !== StatusSpk::Aktif, 403, 'SPK yang sudah selesai/dibatalkan tidak bisa diedit.');

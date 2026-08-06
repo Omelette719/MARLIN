@@ -66,7 +66,15 @@
             <flux:card class="flex flex-col gap-4">
                 <flux:heading size="lg">Daftar Rambu</flux:heading>
 
-                <flux:error name="rambuItems" />
+                {{--
+                    deep="false": Flux's <flux:error> falls back to a
+                    wildcard "rambuItems.*" lookup by default when there's no
+                    exact "rambuItems" error, which meant this array-level
+                    slot (meant only for "Tambahkan minimal satu rambu.")
+                    also duplicated whatever per-item field error already
+                    renders inline inside that item's own card below.
+                --}}
+                <flux:error name="rambuItems" :deep="false" />
 
                 @foreach ($rambuItems as $index => $item)
                     <flux:card wire:key="rambu-{{ $index }}" class="flex flex-col gap-4 bg-zinc-50">
