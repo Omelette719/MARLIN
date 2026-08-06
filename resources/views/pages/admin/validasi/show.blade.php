@@ -47,45 +47,61 @@
                 </div>
 
                 @foreach ($pending as $rp)
-                    @php $isKendala = $rp->status === StatusRambuPasang::Tertunda; @endphp
-                    <flux:card wire:key="rp-{{ $rp->id }}" class="flex flex-col gap-0 overflow-hidden p-0">
-                        @if ($isKendala)
-                            @php $kendala = $rp->kendala->first(); @endphp
-                            <div class="relative aspect-video bg-zinc-100">
-                                @if ($kendala?->foto)
-                                    <img src="{{ Storage::url($kendala->foto) }}" class="size-full object-cover" />
-                                @else
-                                    <x-photo-placeholder class="size-full" label="Belum ada foto" />
-                                @endif
-                                <span class="absolute top-3 left-3 rounded-full bg-amber-600/85 px-3 py-1 text-xs font-bold tracking-wide text-white uppercase">
-                                    Terkendala
-                                </span>
-                            </div>
-                        @else
-                            @php $laporan = $rp->laporanPengerjaan->first(); @endphp
-                            <div class="grid grid-cols-1 sm:grid-cols-2">
+                    @php
+                        $isKendala = $rp->status === StatusRambuPasang::Tertunda;
+                        $isChecked = $checked[$rp->id] ?? false;
+                    @endphp
+                    <div
+                        wire:key="rp-{{ $rp->id }}"
+                        wire:click="$toggle('checked.{{ $rp->id }}')"
+                        role="checkbox"
+                        aria-checked="{{ $isChecked ? 'true' : 'false' }}"
+                        tabindex="0"
+                        class="flex cursor-pointer flex-col overflow-hidden rounded-2xl border-2 bg-white shadow-xs transition hover:shadow-md {{ $isChecked ? 'border-green-400' : 'border-transparent' }}"
+                    >
+                        <div class="relative">
+                            @if ($isKendala)
+                                @php $kendala = $rp->kendala->first(); @endphp
                                 <div class="relative aspect-video bg-zinc-100">
-                                    @if ($rp->foto_survei)
-                                        <img src="{{ Storage::url($rp->foto_survei) }}" class="size-full object-cover" />
+                                    @if ($kendala?->foto)
+                                        <img src="{{ Storage::url($kendala->foto) }}" class="size-full object-cover" />
                                     @else
                                         <x-photo-placeholder class="size-full" label="Belum ada foto" />
                                     @endif
-                                    <span class="absolute top-3 left-3 rounded-full bg-black/60 px-3 py-1 text-xs font-bold tracking-wide text-white uppercase">
-                                        Sebelum
+                                    <span class="absolute top-3 left-3 rounded-full bg-amber-600/85 px-3 py-1 text-xs font-bold tracking-wide text-white uppercase">
+                                        Terkendala
                                     </span>
                                 </div>
-                                <div class="relative aspect-video bg-zinc-100">
-                                    @if ($laporan?->foto_sesudah)
-                                        <img src="{{ Storage::url($laporan->foto_sesudah) }}" class="size-full object-cover" />
-                                    @else
-                                        <x-photo-placeholder class="size-full" label="Belum ada foto" />
-                                    @endif
-                                    <span class="absolute top-3 left-3 rounded-full bg-[#004655]/85 px-3 py-1 text-xs font-bold tracking-wide text-white uppercase">
-                                        Sesudah
-                                    </span>
+                            @else
+                                @php $laporan = $rp->laporanPengerjaan->first(); @endphp
+                                <div class="grid grid-cols-1 sm:grid-cols-2">
+                                    <div class="relative aspect-video bg-zinc-100">
+                                        @if ($rp->foto_survei)
+                                            <img src="{{ Storage::url($rp->foto_survei) }}" class="size-full object-cover" />
+                                        @else
+                                            <x-photo-placeholder class="size-full" label="Belum ada foto" />
+                                        @endif
+                                        <span class="absolute top-3 left-3 rounded-full bg-black/60 px-3 py-1 text-xs font-bold tracking-wide text-white uppercase">
+                                            Sebelum
+                                        </span>
+                                    </div>
+                                    <div class="relative aspect-video bg-zinc-100">
+                                        @if ($laporan?->foto_sesudah)
+                                            <img src="{{ Storage::url($laporan->foto_sesudah) }}" class="size-full object-cover" />
+                                        @else
+                                            <x-photo-placeholder class="size-full" label="Belum ada foto" />
+                                        @endif
+                                        <span class="absolute top-3 left-3 rounded-full bg-[#004655]/85 px-3 py-1 text-xs font-bold tracking-wide text-white uppercase">
+                                            Sesudah
+                                        </span>
+                                    </div>
                                 </div>
+                            @endif
+
+                            <div class="absolute top-3 right-3 flex size-9 items-center justify-center rounded-full shadow transition {{ $isChecked ? 'bg-green-500 text-white' : 'bg-white/90 text-transparent' }}">
+                                <flux:icon icon="check" class="size-5" />
                             </div>
-                        @endif
+                        </div>
 
                         <div class="flex flex-col gap-3 p-5">
                             <div class="flex items-start justify-between gap-3">
@@ -96,7 +112,9 @@
                                         &middot; Dilaporkan oleh {{ ($isKendala ? $kendala?->pelapor : $laporan?->pelapor)?->name }}
                                     </flux:subheading>
                                 </div>
-                                <flux:checkbox wire:model="checked.{{ $rp->id }}" label="Sesuai" />
+                                <flux:badge size="sm" :color="$isChecked ? 'green' : 'zinc'">
+                                    {{ $isChecked ? 'Sesuai' : 'Klik untuk tandai sesuai' }}
+                                </flux:badge>
                             </div>
 
                             @if ($isKendala)
@@ -124,7 +142,7 @@
                                 @endif
                             @endif
                         </div>
-                    </flux:card>
+                    </div>
                 @endforeach
 
                 <div class="flex justify-end">
@@ -159,6 +177,17 @@
                         </div>
                     @endif
                 @endforeach
+
+                <div class="rounded-lg border border-blue-200 bg-blue-50 p-4">
+                    <flux:checkbox wire:model.live="ubahDeadline" label="Beri kelonggaran, perpanjang deadline SPK ini juga" description="Wajar kalau revisi butuh waktu tambahan. Berlaku untuk seluruh SPK, bukan cuma rambu yang direvisi." />
+
+                    @if ($ubahDeadline)
+                        <div class="mt-3 flex flex-wrap items-end gap-3">
+                            <flux:input type="date" wire:model="deadlineBaru" label="Deadline Baru" class="max-w-xs" />
+                            <flux:text class="pb-2 text-sm text-zinc-500">Deadline saat ini: {{ $spk->deadline->translatedFormat('d M Y') }}</flux:text>
+                        </div>
+                    @endif
+                </div>
 
                 <div class="flex justify-end gap-3">
                     <flux:button type="button" variant="ghost" wire:click="kembali">Kembali</flux:button>

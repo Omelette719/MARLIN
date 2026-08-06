@@ -7,6 +7,7 @@ use App\Enums\StatusRambuPasang;
 use App\Enums\StatusSpk;
 use App\Livewire\Admin\Validasi\Show as ValidasiShowComponent;
 use App\Models\AuditLog;
+use App\Models\DikerjakanOleh;
 use App\Models\JenisRambu;
 use App\Models\Kendala;
 use App\Models\LaporanPengerjaan;
@@ -158,6 +159,88 @@ class ValidasiTest extends TestCase
         $this->assertSame(1, AuditLog::where('aksi', 'validasi_ditolak')->count());
         $this->assertSame(1, Notifikasi::where('user_id', $petugas->id)->count());
         $this->assertSame(route('user.spk.show', $spk), Notifikasi::where('user_id', $petugas->id)->first()->url);
+    }
+
+    public function test_admin_can_extend_deadline_while_rejecting_laporan(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $petugas = User::factory()->create();
+        $this->actingAs($admin);
+
+        ['spk' => $spk, 'rambuPasang' => $rambuPasang] =
+            $this->makeSpkWithPendingLaporan($admin, $petugas);
+
+        DikerjakanOleh::create([
+            'by_spk_id' => $spk->id,
+            'by_user_id' => $petugas->id,
+            'is_perwakilan' => true,
+        ]);
+
+        $deadlineLama = $spk->deadline->toDateString();
+        $deadlineBaru = now()->addDays(15)->toDateString();
+
+        Livewire::test(ValidasiShowComponent::class, ['spk' => $spk])
+            ->set("checked.{$rambuPasang->id}", false)
+            ->call('lanjutkan')
+            ->assertSet('deadlineBaru', $deadlineLama)
+            ->set('ubahDeadline', true)
+            ->set('deadlineBaru', $deadlineBaru)
+            ->set("catatanPenolakan.{$rambuPasang->id}", 'Butuh waktu tambahan untuk revisi.')
+            ->call('konfirmasiPenolakan')
+            ->assertHasNoErrors();
+
+        $spk->refresh();
+        $this->assertSame($deadlineBaru, $spk->deadline->toDateString());
+        $this->assertSame($deadlineBaru, $spk->deadline_asli->toDateString());
+        $this->assertSame(1, AuditLog::where('aksi', 'deadline_diperpanjang')->count());
+        $this->assertSame(
+            1,
+            Notifikasi::where('user_id', $petugas->id)->where('judul', 'Deadline SPK Diperpanjang')->count()
+        );
+    }
+
+    public function test_deadline_unchanged_when_ubah_deadline_not_checked(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $petugas = User::factory()->create();
+        $this->actingAs($admin);
+
+        ['spk' => $spk, 'rambuPasang' => $rambuPasang] =
+            $this->makeSpkWithPendingLaporan($admin, $petugas);
+
+        $deadlineLama = $spk->deadline->toDateString();
+
+        Livewire::test(ValidasiShowComponent::class, ['spk' => $spk])
+            ->set("checked.{$rambuPasang->id}", false)
+            ->call('lanjutkan')
+            ->set('deadlineBaru', now()->addDays(20)->toDateString())
+            ->set("catatanPenolakan.{$rambuPasang->id}", 'Perlu revisi.')
+            ->call('konfirmasiPenolakan')
+            ->assertHasNoErrors();
+
+        $this->assertSame($deadlineLama, $spk->fresh()->deadline->toDateString());
+        $this->assertSame(0, AuditLog::where('aksi', 'deadline_diperpanjang')->count());
+    }
+
+    public function test_deadline_baru_must_be_a_valid_future_date(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $petugas = User::factory()->create();
+        $this->actingAs($admin);
+
+        ['spk' => $spk, 'rambuPasang' => $rambuPasang] =
+            $this->makeSpkWithPendingLaporan($admin, $petugas);
+
+        Livewire::test(ValidasiShowComponent::class, ['spk' => $spk])
+            ->set("checked.{$rambuPasang->id}", false)
+            ->call('lanjutkan')
+            ->set('ubahDeadline', true)
+            ->set('deadlineBaru', now()->subDay()->toDateString())
+            ->set("catatanPenolakan.{$rambuPasang->id}", 'Perlu revisi.')
+            ->call('konfirmasiPenolakan')
+            ->assertHasErrors(['deadlineBaru']);
+
+        $this->assertSame(0, AuditLog::where('aksi', 'deadline_diperpanjang')->count());
     }
 
     public function test_validasi_page_shows_before_photo_from_rambu_pasang_and_after_photo_from_laporan(): void

@@ -11,6 +11,7 @@ use App\Models\AuditLog;
 use App\Models\Notifikasi;
 use App\Models\RambuPasang;
 use App\Models\Spk;
+use Carbon\Carbon;
 use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -27,6 +28,13 @@ class Show extends Component
     public array $catatanPenolakan = [];
 
     public bool $showPenolakanForm = false;
+
+    // Pre-filled with the current deadline (not left blank) so the date
+    // input reads as "here's the current value, change it if you want to
+    // give leeway" rather than an empty field admin has to fill from scratch.
+    public string $deadlineBaru = '';
+
+    public bool $ubahDeadline = false;
 
     public function mount(Spk $spk): void
     {
@@ -77,6 +85,7 @@ class Show extends Component
         }
 
         $this->catatanPenolakan = $uncheckedIds->mapWithKeys(fn ($id) => [$id => ''])->toArray();
+        $this->deadlineBaru = $this->spk->deadline->toDateString();
         $this->showPenolakanForm = true;
     }
 
@@ -89,13 +98,57 @@ class Show extends Component
     {
         $this->validate([
             'catatanPenolakan.*' => 'required|string|max:1000',
+            'deadlineBaru' => 'required|date|after_or_equal:today',
         ], [
             'catatanPenolakan.*.required' => 'Catatan penolakan wajib diisi untuk setiap rambu yang tidak dicentang.',
         ]);
 
         $approvedIds = collect($this->checked)->filter(fn ($v) => $v)->keys();
 
-        $this->finalize(approvedIds: $approvedIds, rejections: $this->catatanPenolakan);
+        // One outer transaction so a deadline change never lands without the
+        // rejection it was granted alongside (or vice versa) — finalize()'s
+        // own DB::transaction() nests into this one as a savepoint.
+        DB::transaction(function () use ($approvedIds) {
+            if ($this->ubahDeadline && $this->deadlineBaru !== $this->spk->deadline->toDateString()) {
+                $this->perpanjangDeadline();
+            }
+
+            $this->finalize(approvedIds: $approvedIds, rejections: $this->catatanPenolakan);
+        });
+    }
+
+    // Deliberately separate from finalize()'s per-rambu work: this changes
+    // the SPK itself (once), giving the team leeway right at the moment
+    // admin is sending work back for revision — the same reasoning
+    // PenyesuaianDeadlineSpk uses for automatic pushes, just admin-initiated
+    // instead of triggered by a new priority SPK.
+    private function perpanjangDeadline(): void
+    {
+        $deadlineLama = $this->spk->deadline->toDateString();
+        $deadlineBaru = Carbon::parse($this->deadlineBaru);
+
+        $this->spk->update([
+            'deadline' => $deadlineBaru,
+            'deadline_asli' => $deadlineBaru,
+            'urgensi' => Spk::computeUrgensi($deadlineBaru, $this->spk->prioritas),
+        ]);
+
+        AuditLog::create([
+            'user_id' => Auth::id(),
+            'spk_id' => $this->spk->id,
+            'aksi' => 'deadline_diperpanjang',
+            'keterangan' => "Deadline SPK {$this->spk->nomor_surat} diubah dari {$deadlineLama} ke {$this->deadlineBaru} oleh admin saat validasi.",
+        ]);
+
+        foreach ($this->spk->dikerjakanOleh as $anggota) {
+            Notifikasi::create([
+                'user_id' => $anggota->by_user_id,
+                'judul' => 'Deadline SPK Diperpanjang',
+                'pesan' => "Deadline SPK {$this->spk->nomor_surat} diubah dari {$deadlineLama} ke {$this->deadlineBaru}.",
+                'url' => route('user.spk.show', $this->spk),
+                'dibaca' => false,
+            ]);
+        }
     }
 
     private function finalize($approvedIds, array $rejections): void
