@@ -57,16 +57,23 @@
                             </div>
                         </div>
                     </div>
-
-                    <x-confirm-modal
-                        name="tolak-temuan-{{ $item->id }}"
-                        heading="Tolak temuan ini?"
-                        text="Temuan akan ditandai sebagai ditolak dan tidak akan muncul lagi di daftar ini."
-                        action="tolak({{ $item->id }})"
-                        confirm-label="Ya, Tolak"
-                        tone="danger"
-                    />
                 @endforeach
             </div>
+
+            {{-- Modals live outside the grid on purpose: Flux's <ui-modal>
+            wrapper still occupies a grid track even while closed, and
+            sitting inside a `grid-cols-*` container as a sibling of the
+            cards was eating one card-sized column per temuan, spreading
+            the real cards apart instead of sitting next to each other. --}}
+            @foreach ($temuan as $item)
+                <x-confirm-modal
+                    name="tolak-temuan-{{ $item->id }}"
+                    heading="Tolak temuan ini?"
+                    text="Temuan akan ditandai sebagai ditolak dan tidak akan muncul lagi di daftar ini."
+                    action="tolak({{ $item->id }})"
+                    confirm-label="Ya, Tolak"
+                    tone="danger"
+                />
+            @endforeach
         @endif
     </div>

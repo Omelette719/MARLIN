@@ -135,19 +135,27 @@
                                 <flux:modal.trigger name="hapus-anggota-{{ $t->id }}">
                                     <flux:button type="button" size="sm" variant="ghost" icon="x-mark">Hapus</flux:button>
                                 </flux:modal.trigger>
-
-                                <x-confirm-modal
-                                    name="hapus-anggota-{{ $t->id }}"
-                                    heading="Hapus {{ $t->user->name }} dari tim?"
-                                    text="Dia tidak akan lagi tercatat sebagai anggota tim untuk surat ini. Bisa ditambahkan lagi kalau memang keliru."
-                                    action="hapusAnggota({{ $t->id }})"
-                                    confirm-label="Ya, Hapus"
-                                    tone="danger"
-                                />
                             @endif
                         </div>
                     @endforeach
                 </div>
+
+                {{-- Modals live outside the justify-between row on purpose:
+                Flux's <ui-modal> wrapper still takes up a flex slot even
+                while closed, which would throw off "name ... Hapus button"
+                spacing on that row. --}}
+                @foreach ($tim as $t)
+                    @if ($this->sayaPerwakilan && ! $t->is_perwakilan)
+                        <x-confirm-modal
+                            name="hapus-anggota-{{ $t->id }}"
+                            heading="Hapus {{ $t->user->name }} dari tim?"
+                            text="Dia tidak akan lagi tercatat sebagai anggota tim untuk surat ini. Bisa ditambahkan lagi kalau memang keliru."
+                            action="hapusAnggota({{ $t->id }})"
+                            confirm-label="Ya, Hapus"
+                            tone="danger"
+                        />
+                    @endif
+                @endforeach
 
                 @if ($this->sayaPerwakilan)
                     <div class="flex flex-col gap-3 border-t border-zinc-200 pt-3" x-data="{ tambah: false }">
