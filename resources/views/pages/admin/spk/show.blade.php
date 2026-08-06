@@ -143,7 +143,7 @@
 
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 @foreach ($rambuPasang as $rp)
-                    <div wire:key="rp-{{ $rp->id }}" class="flex flex-col overflow-hidden rounded-xl border border-zinc-200">
+                    <div wire:key="rp-{{ $rp->id }}" class="flex flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-xs transition hover:shadow-md">
                         <div class="aspect-video w-full overflow-hidden bg-zinc-100">
                             @if ($rp->foto_survei)
                                 <img src="{{ Storage::url($rp->foto_survei) }}" class="size-full object-cover" />

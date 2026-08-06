@@ -16,7 +16,7 @@
             </flux:button>
         </div>
 
-        <flux:card class="flex flex-col gap-0 overflow-hidden p-0">
+        <flux:card class="flex flex-col gap-0 overflow-hidden rounded-2xl p-0 shadow-xs">
             <div class="relative aspect-video bg-zinc-100">
                 @if ($foto)
                     <img src="{{ Storage::url($foto) }}" class="size-full object-cover" />
@@ -86,7 +86,7 @@
             <flux:heading size="lg">Riwayat Pekerjaan</flux:heading>
 
             @forelse ($riwayat as $rp)
-                <div wire:key="riwayat-{{ $rp->id }}" class="flex flex-col gap-2 rounded-lg border border-zinc-200 p-4">
+                <div wire:key="riwayat-{{ $rp->id }}" class="flex flex-col gap-2 rounded-xl border border-zinc-200 bg-white p-4 shadow-xs transition hover:shadow-sm">
                     <div class="flex items-center justify-between">
                         <flux:link
                             :href="route($isAdmin ? 'admin.spk.show' : 'user.spk.show', $rp->spk)"
@@ -124,7 +124,7 @@
             <flux:heading size="lg">Riwayat Temuan Kondisi</flux:heading>
 
             @forelse ($riwayatKondisi as $laporan)
-                <div wire:key="temuan-{{ $laporan->id }}" class="flex gap-3 rounded-lg border border-zinc-200 p-4">
+                <div wire:key="temuan-{{ $laporan->id }}" class="flex gap-3 rounded-xl border border-zinc-200 bg-white p-4 shadow-xs transition hover:shadow-sm">
                     <div class="h-20 w-28 shrink-0 overflow-hidden rounded-lg bg-zinc-100">
                         @if ($laporan->foto)
                             <img src="{{ Storage::url($laporan->foto) }}" class="size-full object-cover" />

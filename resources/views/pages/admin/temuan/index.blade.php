@@ -16,7 +16,7 @@
         @else
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 @foreach ($temuan as $item)
-                    <div wire:key="temuan-{{ $item->id }}" class="flex flex-col overflow-hidden rounded-xl border border-zinc-200">
+                    <div wire:key="temuan-{{ $item->id }}" class="flex flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-xs transition hover:shadow-md">
                         <div class="aspect-video w-full overflow-hidden bg-zinc-100">
                             @if ($item->foto)
                                 <img src="{{ Storage::url($item->foto) }}" class="size-full object-cover" />
