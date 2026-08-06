@@ -29,6 +29,7 @@ class LaporanBulananController extends Controller
 
         $filename = 'laporan-bulanan-'.now()->format('Y-m-d').'.pdf';
 
-        return $pdf->download($filename);
+        // stream() (inline), see SuratPengantarController for why.
+        return $pdf->stream($filename);
     }
 }

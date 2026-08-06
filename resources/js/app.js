@@ -356,8 +356,19 @@ window.unduhPetaGambarPdf = function (exportUrl, tombolId) {
         }
     };
 
+    // Opened synchronously, still inside the click handler, so browsers
+    // treat it as a direct result of the user's click rather than an
+    // unsolicited popup — the tab starts blank and gets redirected to the
+    // actual PDF once it's ready (map capture + server round-trip can take
+    // a few seconds, too long to open the tab only once the blob exists).
+    const previewWindow = window.open('', '_blank');
+
     if (! mapInstance) {
-        window.open(exportUrl, '_blank');
+        if (previewWindow) {
+            previewWindow.location.href = exportUrl;
+        } else {
+            window.open(exportUrl, '_blank');
+        }
         return;
     }
 
@@ -382,7 +393,7 @@ window.unduhPetaGambarPdf = function (exportUrl, tombolId) {
 
         selesaiDipanggil = true;
         console.error('Gagal mengambil gambar peta, PDF akan dibuat tanpa gambar peta:', alasan);
-        kirimPetaPdf(exportUrl, null, setSedangProses, selesai);
+        kirimPetaPdf(exportUrl, null, setSedangProses, selesai, previewWindow);
     };
 
     // leaflet-image has no timeout of its own — if even a single tile or
@@ -407,7 +418,7 @@ window.unduhPetaGambarPdf = function (exportUrl, tombolId) {
         try {
             canvas.toBlob((blob) => {
                 selesaiDipanggil = true;
-                kirimPetaPdf(exportUrl, blob, setSedangProses, selesai);
+                kirimPetaPdf(exportUrl, blob, setSedangProses, selesai, previewWindow);
             }, 'image/png');
         } catch (e) {
             // Canvas tainted by a tile/marker image that loaded without
@@ -417,7 +428,7 @@ window.unduhPetaGambarPdf = function (exportUrl, tombolId) {
     });
 };
 
-function kirimPetaPdf(exportUrl, gambarBlob, setSedangProses, selesai) {
+function kirimPetaPdf(exportUrl, gambarBlob, setSedangProses, selesai, previewWindow) {
     setSedangProses('Membuat PDF...');
 
     const formData = new FormData();
@@ -441,16 +452,23 @@ function kirimPetaPdf(exportUrl, gambarBlob, setSedangProses, selesai) {
             return res.blob();
         })
         .then((blob) => {
+            // Navigate the tab opened synchronously at click-time to the PDF
+            // blob (browser's own PDF viewer previews it) instead of forcing
+            // a save-as — matches the surat-pengantar/laporan PDFs, which
+            // preview via stream() + target="_blank" on a plain link.
             const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'peta-rambu-' + new Date().toISOString().slice(0, 10) + '.pdf';
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-            window.URL.revokeObjectURL(url);
+
+            if (previewWindow && ! previewWindow.closed) {
+                previewWindow.location.href = url;
+            } else {
+                window.open(url, '_blank');
+            }
         })
         .catch((e) => {
+            if (previewWindow && ! previewWindow.closed) {
+                previewWindow.close();
+            }
+
             alert('Gagal mengunduh PDF peta: ' + e.message);
         })
         .finally(selesai);

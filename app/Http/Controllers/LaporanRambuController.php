@@ -27,6 +27,7 @@ class LaporanRambuController extends Controller
 
         $pdf = Pdf::loadView('pdf.laporan-rambu', $data);
 
-        return $pdf->download('laporan-rambu-'.now()->format('Y-m-d').'.pdf');
+        // stream() (inline), see SuratPengantarController for why.
+        return $pdf->stream('laporan-rambu-'.now()->format('Y-m-d').'.pdf');
     }
 }

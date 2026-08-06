@@ -31,6 +31,10 @@ class SuratPengantarController extends Controller
 
         $filename = 'surat-pengantar-'.str_replace('/', '-', $spk->nomor_surat).'.pdf';
 
-        return $pdf->download($filename);
+        // stream() (inline) instead of download() (attachment) so the link's
+        // target="_blank" opens the PDF in the browser's own viewer first —
+        // the user previews it there and downloads manually if they want to,
+        // rather than a file landing straight in their Downloads folder.
+        return $pdf->stream($filename);
     }
 }

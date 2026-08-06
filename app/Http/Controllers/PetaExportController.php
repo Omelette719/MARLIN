@@ -40,6 +40,11 @@ class PetaExportController extends Controller
 
         $pdf = Pdf::loadView('pdf.peta-rambu', $data);
 
-        return $pdf->download('peta-rambu-'.now()->format('Y-m-d').'.pdf');
+        // stream() (inline) instead of download() — the client (app.js's
+        // kirimPetaPdf) opens the response blob in a new tab rather than
+        // forcing a save-as, so this mirrors that on the server side too;
+        // matters for the no-mapInstance fallback which navigates here
+        // directly instead of going through the blob dance.
+        return $pdf->stream('peta-rambu-'.now()->format('Y-m-d').'.pdf');
     }
 }
