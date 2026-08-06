@@ -1,6 +1,6 @@
 # Keamanan Sistem MARLIN
 
-Dokumen ini merinci langkah-langkah keamanan yang sudah diterapkan, serta batasan/keputusan desain yang sengaja diambil. Semua poin di sini diverifikasi langsung dari kode (bukan asumsi) per 2026-08-03.
+Dokumen ini merinci langkah-langkah keamanan yang sudah diterapkan, serta batasan/keputusan desain yang sengaja diambil. Semua poin di sini diverifikasi langsung dari kode (bukan asumsi) per 2026-08-07.
 
 ---
 
@@ -81,6 +81,16 @@ Aksi yang benar-benar mengubah data (`daftarkanTim`, `tambahAnggota`, `hapusAngg
 
 Sebagai perbandingan yang disengaja berbeda: **unduh PDF Surat Pengantar** (`/spk/{spk}/surat-pengantar`) DIBATASI hanya untuk admin atau petugas yang sudah terdaftar di tim SPK tersebut (lihat `app/Http/Controllers/SuratPengantarController.php`). Ini karena surat pengantar adalah dokumen kerja resmi yang cuma relevan untuk yang benar-benar mengerjakannya, beda konteks dengan "melihat-lihat untuk memutuskan gabung".
 
+### ID numerik berurutan (auto-increment) di URL, bukan UUID
+
+Semua route yang model-bound (`/rambu/{rambu}`, `/admin/spk/{spk}`, `/spk/{spk}`, `/admin/users/{user}`, dst) pakai primary key integer biasa, yang berarti bisa ditebak/diurutkan (mis. mengganti `5` jadi `6` di URL). Ini **disengaja tidak jadi masalah** di sistem ini karena proteksinya bukan dari sulitnya menebak ID, tapi dari pengecekan otorisasi di server untuk setiap aksi yang benar-benar sensitif:
+- Notifikasi (`tandaiDibaca`, `bukaNotifikasi`) selalu di-scope `where('user_id', Auth::id())`, jadi ID notifikasi milik orang lain tidak bisa dibuka/ditandai dibaca walau ID-nya ditebak dengan benar.
+- `hapusAnggota` di-scope `where('by_spk_id', $this->spk->id)`, jadi perwakilan SPK A tidak bisa menghapus anggota tim SPK B lewat ID `dikerjakan_oleh` yang ditebak.
+- Halaman admin (`/admin/*`) memang dirancang supaya admin bisa melihat/mengelola SEMUA record, jadi "bisa akses record manapun lewat ID" di situ adalah perilaku yang benar, bukan celah.
+- Data yang sengaja terbuka luas ke seluruh peran yang login (rambu, SPK aktif untuk petugas) juga bukan celah, sudah dijelaskan di atas.
+
+Kalau suatu saat ada halaman baru yang menampilkan data milik satu pengguna spesifik, pola yang harus diikuti sama seperti Notifikasi: query di-scope ke `Auth::id()`/keanggotaan, bukan mengandalkan ID yang "susah ditebak".
+
 ## Batasan yang Diketahui
 
 Hal-hal berikut BUKAN kesalahan, tapi trade-off yang masuk akal untuk skala & konteks aplikasi ini (internal, dipakai oleh staf Dishub dan tim lapangan yang jumlahnya terbatas):
@@ -90,3 +100,4 @@ Hal-hal berikut BUKAN kesalahan, tapi trade-off yang masuk akal untuk skala & ko
 3. **Reset password mandiri tidak mengecek status `aktif`**. Akun yang dinonaktifkan tetap bisa mengganti passwordnya sendiri lewat modal reset di halaman login (tapi tetap tidak akan bisa login setelahnya, karena pengecekan `aktif` ada di jalur login, bukan di jalur ganti-password).
 4. **`SESSION_ENCRYPT=false`** dan tidak ada `SESSION_SECURE_COOKIE` eksplisit di `.env.example`. Kalau nanti deploy ke server produksi yang diakses lewat internet publik, aktifkan HTTPS dan pertimbangkan set `SESSION_SECURE_COOKIE=true`.
 5. **Bot Telegram jalan lewat long-polling** (`php artisan telegram:poll`), bukan webhook, karena belum ada domain publik HTTPS. Proses ini (dan `php artisan queue:work` untuk pengiriman pesannya) harus dijalankan manual/terpisah dari server web; kalau tidak jalan, fitur notifikasi Telegram cuma diam-diam tidak mengirim apapun, tidak ada pesan error yang terlihat pengguna.
+6. **`.env.example` set `APP_DEBUG=true`** (cocok untuk dev). Wajib diubah jadi `APP_DEBUG=false` di `.env` produksi sebelum deploy publik, kalau tidak, error yang tak tertangani akan menampilkan stack trace lengkap (path server, query SQL, dst) ke pengguna alih-alih halaman error generik.
