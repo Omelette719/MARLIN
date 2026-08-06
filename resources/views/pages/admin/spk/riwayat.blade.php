@@ -80,6 +80,12 @@
                                 Deadline {{ $item->deadline->translatedFormat('d M Y') }}, {{ $item->rambu_pasang_count }} unit rambu
                             </flux:text>
 
+                            @if ($item->status === StatusSpk::Selesai && $item->durasiPengerjaanHari() !== null)
+                                <flux:text class="text-sm text-zinc-500">
+                                    Durasi {{ $item->durasiPengerjaanHari() }} hari &middot; {{ $item->selisihDeadlineLabel() }}
+                                </flux:text>
+                            @endif
+
                             <div class="mt-auto flex gap-2 pt-2">
                                 <flux:button size="sm" variant="primary" class="flex-1" :href="route('admin.spk.show', $item)" wire:navigate>
                                     Lihat Detail

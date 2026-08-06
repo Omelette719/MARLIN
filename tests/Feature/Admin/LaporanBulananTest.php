@@ -181,4 +181,62 @@ class LaporanBulananTest extends TestCase
 
         $this->assertSame(1, $data['rambuDetail']['total']);
     }
+
+    public function test_laporan_bulanan_computes_average_duration_and_deadline_delta(): void
+    {
+        $admin = User::factory()->admin()->create();
+
+        // Finished 10 days after creation, 12 days before its deadline.
+        $spk1 = Spk::create([
+            'nomor_surat' => 'SR-2026/BJM/9101',
+            'dibuat_oleh' => $admin->id,
+            'wilayah' => 'Banjarmasin Tengah',
+            'deadline' => now()->addDays(10),
+            'urgensi' => 'sedang',
+            'status' => 'selesai',
+            'asal_permintaan' => 'internal',
+        ]);
+        $spk1->created_at = now()->subDays(12);
+        $spk1->selesai_pada = now()->subDays(2);
+        $spk1->save();
+
+        // Finished 10 days after creation, 3 days after (late for) its deadline.
+        $spk2 = Spk::create([
+            'nomor_surat' => 'SR-2026/BJM/9102',
+            'dibuat_oleh' => $admin->id,
+            'wilayah' => 'Banjarmasin Tengah',
+            'deadline' => now()->subDays(3),
+            'urgensi' => 'sedang',
+            'status' => 'selesai',
+            'asal_permintaan' => 'internal',
+        ]);
+        $spk2->created_at = now()->subDays(10);
+        $spk2->selesai_pada = now();
+        $spk2->save();
+
+        $data = LaporanBulanan::build([
+            'tanggal_dari' => now()->startOfMonth()->toDateString(),
+            'tanggal_sampai' => now()->toDateString(),
+        ]);
+
+        $this->assertSame(2, $data['spkSelesaiPeriode']->count());
+        $this->assertSame(10.0, $data['analitikSelesai']['rata_rata_durasi_hari']);
+        $this->assertSame(-4.5, $data['analitikSelesai']['rata_rata_selisih_deadline_hari']);
+        $this->assertSame(1, $data['analitikSelesai']['tepat_waktu_count']);
+        $this->assertSame(1, $data['analitikSelesai']['terlambat_count']);
+    }
+
+    public function test_laporan_bulanan_analitik_is_null_when_no_spk_selesai(): void
+    {
+        $data = LaporanBulanan::build([
+            'tanggal_dari' => now()->startOfMonth()->toDateString(),
+            'tanggal_sampai' => now()->toDateString(),
+        ]);
+
+        $this->assertSame(0, $data['spkSelesaiPeriode']->count());
+        $this->assertNull($data['analitikSelesai']['rata_rata_durasi_hari']);
+        $this->assertNull($data['analitikSelesai']['rata_rata_selisih_deadline_hari']);
+        $this->assertSame(0, $data['analitikSelesai']['tepat_waktu_count']);
+        $this->assertSame(0, $data['analitikSelesai']['terlambat_count']);
+    }
 }

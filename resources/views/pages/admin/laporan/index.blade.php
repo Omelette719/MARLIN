@@ -93,7 +93,17 @@
         </flux:card>
 
         <flux:card class="flex flex-col gap-3">
-            <flux:heading size="lg">SPK Selesai Periode Ini ({{ $spkSelesaiPeriode->count() }})</flux:heading>
+            <div>
+                <flux:heading size="lg">SPK Selesai Periode Ini ({{ $spkSelesaiPeriode->count() }})</flux:heading>
+                <flux:subheading>
+                    Rata-rata durasi pengerjaan:
+                    {{ $analitikSelesai['rata_rata_durasi_hari'] !== null ? $analitikSelesai['rata_rata_durasi_hari'].' hari' : '-' }}
+                    &middot; Rata-rata selisih deadline:
+                    {{ $analitikSelesai['rata_rata_selisih_deadline_hari'] !== null ? $analitikSelesai['rata_rata_selisih_deadline_hari'].' hari' : '-' }}
+                    &middot; Tepat waktu/lebih cepat: {{ $analitikSelesai['tepat_waktu_count'] }}
+                    &middot; Terlambat: {{ $analitikSelesai['terlambat_count'] }}
+                </flux:subheading>
+            </div>
 
             <flux:table>
                 <flux:table.columns>
@@ -101,6 +111,8 @@
                     <flux:table.column>Wilayah</flux:table.column>
                     <flux:table.column>Jenis</flux:table.column>
                     <flux:table.column align="center">Jumlah Rambu</flux:table.column>
+                    <flux:table.column align="center">Durasi</flux:table.column>
+                    <flux:table.column align="center">Selisih Deadline</flux:table.column>
                 </flux:table.columns>
 
                 <flux:table.rows>
@@ -110,10 +122,12 @@
                             <flux:table.cell>{{ $item->wilayah }}</flux:table.cell>
                             <flux:table.cell>{{ $item->jenis_spk->label() }}</flux:table.cell>
                             <flux:table.cell align="center">{{ $item->rambu_pasang_count }}</flux:table.cell>
+                            <flux:table.cell align="center">{{ $item->durasiPengerjaanHari() !== null ? $item->durasiPengerjaanHari().' hari' : '-' }}</flux:table.cell>
+                            <flux:table.cell align="center">{{ $item->selisihDeadlineLabel() ?? '-' }}</flux:table.cell>
                         </flux:table.row>
                     @empty
                         <flux:table.row>
-                            <flux:table.cell colspan="4" class="text-center text-zinc-500">Tidak ada SPK yang selesai pada periode ini.</flux:table.cell>
+                            <flux:table.cell colspan="6" class="text-center text-zinc-500">Tidak ada SPK yang selesai pada periode ini.</flux:table.cell>
                         </flux:table.row>
                     @endforelse
                 </flux:table.rows>

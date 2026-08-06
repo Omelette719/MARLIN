@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\DikerjakanOleh;
 use App\Models\JenisRambu;
+use App\Models\Kendala;
 use App\Models\Rambu;
 use App\Models\RambuPasang;
 use App\Models\RtPerwakilan;
@@ -175,6 +176,38 @@ class SuratPengantarTest extends TestCase
 
         $this->assertStringContainsString('DIBATALKAN:', $html);
         $this->assertStringContainsString('Salah lokasi, sudah ada rambu lain di sana.', $html);
+    }
+
+    public function test_surat_pengantar_shows_kendala_for_tertunda_rambu(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $petugas = User::factory()->create();
+        $this->actingAs($admin);
+        $spk = $this->makeSpk($admin);
+
+        $rp = $spk->rambuPasang()->first();
+        $rp->update(['status' => 'tertunda']);
+        Kendala::create([
+            'rambu_pasang_id' => $rp->id,
+            'dilaporkan_oleh' => $petugas->id,
+            'alasan' => 'Warga menolak, minta dipindah ke gang sebelah.',
+            'foto' => 'kendala/fake.jpg',
+        ]);
+
+        $response = $this->get(route('spk.surat-pengantar', $spk));
+
+        $response->assertOk();
+
+        $html = view('pdf.surat-pengantar', ['spk' => $spk->fresh()->load([
+            'rambuPasang.rambu.jenisRambu',
+            'rambuPasang.kendala' => fn ($q) => $q->latest(),
+            'dikerjakanOleh.user',
+            'pembuat',
+            'rtPerwakilan',
+        ])])->render();
+
+        $this->assertStringContainsString('KENDALA:', $html);
+        $this->assertStringContainsString('Warga menolak, minta dipindah ke gang sebelah.', $html);
     }
 
     public function test_unjoined_petugas_cannot_download_surat_pengantar(): void

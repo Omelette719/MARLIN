@@ -51,6 +51,12 @@ class LaporanBulanan
             ->orderBy('nomor_surat')
             ->get();
 
+        // Null-filtered explicitly (not Collection::filter()'s default falsy
+        // check) because a 0-day selisih (finished exactly on the deadline)
+        // is a real, meaningful value that must not be dropped.
+        $durasiList = $spkSelesaiPeriode->map(fn (Spk $spk) => $spk->durasiPengerjaanHari())->filter(fn (?int $v) => $v !== null);
+        $selisihList = $spkSelesaiPeriode->map(fn (Spk $spk) => $spk->selisihDeadlineHari())->filter(fn (?int $v) => $v !== null);
+
         $spkAktif = $spkQuery()->where('status', StatusSpk::Aktif)
             ->where('created_at', '<=', $akhir)
             ->withCount('rambuPasang')
@@ -81,6 +87,12 @@ class LaporanBulanan
                 'dibuat_dibatalkan' => $spkDibuatPeriode->where('status', StatusSpk::Dibatalkan)->count(),
             ],
             'spkSelesaiPeriode' => $spkSelesaiPeriode,
+            'analitikSelesai' => [
+                'rata_rata_durasi_hari' => $durasiList->isNotEmpty() ? round($durasiList->avg(), 1) : null,
+                'rata_rata_selisih_deadline_hari' => $selisihList->isNotEmpty() ? round($selisihList->avg(), 1) : null,
+                'tepat_waktu_count' => $selisihList->filter(fn (int $v) => $v <= 0)->count(),
+                'terlambat_count' => $selisihList->filter(fn (int $v) => $v > 0)->count(),
+            ],
             'spkAktif' => $spkAktif,
             'kendalaPeriode' => Kendala::whereBetween('created_at', [$awal, $akhir])->count(),
             'temuanPeriode' => LaporanKondisi::whereBetween('created_at', [$awal, $akhir])->count(),

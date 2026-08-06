@@ -320,6 +320,50 @@ class AdminSpkShowTest extends TestCase
             ->assertDontSee('SR-2026/BJM/8016');
     }
 
+    public function test_riwayat_spk_card_shows_durasi_and_selisih_deadline_for_selesai(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $this->actingAs($admin);
+
+        $spk = Spk::create([
+            'nomor_surat' => 'SR-2026/BJM/8017',
+            'dibuat_oleh' => $admin->id,
+            'jenis_spk' => 'pasang_baru',
+            'wilayah' => 'Banjarmasin Tengah',
+            'deadline' => now()->addDays(10),
+            'urgensi' => 'sedang',
+            'status' => 'selesai',
+            'asal_permintaan' => 'internal',
+        ]);
+        $spk->created_at = now()->subDays(12);
+        $spk->selesai_pada = now()->subDays(2);
+        $spk->save();
+
+        $this->get(route('admin.spk.riwayat'))
+            ->assertSee('Durasi 10 hari')
+            ->assertSee('12 hari lebih cepat dari deadline');
+    }
+
+    public function test_riwayat_spk_card_does_not_show_durasi_for_dibatalkan(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $this->actingAs($admin);
+
+        Spk::create([
+            'nomor_surat' => 'SR-2026/BJM/8018',
+            'dibuat_oleh' => $admin->id,
+            'jenis_spk' => 'pasang_baru',
+            'wilayah' => 'Banjarmasin Tengah',
+            'deadline' => now()->addDays(10),
+            'urgensi' => 'sedang',
+            'status' => 'dibatalkan',
+            'asal_permintaan' => 'internal',
+        ]);
+
+        $this->get(route('admin.spk.riwayat'))
+            ->assertDontSee('Durasi');
+    }
+
     public function test_admin_can_edit_spk_details(): void
     {
         $admin = User::factory()->admin()->create();

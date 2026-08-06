@@ -3,6 +3,7 @@
 namespace Tests\Feature\Admin;
 
 use App\Models\JenisRambu;
+use App\Models\Kendala;
 use App\Models\Rambu;
 use App\Models\RambuPasang;
 use App\Models\Spk;
@@ -177,5 +178,79 @@ class LaporanRambuTest extends TestCase
 
         $this->assertStringContainsString('Rambu rusak parah, diganti baru.', $html);
         $this->assertStringContainsString('Dibatalkan:', $html);
+    }
+
+    public function test_laporan_rambu_preview_page_shows_kendala_for_tertunda_status(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $petugas = User::factory()->create();
+        $this->actingAs($admin);
+        $jenis = JenisRambu::create(['nama_jenis' => 'Rambu Peringatan']);
+
+        $rp = $this->makeRambuPasang($admin, $jenis, 'tertunda', 'SR-2026/BJM/1014');
+        Kendala::create([
+            'rambu_pasang_id' => $rp->id,
+            'dilaporkan_oleh' => $petugas->id,
+            'alasan' => 'Warga menolak pemasangan di lokasi ini.',
+            'foto' => 'kendala/fake.jpg',
+        ]);
+
+        $response = $this->get(route('admin.laporan.rambu'));
+
+        $response->assertOk();
+        $response->assertSee('Warga menolak pemasangan di lokasi ini.');
+    }
+
+    public function test_laporan_rambu_pdf_shows_kendala_for_tertunda_status(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $petugas = User::factory()->create();
+        $jenis = JenisRambu::create(['nama_jenis' => 'Rambu Peringatan']);
+
+        $rp = $this->makeRambuPasang($admin, $jenis, 'tertunda', 'SR-2026/BJM/1015');
+        Kendala::create([
+            'rambu_pasang_id' => $rp->id,
+            'dilaporkan_oleh' => $petugas->id,
+            'alasan' => 'Tiang listrik menghalangi titik pasang.',
+            'foto' => 'kendala/fake.jpg',
+        ]);
+
+        $data = LaporanRambu::build([]);
+        $html = view('pdf.laporan-rambu', $data)->render();
+
+        $this->assertStringContainsString('Tiang listrik menghalangi titik pasang.', $html);
+        $this->assertStringContainsString('Kendala:', $html);
+    }
+
+    public function test_laporan_rambu_shows_only_the_latest_kendala_when_multiple_exist(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $petugas = User::factory()->create();
+        $jenis = JenisRambu::create(['nama_jenis' => 'Rambu Peringatan']);
+
+        $rp = $this->makeRambuPasang($admin, $jenis, 'tertunda', 'SR-2026/BJM/1016');
+        $kendalaLama = Kendala::create([
+            'rambu_pasang_id' => $rp->id,
+            'dilaporkan_oleh' => $petugas->id,
+            'alasan' => 'Kendala lama.',
+            'foto' => 'kendala/lama.jpg',
+        ]);
+        // created_at isn't mass-assignable (see Kendala's Fillable attribute),
+        // so it has to be backdated after the fact.
+        $kendalaLama->created_at = now()->subDays(3);
+        $kendalaLama->save();
+
+        Kendala::create([
+            'rambu_pasang_id' => $rp->id,
+            'dilaporkan_oleh' => $petugas->id,
+            'alasan' => 'Kendala terbaru.',
+            'foto' => 'kendala/baru.jpg',
+        ]);
+
+        $data = LaporanRambu::build([]);
+        $html = view('pdf.laporan-rambu', $data)->render();
+
+        $this->assertStringContainsString('Kendala terbaru.', $html);
+        $this->assertStringNotContainsString('Kendala lama.', $html);
     }
 }

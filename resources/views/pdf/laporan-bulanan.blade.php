@@ -63,6 +63,14 @@
     </table>
 
     <h2 class="section">Daftar SPK Selesai Periode Ini ({{ $spkSelesaiPeriode->count() }})</h2>
+    <table class="ringkasan">
+        <tr>
+            <td><span class="angka">{{ $analitikSelesai['rata_rata_durasi_hari'] ?? '-' }}</span><br><span class="label">Rata-rata Durasi (Hari)</span></td>
+            <td><span class="angka">{{ $analitikSelesai['rata_rata_selisih_deadline_hari'] ?? '-' }}</span><br><span class="label">Rata-rata Selisih Deadline (Hari)</span></td>
+            <td><span class="angka">{{ $analitikSelesai['tepat_waktu_count'] }}</span><br><span class="label">Tepat Waktu/Lebih Cepat</span></td>
+            <td><span class="angka">{{ $analitikSelesai['terlambat_count'] }}</span><br><span class="label">Terlambat</span></td>
+        </tr>
+    </table>
     <table class="data">
         <thead>
             <tr>
@@ -70,7 +78,9 @@
                 <th>Nomor Surat</th>
                 <th>Wilayah</th>
                 <th>Jenis</th>
-                <th style="width: 60px;">Jumlah Rambu</th>
+                <th style="width: 55px;">Jumlah Rambu</th>
+                <th style="width: 55px;">Durasi</th>
+                <th style="width: 90px;">Selisih Deadline</th>
             </tr>
         </thead>
         <tbody>
@@ -81,9 +91,11 @@
                     <td>{{ $item->wilayah }}</td>
                     <td>{{ $item->jenis_spk->label() }}</td>
                     <td>{{ $item->rambu_pasang_count }}</td>
+                    <td>{{ $item->durasiPengerjaanHari() !== null ? $item->durasiPengerjaanHari().' hari' : '-' }}</td>
+                    <td>{{ $item->selisihDeadlineLabel() ?? '-' }}</td>
                 </tr>
             @empty
-                <tr><td colspan="5">Tidak ada SPK yang selesai pada periode ini.</td></tr>
+                <tr><td colspan="7">Tidak ada SPK yang selesai pada periode ini.</td></tr>
             @endforelse
         </tbody>
     </table>

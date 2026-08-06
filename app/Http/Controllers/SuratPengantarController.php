@@ -22,6 +22,7 @@ class SuratPengantarController extends Controller
 
         $spk->load([
             'rambuPasang.rambu.jenisRambu',
+            'rambuPasang.kendala' => fn ($q) => $q->latest(),
             'dikerjakanOleh.user',
             'pembuat',
             'rtPerwakilan',
