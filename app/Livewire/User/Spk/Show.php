@@ -90,12 +90,20 @@ class Show extends Component
             return;
         }
 
+        // Unlike daftarkanTim() — where "add nobody, just register myself as
+        // perwakilan" is a real, valid action — this action's entire purpose
+        // is adding members. An empty/no-op submission has nothing to
+        // legitimately report as a success.
         $this->validate([
-            'anggotaIds' => 'array',
+            'anggotaIds' => 'required|array|min:1',
             'anggotaIds.*' => 'exists:users,id',
+        ], [
+            'anggotaIds.required' => 'Pilih minimal satu anggota untuk ditambahkan.',
+            'anggotaIds.min' => 'Pilih minimal satu anggota untuk ditambahkan.',
         ]);
 
         $existing = $this->existingTeamUserIds();
+        $ditambahkan = 0;
 
         foreach (array_unique($this->anggotaIds) as $userId) {
             if (in_array((int) $userId, $existing, true)) {
@@ -107,9 +115,22 @@ class Show extends Component
                 'by_user_id' => $userId,
                 'is_perwakilan' => false,
             ]);
+
+            $ditambahkan++;
         }
 
         $this->reset('anggotaIds');
+
+        // Everyone picked turned out to already be on the team (e.g. the
+        // dropdown's stale from before a concurrent add) — nothing actually
+        // happened, so this isn't a success either, just with a gentler
+        // message than a hard validation error since the user did pick
+        // something valid, it just didn't end up doing anything new.
+        if ($ditambahkan === 0) {
+            Flux::toast(variant: 'warning', text: 'Semua anggota yang dipilih sudah ada di tim ini.');
+
+            return;
+        }
 
         Flux::modal('tambah-anggota')->close();
         Flux::toast(variant: 'success', text: 'Anggota tim berhasil ditambahkan.');

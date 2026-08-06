@@ -147,6 +147,7 @@
                 @foreach ($tim as $t)
                     @if ($this->sayaPerwakilan && ! $t->is_perwakilan)
                         <x-confirm-modal
+                            wire:key="hapus-anggota-modal-{{ $t->id }}"
                             name="hapus-anggota-{{ $t->id }}"
                             heading="Hapus {{ $t->user->name }} dari tim?"
                             text="Dia tidak akan lagi tercatat sebagai anggota tim untuk surat ini. Bisa ditambahkan lagi kalau memang keliru."

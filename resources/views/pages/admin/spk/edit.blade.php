@@ -164,6 +164,7 @@
                                     </flux:modal.trigger>
 
                                     <x-confirm-modal
+                                        wire:key="hapus-rambu-modal-{{ $item['id'] ?? 'new-'.$index }}"
                                         name="hapus-rambu-{{ $index }}"
                                         heading="Hapus rambu ini dari surat?"
                                         text="Rambu akan dihapus permanen dari daftar surat ini. Tindakan ini tidak bisa dibatalkan."

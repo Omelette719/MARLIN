@@ -239,6 +239,61 @@ class PetugasSpkTest extends TestCase
         ]);
     }
 
+    public function test_tambah_anggota_requires_at_least_one_selection(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $petugas = User::factory()->create();
+        $this->actingAs($petugas);
+
+        $rambuPasang = $this->makeRambuPasang($admin);
+        $spk = $rambuPasang->spk;
+
+        DikerjakanOleh::create([
+            'by_spk_id' => $spk->id,
+            'by_user_id' => $petugas->id,
+            'is_perwakilan' => true,
+        ]);
+
+        Livewire::test(UserSpkShowComponent::class, ['spk' => $spk])
+            ->set('anggotaIds', [])
+            ->call('tambahAnggota')
+            ->assertHasErrors(['anggotaIds']);
+
+        $this->assertSame(1, DikerjakanOleh::where('by_spk_id', $spk->id)->count());
+    }
+
+    public function test_tambah_anggota_does_not_claim_success_when_everyone_selected_is_already_on_the_team(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $petugas = User::factory()->create();
+        $sudahAnggota = User::factory()->create();
+        $this->actingAs($petugas);
+
+        $rambuPasang = $this->makeRambuPasang($admin);
+        $spk = $rambuPasang->spk;
+
+        DikerjakanOleh::create([
+            'by_spk_id' => $spk->id,
+            'by_user_id' => $petugas->id,
+            'is_perwakilan' => true,
+        ]);
+        DikerjakanOleh::create([
+            'by_spk_id' => $spk->id,
+            'by_user_id' => $sudahAnggota->id,
+            'is_perwakilan' => false,
+        ]);
+
+        // Simulates a stale dropdown (e.g. loaded before someone else added
+        // this same person) rather than going through the UI, which would
+        // normally already exclude existing members from the options list.
+        Livewire::test(UserSpkShowComponent::class, ['spk' => $spk])
+            ->set('anggotaIds', [(string) $sudahAnggota->id])
+            ->call('tambahAnggota')
+            ->assertHasNoErrors();
+
+        $this->assertSame(2, DikerjakanOleh::where('by_spk_id', $spk->id)->count());
+    }
+
     public function test_non_perwakilan_cannot_add_members(): void
     {
         $admin = User::factory()->admin()->create();
@@ -268,6 +323,27 @@ class PetugasSpkTest extends TestCase
             'by_spk_id' => $spk->id,
             'by_user_id' => $anggotaBaru->id,
         ]);
+    }
+
+    // Same DOM-identity concern as the Temuan Lapangan/hapus-rambu modals:
+    // without a stable wire:key, the modal for one member could end up
+    // showing (or refusing to show at all) for a different one after the
+    // team list re-renders following a removal.
+    public function test_hapus_anggota_modal_is_keyed_per_member(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $petugas = User::factory()->create();
+        $anggota = User::factory()->create();
+        $this->actingAs($petugas);
+
+        $rambuPasang = $this->makeRambuPasang($admin);
+        $spk = $rambuPasang->spk;
+
+        DikerjakanOleh::create(['by_spk_id' => $spk->id, 'by_user_id' => $petugas->id, 'is_perwakilan' => true]);
+        $anggotaRow = DikerjakanOleh::create(['by_spk_id' => $spk->id, 'by_user_id' => $anggota->id, 'is_perwakilan' => false]);
+
+        Livewire::test(UserSpkShowComponent::class, ['spk' => $spk])
+            ->assertSeeHtml('wire:key="hapus-anggota-modal-'.$anggotaRow->id.'"');
     }
 
     public function test_perwakilan_can_remove_a_non_perwakilan_member(): void

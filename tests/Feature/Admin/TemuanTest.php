@@ -58,6 +58,29 @@ class TemuanTest extends TestCase
         $response->assertSee($temuan->rambu->lokasi);
     }
 
+    // Each "Tolak" modal used to share DOM identity with whatever ended up
+    // at the same position after a list re-render (no wire:key once the
+    // modal was moved out of its per-item card to fix a grid-layout bug),
+    // so confirming/canceling one could leave a stale modal open showing
+    // a different temuan, or make the next one refuse to open at all.
+    // Asserting the key exists per item is the closest a server-rendered
+    // HTML assertion can get to covering that DOM-identity bug.
+    public function test_admin_temuan_page_keys_each_reject_modal_by_id(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $petugas = User::factory()->create();
+        $this->actingAs($admin);
+
+        $satu = $this->makeTemuan($petugas);
+        $dua = $this->makeTemuan($petugas);
+
+        $response = $this->get(route('admin.temuan.index'));
+
+        $response->assertOk();
+        $response->assertSee('wire:key="tolak-temuan-modal-'.$satu->id.'"', false);
+        $response->assertSee('wire:key="tolak-temuan-modal-'.$dua->id.'"', false);
+    }
+
     public function test_admin_temuan_page_shows_the_reported_photo(): void
     {
         $admin = User::factory()->admin()->create();

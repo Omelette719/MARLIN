@@ -67,6 +67,7 @@
             the real cards apart instead of sitting next to each other. --}}
             @foreach ($temuan as $item)
                 <x-confirm-modal
+                    wire:key="tolak-temuan-modal-{{ $item->id }}"
                     name="tolak-temuan-{{ $item->id }}"
                     heading="Tolak temuan ini?"
                     text="Temuan akan ditandai sebagai ditolak dan tidak akan muncul lagi di daftar ini."

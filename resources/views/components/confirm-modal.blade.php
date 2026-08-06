@@ -15,7 +15,7 @@
     $buttonVariant = $tone === 'danger' ? 'danger' : 'primary';
 @endphp
 
-<flux:modal name="{{ $name }}" class="max-w-md">
+<flux:modal name="{{ $name }}" {{ $attributes->class('max-w-md') }}>
     <div class="flex flex-col gap-5">
         <div class="flex items-start gap-4">
             <div class="flex size-11 shrink-0 items-center justify-center rounded-full {{ $iconClasses }}">

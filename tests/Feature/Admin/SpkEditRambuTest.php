@@ -182,6 +182,21 @@ class SpkEditRambuTest extends TestCase
         $this->assertSame(StatusRambuPasang::Belum, $rp->fresh()->status);
     }
 
+    // See the equivalent Temuan Lapangan test for why this matters: a
+    // per-item confirm modal without wire:key can end up bound to the
+    // wrong row once the list re-renders after a delete.
+    public function test_hapus_rambu_modal_is_keyed_per_rambu(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $this->actingAs($admin);
+
+        $spk = $this->makeSpk($admin);
+        $rp = $this->makeRambuPasang($spk);
+
+        Livewire::test(SpkEditComponent::class, ['spk' => $spk])
+            ->assertSeeHtml('wire:key="hapus-rambu-modal-'.$rp->id.'"');
+    }
+
     public function test_admin_can_hapus_rambu_pasang_with_no_progress(): void
     {
         $admin = User::factory()->admin()->create();
