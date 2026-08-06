@@ -12,10 +12,7 @@
     <img src="{{ asset('dishub-bjm.png') }}" alt="Logo Dinas Perhubungan" class="h-8 w-8 shrink-0 object-contain">
 
     <span @class([
-        'min-w-0 leading-tight font-brand font-extrabold text-stone-800',
+        'min-w-0 leading-tight font-brand text-xl font-extrabold text-stone-800',
         'in-data-flux-sidebar-collapsed-desktop:hidden' => $sidebar,
-    ])>
-        <span class="block text-[11px]">Sistem Manajemen</span>
-        <span class="block text-[11px] text-[#004655]">Rambu Lalu Lintas</span>
-    </span>
+    ])>MA<span class="text-[#004655]">RLIN</span></span>
 </a>

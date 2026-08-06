@@ -79,6 +79,52 @@ class PetugasSpkTest extends TestCase
         $response->assertSee('Belum');
     }
 
+    private function makeSpkWithNomor(User $admin, string $nomorSurat): Spk
+    {
+        return Spk::create([
+            'nomor_surat' => $nomorSurat,
+            'dibuat_oleh' => $admin->id,
+            'wilayah' => 'Banjarmasin Tengah',
+            'deadline' => now()->addDays(5),
+            'urgensi' => 'sedang',
+            'status' => 'aktif',
+            'asal_permintaan' => 'internal',
+        ]);
+    }
+
+    public function test_daftar_surat_aktif_distinguishes_no_team_joined_by_me_and_joined_by_others(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $me = User::factory()->create();
+        $this->actingAs($me);
+
+        // Tanpa tim sama sekali.
+        $this->makeRambuPasang($admin, status: 'belum');
+
+        // Saya sudah gabung.
+        $spkSayaGabung = $this->makeSpkWithNomor($admin, 'SR-2026/BJM/9101');
+        DikerjakanOleh::create([
+            'by_spk_id' => $spkSayaGabung->id,
+            'by_user_id' => $me->id,
+            'is_perwakilan' => true,
+        ]);
+
+        // Sudah ada tim, tapi bukan saya.
+        $spkTimLain = $this->makeSpkWithNomor($admin, 'SR-2026/BJM/9102');
+        DikerjakanOleh::create([
+            'by_spk_id' => $spkTimLain->id,
+            'by_user_id' => User::factory()->create()->id,
+            'is_perwakilan' => true,
+        ]);
+
+        $response = $this->get(route('dashboard'));
+
+        $response->assertOk();
+        $response->assertSee('Belum Ada Tim');
+        $response->assertSee('Sudah Bergabung');
+        $response->assertSee('Sudah Ada Tim Lain');
+    }
+
     public function test_daftar_surat_aktif_progress_status_prefers_most_urgent_of_multiple_rambu(): void
     {
         $admin = User::factory()->admin()->create();

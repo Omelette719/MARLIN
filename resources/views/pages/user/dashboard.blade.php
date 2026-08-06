@@ -64,7 +64,11 @@
         @else
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 @foreach ($spk as $item)
-                    <div wire:key="spk-{{ $item->id }}" class="flex flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-xs transition hover:shadow-md {{ $joinedSpkIds->contains($item->id) ? 'ring-2 ring-blue-400' : '' }}">
+                    @php
+                        $sayaGabung = $joinedSpkIds->contains($item->id);
+                        $adaTim = $item->dikerjakan_oleh_count > 0;
+                    @endphp
+                    <div wire:key="spk-{{ $item->id }}" class="flex flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-xs transition hover:shadow-md {{ $sayaGabung ? 'ring-2 ring-blue-400' : ($adaTim ? 'ring-2 ring-amber-300' : '') }}">
                         <x-photo-slideshow :photos="$item->cover_photos->map(fn ($p) => Storage::url($p))" class="aspect-video w-full" />
 
                         <div class="flex flex-1 flex-col gap-2 p-4">
@@ -93,10 +97,12 @@
                                     StatusRambuPasang::Tertunda => 'amber',
                                     default => 'zinc',
                                 }">{{ $item->progress_status->label() }}</flux:badge>
-                                @if ($joinedSpkIds->contains($item->id))
+                                @if ($sayaGabung)
                                     <flux:badge color="blue" variant="solid" size="sm">Sudah Bergabung</flux:badge>
+                                @elseif ($adaTim)
+                                    <flux:badge color="amber" size="sm">Sudah Ada Tim Lain</flux:badge>
                                 @else
-                                    <flux:badge color="zinc" size="sm">Belum Bergabung</flux:badge>
+                                    <flux:badge color="zinc" size="sm">Belum Ada Tim</flux:badge>
                                 @endif
                             </div>
 

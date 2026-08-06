@@ -44,7 +44,7 @@ class Dashboard extends Component
             ->when($this->search, fn ($query) => $query->where(fn ($q) => $q
                 ->where('nomor_surat', 'like', "%{$this->search}%")
                 ->orWhere('wilayah', 'like', "%{$this->search}%")))
-            ->withCount('rambuPasang')
+            ->withCount(['rambuPasang', 'dikerjakanOleh'])
             ->with(['rambuPasang:id,rambu_spk_id,status,foto_survei'])
             ->orderByDesc('prioritas')
             ->orderBy('deadline')
