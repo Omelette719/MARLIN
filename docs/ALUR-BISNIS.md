@@ -119,6 +119,8 @@ Begitu dilaporkan:
 3. Laporan masuk ke antrean **Temuan Lapangan** admin dengan `status_tindak_lanjut = baru`.
 4. Admin bisa membuat SPK perbaikan baru yang merujuk ke `laporan_kondisi_id` ini, begitu SPK dibuat, `status_tindak_lanjut` berubah jadi `sudah_dibuatkan_spk`. Admin juga bisa menolak temuan itu langsung (`status_tindak_lanjut = ditolak`) kalau memang tidak perlu ditindaklanjuti; pelapornya dapat notifikasi juga.
 
+Foto yang sudah dilampirkan petugas saat melapor temuan **ikut terbawa** ke SPK perbaikan yang dibuat dari temuan itu: disalin jadi `foto_survei` milik `rambu_pasang` barunya (bukan cuma referensi ke path yang sama), jadi admin tidak perlu upload ulang foto yang sebenarnya sudah ada. Admin tetap bisa menimpanya dengan foto lain kalau upload foto baru saat mengisi form.
+
 ## Urgensi Otomatis
 
 `urgensi` pada SPK **selalu dihitung otomatis** (admin tidak bisa set manual), berdasarkan sisa hari ke `deadline`:
@@ -145,6 +147,14 @@ Warna dihitung di sisi client (JavaScript), **bukan** kolom tersimpan di databas
 > Urutan ini **sengaja berbeda** dari draft spesifikasi awal proyek (yang menyebut merah selalu menang atas semua warna lain). Diputuskan lewat diskusi bahwa status "menunggu validasi" harus tetap terlihat progress-nya di peta, bukan tertutup warna merah selama menunggu giliran admin.
 
 Peta pakai tile OpenStreetMap standar. Widget peta ringkas di Dashboard Admin punya tombol **Unduh PDF** yang mengambil cuplikan gambar peta yang sedang tampil (lewat `leaflet-image`, dengan ikon pin disintesis ulang jadi gambar tersendiri karena pin aslinya elemen HTML, bukan file gambar) dan menyertakannya di laporan PDF sebaran rambu.
+
+## Foto Rambu yang Ditampilkan: "Terkini" vs "Beku Sejak Dibuat"
+
+Sistem sengaja membedakan dua konsep foto yang berbeda, jangan disamakan:
+
+**Foto rambu "terkini"** (kartu info pin Peta, halaman Detail Rambu) dihitung lewat `Rambu::fotoUtama()`: untuk `rambu_pasang` paling baru milik rambu itu, foto sesudah (`laporan_pengerjaan.foto_sesudah`) dari laporan pengerjaan paling baru **selalu menang** atas foto survei (`foto_survei`) rambu_pasang itu sendiri, karena laporan pengerjaan selalu dibuat belakangan setelah survei, jadi lebih mencerminkan kondisi rambu sekarang. Kalau belum ada laporan pengerjaan sama sekali, baru jatuh ke foto survei; kalau `rambu_pasang` itu juga tidak punya foto survei, baru dicoba `rambu_pasang` yang lebih lama. Ini artinya begitu satu rambu selesai dikerjakan dan divalidasi, foto yang tampil di Peta/Detail Rambu otomatis berganti dari "sebelum" ke "sesudah" tanpa perlu aksi tambahan apapun.
+
+**Foto SPK/Detail SPK** (kartu daftar SPK, "Daftar Rambu" di Detail SPK, Surat Pengantar PDF) **sebaliknya selalu beku**: cuma pakai `rambu_pasang.foto_survei` apa adanya, tidak pernah ikut berubah walau rambu.nya sudah dikerjakan/foto sesudahnya sudah ada. Ini disengaja, dokumen dan kartu terkait satu SPK harus tetap menggambarkan kondisi "sejak SPK ini dibuat", bukan kondisi rambu yang terus berubah seiring waktu.
 
 ## Pembatalan SPK
 

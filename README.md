@@ -228,7 +228,7 @@ Login di halaman `/login` menggunakan **NIP**, bukan email.
 php artisan test
 ```
 
-Test suite mencakup: alur auth (login/2FA/password confirmation), CRUD & validasi SPK, validasi pengerjaan (terima/tolak, termasuk perpanjangan deadline saat menolak), laporan kendala & pengerjaan, temuan kondisi, laporan bulanan, peta (endpoint data JSON), audit log, notifikasi, integrasi Telegram, dan generasi PDF surat pengantar/laporan. Total 296 test, 286 aktif dan 10 di-skip di lingkungan tanpa dependency tertentu.
+Test suite mencakup: alur auth (login/2FA/password confirmation), CRUD & validasi SPK, validasi pengerjaan (terima/tolak, termasuk perpanjangan deadline saat menolak), laporan kendala & pengerjaan, temuan kondisi, laporan bulanan, peta (endpoint data JSON), audit log, notifikasi, integrasi Telegram, dan generasi PDF surat pengantar/laporan. Total 301 test, 291 aktif dan 10 di-skip di lingkungan tanpa dependency tertentu.
 
 Cek gaya kode (Pint):
 ```bash

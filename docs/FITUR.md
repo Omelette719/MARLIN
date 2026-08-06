@@ -24,6 +24,7 @@ Ada juga widget peta ringkas dengan filter sendiri (jenis rambu, tingkat, rentan
 - Alamat dipecah jadi field terstruktur: **Jalan**, **RT**, **Kelurahan**. Kolom `wilayah` (teks gabungan seperti "Jl. X RT. Y Kel. Z") disusun otomatis dari ketiganya, dipakai di surat pengantar & tampilan lain tanpa perlu ubah kode di tempat lain.
 - Banyak baris rambu dalam satu surat sekaligus (tombol **Tambah Rambu** di bagian bawah daftar).
 - Untuk **Perbaikan**: bisa pilih rambu yang sudah terdaftar di sistem (searchable-select) atau catat rambu yang secara fisik sudah ada tapi belum pernah tercatat.
+- Kalau dibuat dari tombol "Buat SPK" di Temuan Lapangan, foto yang sudah dilampirkan petugas saat melapor temuan otomatis dipakai sebagai foto rambu itu (bisa diganti dengan upload baru kalau perlu).
 - **Perihal Permohonan** opsional, kalau kosong dibuat otomatis dari jenis pekerjaan & jenis rambu (mis. "pemasangan cermin tikungan").
 - **Tanggal Survei** opsional, kalau diisi muncul di surat pengantar sebagai "(DISURVEI TGL ...)".
 - **Petugas Survei** opsional, tapi wajib diisi kalau Tanggal Survei diisi. Nama-nama petugas yang melakukan survei, dicatat manual (bukan pilih dari akun terdaftar) karena tidak selalu petugas sistem yang turun survei. Tidak ditampilkan di surat pengantar, hanya di halaman Detail Surat.
@@ -161,6 +162,7 @@ Ada juga widget peta ringkas dengan filter sendiri (jenis rambu, tingkat, rentan
 - Petugas dapat tombol tambahan **Lapor Temuan Kondisi** langsung dari kartu pin.
 
 ### Detail Rambu
+- Foto utama yang ditampilkan otomatis mengikuti kondisi terkini: foto sesudah dari laporan pengerjaan terbaru (kalau ada) menang atas foto survei, jadi begitu satu rambu selesai dikerjakan, halaman ini otomatis menampilkan hasil akhirnya, bukan foto sebelum dikerjakan (lihat [ALUR-BISNIS.md](ALUR-BISNIS.md)).
 - Riwayat foto & kondisi, riwayat pekerjaan (tiap entri link ke Detail SPK terkait).
 - Kalau rambu sedang menunggu validasi/tertunda, admin dapat tombol **Ke Halaman Validasi** langsung ke SPK terkait.
 

@@ -66,7 +66,7 @@ Aktivitas yang dilakukan admin langsung terhadap sistem (mengelola master data, 
 | AS-09 | Proses Validasi Pengerjaan (terima/tolak per rambu) | SPK sudah mengajukan Laporan Akhir | Rambu diterima jadi Selesai (dan rambu.sudah_terpasang/kondisi_terkini ikut berubah), atau ditolak jadi Revisi dengan catatan wajib |
 | AS-09b | Perpanjang deadline SPK sambil menolak validasi (opsional) | Di Form Penolakan yang sama seperti AS-09, centang "beri kelonggaran" | Deadline & deadline_asli SPK berubah, urgensi terhitung ulang, tercatat di Audit Log, tim dapat notifikasi; satu transaksi dengan penolakan rambunya |
 | AS-10 | Lihat antrean Temuan Lapangan | Sudah login | Daftar laporan kondisi rusak yang belum ditindaklanjuti |
-| AS-11 | Tindaklanjuti Temuan: buat SPK perbaikan dari temuan | Pilih temuan, isi form SPK | SPK perbaikan baru tercipta, status temuan jadi "sudah dibuatkan SPK" |
+| AS-11 | Tindaklanjuti Temuan: buat SPK perbaikan dari temuan | Pilih temuan, isi form SPK | SPK perbaikan baru tercipta, status temuan jadi "sudah dibuatkan SPK"; foto yang sudah ada di laporan temuan ikut terbawa sebagai foto rambu di SPK baru |
 | AS-12 | Tindaklanjuti Temuan: tolak temuan | Pilih temuan | Status temuan jadi Ditolak, pelapor dapat notifikasi |
 | AS-13 | Generate & unduh Laporan Bulanan (PDF) | Atur filter rentang tanggal/jenis rambu/status | File PDF rekap terunduh |
 | AS-14 | Generate & unduh Laporan Rambu (PDF) | Atur filter rentang tanggal/jenis rambu/status | File PDF riwayat pekerjaan rambu terunduh |
