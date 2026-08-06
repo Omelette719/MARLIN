@@ -48,11 +48,11 @@
                 </div>
                 <div>
                     <flux:text class="text-sm text-zinc-500">Urgensi</flux:text>
-                    <flux:badge size="sm" :color="match ($spk->urgensi) {
+                    <flux:badge size="sm" :color="match ($spk->urgensiSaatIni()) {
                         Urgensi::Tinggi => 'red',
                         Urgensi::Sedang => 'amber',
                         Urgensi::Rendah => 'zinc',
-                    }">{{ $spk->urgensi->label() }}</flux:badge>
+                    }">{{ $spk->urgensiSaatIni()->label() }}</flux:badge>
                 </div>
                 <div>
                     <flux:text class="text-sm text-zinc-500">Status</flux:text>

@@ -36,7 +36,7 @@ class Dashboard extends Component
                     'selesai' => $selesai,
                     'total' => $total,
                     'progres' => $total > 0 ? $selesai / $total : 1,
-                    'butuhPerhatian' => $spk->prioritas || $spk->urgensi === Urgensi::Tinggi,
+                    'butuhPerhatian' => $spk->prioritas || $spk->urgensiSaatIni() === Urgensi::Tinggi,
                 ];
             })
             ->sort(fn ($a, $b) => match (true) {

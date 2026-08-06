@@ -110,7 +110,7 @@ class PetaData
                 'id' => $task->spk->id,
                 'nomor_surat' => $task->spk->nomor_surat,
                 'prioritas' => $task->spk->prioritas,
-                'urgensi' => $task->spk->urgensi->value,
+                'urgensi' => $task->spk->urgensiSaatIni()->value,
                 'deadline' => $task->spk->deadline->format('Y-m-d'),
             ] : null,
         ];

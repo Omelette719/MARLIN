@@ -524,6 +524,73 @@ class AdminSpkShowTest extends TestCase
         $response->assertSee('12 hari lebih cepat dari deadline');
     }
 
+    public function test_urgensi_saat_ini_recomputes_live_for_aktif_spk_with_a_stale_stored_value(): void
+    {
+        $admin = User::factory()->admin()->create();
+
+        // Stored value is stale on purpose: it was correct back when the SPK
+        // was created (deadline far out -> rendah), but the deadline has
+        // since passed and nothing has re-saved the record since, exactly
+        // what happens to seeded/long-untouched data.
+        $spk = Spk::create([
+            'nomor_surat' => 'SR-2026/BJM/7020',
+            'dibuat_oleh' => $admin->id,
+            'jenis_spk' => 'pasang_baru',
+            'wilayah' => 'Banjarmasin Tengah',
+            'deadline' => now()->subDays(3),
+            'urgensi' => 'rendah',
+            'status' => 'aktif',
+            'asal_permintaan' => 'internal',
+        ]);
+
+        $this->assertSame('rendah', $spk->urgensi->value);
+        $this->assertSame(Urgensi::Tinggi, $spk->urgensiSaatIni());
+    }
+
+    public function test_urgensi_saat_ini_keeps_the_frozen_stored_value_for_selesai_spk(): void
+    {
+        $admin = User::factory()->admin()->create();
+
+        $spk = Spk::create([
+            'nomor_surat' => 'SR-2026/BJM/7021',
+            'dibuat_oleh' => $admin->id,
+            'jenis_spk' => 'pasang_baru',
+            'wilayah' => 'Banjarmasin Tengah',
+            'deadline' => now()->subDays(30),
+            'urgensi' => 'rendah',
+            'status' => 'selesai',
+            'asal_permintaan' => 'internal',
+        ]);
+
+        // Live recomputation against today's date would say Tinggi (deadline
+        // long past), but this SPK is done — its urgensi is a historical
+        // fact now, not something that should keep drifting after the fact.
+        $this->assertSame(Urgensi::Rendah, $spk->urgensiSaatIni());
+    }
+
+    public function test_daftar_surat_badge_reflects_live_urgensi_not_the_stale_stored_value(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $this->actingAs($admin);
+
+        Spk::create([
+            'nomor_surat' => 'SR-2026/BJM/7022',
+            'dibuat_oleh' => $admin->id,
+            'jenis_spk' => 'pasang_baru',
+            'wilayah' => 'Banjarmasin Tengah',
+            'deadline' => now()->subDays(3),
+            'urgensi' => 'rendah',
+            'status' => 'aktif',
+            'asal_permintaan' => 'internal',
+        ]);
+
+        $response = $this->get(route('admin.spk.index'));
+
+        $response->assertOk();
+        $response->assertSee('Tinggi');
+        $response->assertDontSee('Rendah');
+    }
+
     public function test_admin_spk_detail_shows_contact_person_when_present(): void
     {
         $admin = User::factory()->admin()->create();

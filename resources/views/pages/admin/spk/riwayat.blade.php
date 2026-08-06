@@ -63,11 +63,11 @@
                                     StatusSpk::Dibatalkan => 'zinc',
                                     default => 'zinc',
                                 }">{{ $item->status->label() }}</flux:badge>
-                                <flux:badge size="sm" :color="match ($item->urgensi) {
+                                <flux:badge size="sm" :color="match ($item->urgensiSaatIni()) {
                                     Urgensi::Tinggi => 'red',
                                     Urgensi::Sedang => 'amber',
                                     Urgensi::Rendah => 'zinc',
-                                }">{{ $item->urgensi->label() }}</flux:badge>
+                                }">{{ $item->urgensiSaatIni()->label() }}</flux:badge>
                                 <flux:badge size="sm" :color="$item->dikerjakan_oleh_count > 0 ? 'blue' : 'zinc'" :variant="$item->dikerjakan_oleh_count > 0 ? 'solid' : null">
                                     {{ $item->dikerjakan_oleh_count > 0 ? 'Tim Terdaftar' : 'Belum Ada Tim' }}
                                 </flux:badge>

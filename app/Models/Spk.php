@@ -86,6 +86,30 @@ class Spk extends Model
             : abs($selisih).' hari lebih cepat dari deadline';
     }
 
+    // The `urgensi` column is only ever recomputed on a write (create, edit,
+    // a priority SPK pushing others out, or an admin extending the deadline
+    // during validasi) — it does NOT advance on its own as today's date
+    // moves past the deadline. Left untouched, an active SPK's badge (and
+    // its peta pin color, and whether it's flagged "butuh perhatian" on the
+    // admin dashboard) can go stale and understate how overdue it actually
+    // is. This recomputes live for active SPKs so every display surface
+    // reads correctly regardless of how long it's been since anyone last
+    // touched the record; finished/cancelled SPKs keep their frozen stored
+    // value instead, since recalculating urgency against today's date for
+    // work that's no longer actionable wouldn't mean anything.
+    public function urgensiSaatIni(): Urgensi
+    {
+        if ($this->status !== StatusSpk::Aktif) {
+            return $this->urgensi;
+        }
+
+        // Cast defensively: a model instance built from Spk::create() without
+        // an explicit 'prioritas' key holds null here until the row is
+        // re-fetched, even though the column itself defaults to false in the
+        // database — computeUrgensi() requires a real bool.
+        return self::computeUrgensi($this->deadline, (bool) $this->prioritas);
+    }
+
     // Shared by Create/Edit (manual save) and PenyesuaianDeadlineSpk (automatic
     // push from a newly-prioritized SPK) so urgensi is always derived the same
     // way no matter which of those three places last touched the deadline.

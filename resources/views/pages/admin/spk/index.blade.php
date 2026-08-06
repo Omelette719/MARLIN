@@ -54,11 +54,11 @@
                                 @if ($item->prioritas)
                                     <flux:badge color="red" size="sm">Prioritas</flux:badge>
                                 @endif
-                                <flux:badge size="sm" :color="match ($item->urgensi) {
+                                <flux:badge size="sm" :color="match ($item->urgensiSaatIni()) {
                                     Urgensi::Tinggi => 'red',
                                     Urgensi::Sedang => 'amber',
                                     Urgensi::Rendah => 'zinc',
-                                }">{{ $item->urgensi->label() }}</flux:badge>
+                                }">{{ $item->urgensiSaatIni()->label() }}</flux:badge>
                                 <flux:badge size="sm" :color="match ($item->status) {
                                     StatusSpk::Aktif => 'blue',
                                     StatusSpk::Selesai => 'green',
