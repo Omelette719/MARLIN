@@ -224,6 +224,95 @@ class PetugasSpkTest extends TestCase
         ]);
     }
 
+    public function test_perwakilan_can_remove_a_non_perwakilan_member(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $petugas = User::factory()->create();
+        $anggota = User::factory()->create(['name' => 'Anggota Salah Input']);
+        $this->actingAs($petugas);
+
+        $rambuPasang = $this->makeRambuPasang($admin);
+        $spk = $rambuPasang->spk;
+
+        DikerjakanOleh::create([
+            'by_spk_id' => $spk->id,
+            'by_user_id' => $petugas->id,
+            'is_perwakilan' => true,
+        ]);
+        $anggotaRow = DikerjakanOleh::create([
+            'by_spk_id' => $spk->id,
+            'by_user_id' => $anggota->id,
+            'is_perwakilan' => false,
+        ]);
+
+        Livewire::test(UserSpkShowComponent::class, ['spk' => $spk])
+            ->call('hapusAnggota', $anggotaRow->id);
+
+        $this->assertDatabaseMissing('dikerjakan_oleh', [
+            'by_spk_id' => $spk->id,
+            'by_user_id' => $anggota->id,
+        ]);
+        $this->assertSame(1, AuditLog::where('aksi', 'anggota_tim_dihapus')->count());
+        $this->assertSame(1, Notifikasi::where('user_id', $anggota->id)->where('judul', 'Dikeluarkan dari Tim')->count());
+    }
+
+    public function test_perwakilan_cannot_remove_themselves(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $petugas = User::factory()->create();
+        $this->actingAs($petugas);
+
+        $rambuPasang = $this->makeRambuPasang($admin);
+        $spk = $rambuPasang->spk;
+
+        $perwakilanRow = DikerjakanOleh::create([
+            'by_spk_id' => $spk->id,
+            'by_user_id' => $petugas->id,
+            'is_perwakilan' => true,
+        ]);
+
+        Livewire::test(UserSpkShowComponent::class, ['spk' => $spk])
+            ->call('hapusAnggota', $perwakilanRow->id);
+
+        $this->assertDatabaseHas('dikerjakan_oleh', [
+            'id' => $perwakilanRow->id,
+            'by_spk_id' => $spk->id,
+            'by_user_id' => $petugas->id,
+        ]);
+    }
+
+    public function test_non_perwakilan_cannot_remove_members(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $petugas = User::factory()->create();
+        $anggota = User::factory()->create();
+        $this->actingAs($petugas);
+
+        $rambuPasang = $this->makeRambuPasang($admin);
+        $spk = $rambuPasang->spk;
+
+        DikerjakanOleh::create([
+            'by_spk_id' => $spk->id,
+            'by_user_id' => User::factory()->create()->id,
+            'is_perwakilan' => true,
+        ]);
+        DikerjakanOleh::create([
+            'by_spk_id' => $spk->id,
+            'by_user_id' => $petugas->id,
+            'is_perwakilan' => false,
+        ]);
+        $anggotaRow = DikerjakanOleh::create([
+            'by_spk_id' => $spk->id,
+            'by_user_id' => $anggota->id,
+            'is_perwakilan' => false,
+        ]);
+
+        Livewire::test(UserSpkShowComponent::class, ['spk' => $spk])
+            ->call('hapusAnggota', $anggotaRow->id);
+
+        $this->assertDatabaseHas('dikerjakan_oleh', ['id' => $anggotaRow->id]);
+    }
+
     public function test_ajukan_laporan_akhir_requires_all_rambu_addressed(): void
     {
         $admin = User::factory()->admin()->create();

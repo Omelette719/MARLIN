@@ -115,6 +115,49 @@ class Show extends Component
         Flux::toast(variant: 'success', text: 'Anggota tim berhasil ditambahkan.');
     }
 
+    // Perwakilan-only, and the perwakilan row itself can never be removed
+    // this way (that would leave the SPK with no accountable reporter) —
+    // they'd need to be swapped out by re-registering the team, which isn't
+    // something this action does.
+    public function hapusAnggota(int $dikerjakanOlehId): void
+    {
+        if (! $this->sayaPerwakilan) {
+            return;
+        }
+
+        $anggota = DikerjakanOleh::where('by_spk_id', $this->spk->id)
+            ->where('id', $dikerjakanOlehId)
+            ->where('is_perwakilan', false)
+            ->with('user')
+            ->first();
+
+        if (! $anggota) {
+            return;
+        }
+
+        $nama = $anggota->user->name;
+        $userId = $anggota->by_user_id;
+
+        $anggota->delete();
+
+        AuditLog::create([
+            'user_id' => Auth::id(),
+            'spk_id' => $this->spk->id,
+            'aksi' => 'anggota_tim_dihapus',
+            'keterangan' => "{$nama} dikeluarkan dari tim SPK {$this->spk->nomor_surat}.",
+        ]);
+
+        Notifikasi::create([
+            'user_id' => $userId,
+            'judul' => 'Dikeluarkan dari Tim',
+            'pesan' => "Kamu dikeluarkan dari tim SPK {$this->spk->nomor_surat} oleh perwakilan tim.",
+            'url' => route('user.spk.show', $this->spk),
+            'dibaca' => false,
+        ]);
+
+        Flux::toast(variant: 'success', text: "{$nama} berhasil dihapus dari tim.");
+    }
+
     // "Ready" means: nothing is still untouched this round (Belum/Urgent), and
     // nothing sent back for rework has been ignored (Revisi) — but rambu that
     // are already Selesai from an earlier accepted validation round DO count

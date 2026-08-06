@@ -121,11 +121,33 @@
                     </flux:modal.trigger>
                 </div>
             @else
-                <ul class="list-inside list-disc">
+                <div class="flex flex-col gap-1">
                     @foreach ($tim as $t)
-                        <li>{{ $t->user->name }} @if ($t->is_perwakilan) <flux:badge size="sm">Perwakilan</flux:badge> @endif</li>
+                        <div wire:key="anggota-{{ $t->id }}" class="flex items-center justify-between gap-2">
+                            <flux:text>
+                                {{ $t->user->name }}
+                                @if ($t->is_perwakilan)
+                                    <flux:badge size="sm">Perwakilan</flux:badge>
+                                @endif
+                            </flux:text>
+
+                            @if ($this->sayaPerwakilan && ! $t->is_perwakilan)
+                                <flux:modal.trigger name="hapus-anggota-{{ $t->id }}">
+                                    <flux:button type="button" size="sm" variant="ghost" icon="x-mark">Hapus</flux:button>
+                                </flux:modal.trigger>
+
+                                <x-confirm-modal
+                                    name="hapus-anggota-{{ $t->id }}"
+                                    heading="Hapus {{ $t->user->name }} dari tim?"
+                                    text="Dia tidak akan lagi tercatat sebagai anggota tim untuk surat ini. Bisa ditambahkan lagi kalau memang keliru."
+                                    action="hapusAnggota({{ $t->id }})"
+                                    confirm-label="Ya, Hapus"
+                                    tone="danger"
+                                />
+                            @endif
+                        </div>
                     @endforeach
-                </ul>
+                </div>
 
                 @if ($this->sayaPerwakilan)
                     <div class="flex flex-col gap-3 border-t border-zinc-200 pt-3" x-data="{ tambah: false }">
@@ -266,7 +288,7 @@
         <x-confirm-modal
             name="tambah-anggota"
             heading="Tambahkan anggota ke tim ini?"
-            text="Anggota yang sudah ditambahkan tidak bisa dihapus lagi dari tim."
+            text="Anggota baru akan tercatat sebagai bagian dari tim untuk surat ini."
             action="tambahAnggota"
             confirm-label="Ya, Tambahkan"
             tone="primary"

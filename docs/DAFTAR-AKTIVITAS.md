@@ -26,7 +26,7 @@ Aktivitas yang dilakukan petugas lapangan langsung terhadap sistem.
 | US-03 | Lihat Dashboard (Daftar Surat Aktif) | Sudah login | Melihat semua SPK aktif (bukan cuma yang diikuti) untuk mencari pekerjaan baru |
 | US-04 | Lihat Detail SPK | Klik salah satu SPK aktif | Melihat detail surat, tim, daftar rambu, sebelum memutuskan bergabung |
 | US-05 | Daftarkan Tim (gabung SPK sebagai perwakilan) | Belum ada tim terdaftar di SPK tsb | Perwakilan + rekan setim tercatat sebagai tim SPK; ada modal konfirmasi karena tidak bisa dibatalkan lewat sistem |
-| US-06 | Tambah anggota tim belakangan | Sudah jadi perwakilan tim SPK tsb | Anggota baru tercatat; juga ada konfirmasi, belum ada cara hapus anggota |
+| US-06 | Tambah anggota tim belakangan | Sudah jadi perwakilan tim SPK tsb | Anggota baru tercatat; ada modal konfirmasi |
 | US-07 | Isi Form Kendala | Perwakilan tim, rambu berstatus Belum/Revisi | Status rambu jadi Tertunda; admin (pembuat SPK) dapat notifikasi |
 | US-08 | Edit/tukar Kendala jadi Laporan Pengerjaan | Rambu berstatus Tertunda, SPK belum ajukan Laporan Akhir | Kendala terhapus, laporan pengerjaan baru tercatat, status jadi Menunggu Validasi |
 | US-09 | Isi Form Laporan Pengerjaan | Perwakilan tim, rambu berstatus Belum/Revisi | Status rambu jadi Menunggu Validasi; admin dapat notifikasi |
@@ -47,6 +47,7 @@ Aktivitas yang dilakukan petugas lapangan langsung terhadap sistem.
 | US-24 | Ubah Profil (nama, foto) | Sudah login | Data profil diperbarui |
 | US-25 | Ganti Password / kelola 2FA | Konfirmasi ulang password | Password baru aktif, atau 2FA diaktifkan/dinonaktifkan |
 | US-26 | Logout | Sudah login | Sesi berakhir, kembali ke halaman login |
+| US-27 | Hapus anggota tim (bukan perwakilan) | Perwakilan tim SPK tsb, konfirmasi modal | Anggota terkait dilepas dari tim SPK ini, dapat notifikasi; baris perwakilan sendiri tidak bisa dihapus lewat aksi ini |
 
 ## B. Interaksi Admin <-> Sistem
 
@@ -116,6 +117,7 @@ Proses yang berjalan otomatis di sistem (tanpa aksi langsung dari admin/petugas 
 | L-09 | Pencatatan otomatis ke System Error Log | Exception tak tertangani (level 500+) di aplikasi | Baris error tersimpan, bisa dilihat lewat AS-20 |
 | L-10 | Login, verifikasi 2FA, dan wizard reset password | Pengunjung belum login (guest) | Akses terbatas ke proses autentikasi saja, sebelum masuk ke US-* atau AS-* |
 | L-11 | Perwakilan mendaftarkan rekan setim sekaligus | US-05/US-06 | Rekan setim tercatat sebagai anggota tim, bisa ikut kerja fisik di lapangan tapi tidak mengoperasikan form Kendala/Laporan/Ajukan Laporan Akhir (hak itu cuma milik perwakilan) |
+| L-12 | Perwakilan menghapus anggota tim (US-27) | Konfirmasi modal, anggota yang dihapus bukan perwakilan | Anggota terkait dapat notifikasi "Dikeluarkan dari Tim", tercatat di Audit Log |
 
 ---
 

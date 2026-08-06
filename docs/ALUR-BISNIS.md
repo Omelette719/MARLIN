@@ -63,7 +63,7 @@ Bergabung ke tim SPK (`daftarkanTim`) bisa dilakukan siapa saja yang mendaftar s
 
 Anggota tim non-perwakilan bisa ikut bekerja fisik di lapangan dan melihat detail SPK, tapi tidak mengoperasikan form-form di atas. Ini satu titik akuntabilitas per SPK, jelas siapa yang bertanggung jawab melaporkan.
 
-Mendaftarkan tim (dan menambah anggota belakangan) tidak bisa dibatalkan lewat sistem, jadi kedua aksi ini minta konfirmasi dulu di UI sebelum benar-benar dieksekusi.
+Mendaftarkan diri sebagai perwakilan tidak bisa dibatalkan lewat sistem (tidak ada fitur "keluar tim"), jadi aksi ini minta konfirmasi dulu di UI sebelum benar-benar dieksekusi. Anggota non-perwakilan beda: perwakilan bisa menambah mereka belakangan (`tambahAnggota`), dan juga menghapus mereka lagi kalau ternyata salah input (`hapusAnggota`), keduanya lewat konfirmasi UI juga. Baris `is_perwakilan = true` sendiri tidak pernah bisa dihapus lewat `hapusAnggota`, cuma baris anggota biasa.
 
 ### Kenapa ada gate "Laporan Akhir" sebelum validasi?
 

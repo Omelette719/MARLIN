@@ -102,8 +102,9 @@ Ada juga widget peta ringkas dengan filter sendiri (jenis rambu, tingkat, rentan
 - Ringkasan: jumlah tugas aktif, tugas dalam progres, tugas mendekati deadline, tugas selesai bulan ini (khusus milik tim sendiri).
 
 ### Detail SPK & Gabung Tim
-- Perwakilan tim mendaftarkan diri + rekan setim sekaligus (`daftarkanTim`), bukan tiap orang gabung sendiri-sendiri. Ada modal konfirmasi sebelum mendaftar karena belum ada cara keluar dari tim lewat sistem.
-- Bisa menambah anggota belakangan (`tambahAnggota`), khusus oleh perwakilan, juga dengan konfirmasi karena belum ada cara menghapus anggota.
+- Perwakilan tim mendaftarkan diri + rekan setim sekaligus (`daftarkanTim`), bukan tiap orang gabung sendiri-sendiri. Ada modal konfirmasi sebelum mendaftar karena belum ada cara keluar dari peran perwakilan lewat sistem.
+- Bisa menambah anggota belakangan (`tambahAnggota`), khusus oleh perwakilan, dengan konfirmasi.
+- Perwakilan juga bisa menghapus anggota non-perwakilan dari tim (`hapusAnggota`), misalnya kalau salah input orang. Baris perwakilan sendiri tidak bisa dihapus lewat sini. Anggota yang dihapus dapat notifikasi, dan aksinya tercatat di Audit Log.
 - Unduh Surat Pengantar (PDF, dibuat on-the-fly).
 - Untuk SPK berstatus **Selesai**, halaman ini juga menampilkan Durasi Pengerjaan dan Selisih dari Deadline, sama seperti versi admin.
 - Kalau ada rambu yang ditolak admin saat validasi, alasan penolakannya ditampilkan di kartu rambu itu.
