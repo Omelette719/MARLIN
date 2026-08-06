@@ -24,6 +24,8 @@ use Carbon\Carbon;
 use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
@@ -99,6 +101,11 @@ class Create extends Component
                 'rambu_id' => (string) $temuan->rambu_id,
                 'jumlah' => 1,
                 'foto_survei' => null,
+                // The temuan already has photo evidence of what needs fixing —
+                // shown as a preview and copied into this rambu_pasang's own
+                // foto_survei at submit() unless the admin uploads a different
+                // photo instead (rambuItems.*.foto_survei above takes priority).
+                'foto_survei_existing' => $temuan->foto,
                 'catatan_instruksi' => '',
                 'laporan_kondisi_id' => $temuan->id,
             ];
@@ -117,6 +124,7 @@ class Create extends Component
             'rambu_id' => '',
             'jumlah' => 1,
             'foto_survei' => null,
+            'foto_survei_existing' => null,
             'catatan_instruksi' => '',
             'laporan_kondisi_id' => null,
         ];
@@ -229,6 +237,27 @@ class Create extends Component
         $sequence = Spk::whereYear('created_at', $year)->count() + 1;
 
         return sprintf('SR-%d/BJM/%04d', $year, $sequence);
+    }
+
+    // A freshly-uploaded photo always wins. Otherwise, if this rambu item
+    // came from a temuan report, copy that report's photo into its own file
+    // under rambu-pasang/survei so it has independent storage from
+    // laporan_kondisi.foto (e.g. surviving if the temuan row's photo is ever
+    // replaced) instead of just reusing the same stored path.
+    private function resolveFotoSurvei(array $item): ?string
+    {
+        if ($item['foto_survei']) {
+            return $item['foto_survei']->store('rambu-pasang/survei', 'public');
+        }
+
+        if (empty($item['foto_survei_existing'])) {
+            return null;
+        }
+
+        $sumber = $item['foto_survei_existing'];
+        $tujuan = 'rambu-pasang/survei/'.Str::random(40).'.'.pathinfo($sumber, PATHINFO_EXTENSION);
+
+        return Storage::disk('public')->copy($sumber, $tujuan) ? $tujuan : null;
     }
 
     public function save(): void
@@ -359,7 +388,7 @@ class Create extends Component
                     'laporan_kondisi_id' => $item['laporan_kondisi_id'] ?: null,
                     'jenis_pekerjaan' => $this->jenis_spk,
                     'jumlah' => $item['jumlah'],
-                    'foto_survei' => $item['foto_survei'] ? $item['foto_survei']->store('rambu-pasang/survei', 'public') : null,
+                    'foto_survei' => $this->resolveFotoSurvei($item),
                     'catatan_instruksi' => $item['catatan_instruksi'] ?: null,
                     'status' => StatusRambuPasang::Belum,
                 ]);

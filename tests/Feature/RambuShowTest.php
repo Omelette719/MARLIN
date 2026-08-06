@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\JenisRambu;
 use App\Models\LaporanKondisi;
+use App\Models\LaporanPengerjaan;
 use App\Models\Rambu;
 use App\Models\RambuPasang;
 use App\Models\Spk;
@@ -140,6 +141,32 @@ class RambuShowTest extends TestCase
         $response->assertSee('laporan-kondisi/contoh-temuan.jpg', false);
         $response->assertSee('Tiang bengkok kena tabrak.');
         $response->assertSee($petugas->name);
+    }
+
+    // Rambu::fotoUtama() used to always prefer rambu_pasang.foto_survei over
+    // laporan_pengerjaan.foto_sesudah for the same rambu_pasang, so the
+    // original "before" photo kept showing forever even after the work was
+    // completed and validated — the "after" photo never had a chance to win.
+    public function test_rambu_detail_prefers_the_after_photo_once_work_is_reported_done(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $this->actingAs($admin);
+
+        $rambu = $this->makeRambuWithRiwayat($admin);
+        $rambuPasang = $rambu->rambuPasang()->first();
+
+        LaporanPengerjaan::create([
+            'rambu_pasang_id' => $rambuPasang->id,
+            'dilaporkan_oleh' => $admin->id,
+            'foto_sesudah' => 'laporan-pengerjaan/contoh-sesudah.jpg',
+            'status' => 'diterima',
+        ]);
+
+        $response = $this->get(route('rambu.show', $rambu));
+
+        $response->assertOk();
+        $response->assertSee('laporan-pengerjaan/contoh-sesudah.jpg', false);
+        $response->assertDontSee('rambu-pasang/survei/contoh-detail.jpg', false);
     }
 
     public function test_petugas_does_not_see_ke_validasi_button(): void

@@ -15,6 +15,8 @@ use App\Models\RambuPasang;
 use App\Models\Spk;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -151,5 +153,75 @@ class TemuanTest extends TestCase
         $this->assertSame(StatusTindakLanjut::SudahDibuatkanSpk, $temuan->fresh()->status_tindak_lanjut);
 
         $this->assertSame(1, Rambu::count());
+    }
+
+    // The temuan already has photo evidence of the damage — Create.php used
+    // to always set foto_survei to null when pre-filling from a temuan, so
+    // admin had to re-upload a photo that already existed, and the new SPK
+    // started with no cover photo at all until they did.
+    public function test_admin_creating_spk_from_temuan_copies_the_temuan_photo_as_foto_survei(): void
+    {
+        Storage::fake('public');
+
+        $admin = User::factory()->admin()->create();
+        $petugas = User::factory()->create();
+        $this->actingAs($admin);
+
+        $temuan = $this->makeTemuan($petugas);
+        Storage::disk('public')->put('laporan-kondisi/temuan-asli.jpg', 'isi-foto-temuan');
+        $temuan->update(['foto' => 'laporan-kondisi/temuan-asli.jpg']);
+
+        Livewire::withQueryParams(['laporan_kondisi' => $temuan->id])
+            ->test(SpkCreateComponent::class)
+            ->assertSet('rambuItems.0.foto_survei_existing', 'laporan-kondisi/temuan-asli.jpg')
+            ->set('kelurahan', 'Kertak Baru')
+            ->set('deadline', now()->addDays(5)->toDateString())
+            ->set('asal_permintaan', 'laporan_masyarakat')
+            ->set('rambuItems.0.jumlah', 1)
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $rambuPasang = RambuPasang::first();
+
+        $this->assertNotNull($rambuPasang->foto_survei);
+        // Copied into its own file, not just the same stored path reused.
+        $this->assertNotSame($temuan->foto, $rambuPasang->foto_survei);
+        Storage::disk('public')->assertExists($rambuPasang->foto_survei);
+        $this->assertSame(
+            Storage::disk('public')->get('laporan-kondisi/temuan-asli.jpg'),
+            Storage::disk('public')->get($rambuPasang->foto_survei)
+        );
+    }
+
+    public function test_admin_creating_spk_from_temuan_prefers_a_freshly_uploaded_photo_over_the_temuan_photo(): void
+    {
+        Storage::fake('public');
+
+        $admin = User::factory()->admin()->create();
+        $petugas = User::factory()->create();
+        $this->actingAs($admin);
+
+        $temuan = $this->makeTemuan($petugas);
+        Storage::disk('public')->put('laporan-kondisi/temuan-asli.jpg', 'isi-foto-temuan');
+        $temuan->update(['foto' => 'laporan-kondisi/temuan-asli.jpg']);
+
+        Livewire::withQueryParams(['laporan_kondisi' => $temuan->id])
+            ->test(SpkCreateComponent::class)
+            ->set('kelurahan', 'Kertak Baru')
+            ->set('deadline', now()->addDays(5)->toDateString())
+            ->set('asal_permintaan', 'laporan_masyarakat')
+            ->set('rambuItems.0.jumlah', 1)
+            ->set('rambuItems.0.foto_survei', UploadedFile::fake()->image('baru.jpg'))
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $rambuPasang = RambuPasang::first();
+
+        $this->assertNotNull($rambuPasang->foto_survei);
+        Storage::disk('public')->assertExists($rambuPasang->foto_survei);
+        $this->assertNotSame(
+            Storage::disk('public')->get('laporan-kondisi/temuan-asli.jpg'),
+            Storage::disk('public')->get($rambuPasang->foto_survei)
+        );
     }
 }

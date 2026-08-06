@@ -1,3 +1,7 @@
+    @php
+        use Illuminate\Support\Facades\Storage;
+    @endphp
+
     <div class="flex w-full flex-1 flex-col gap-6">
         <div>
             <flux:heading size="xl">Buat Surat</flux:heading>
@@ -77,6 +81,8 @@
                             model="rambuItems.{{ $index }}.foto_survei"
                             label="Foto Tempat"
                             :file="$item['foto_survei']"
+                            :existing-url="$item['foto_survei_existing'] ? Storage::url($item['foto_survei_existing']) : null"
+                            :description="$item['foto_survei_existing'] ? 'Foto dari laporan temuan ini akan dipakai kecuali diganti dengan upload baru.' : null"
                             class="max-w-sm"
                         />
 
