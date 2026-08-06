@@ -42,7 +42,7 @@
 
                 <flux:checkbox wire:model="prioritas" label="Tandai sebagai prioritas" description="Jika dicentang, urgensi otomatis menjadi Tinggi terlepas dari deadline." />
 
-                <flux:input wire:model="file_referensi" type="file" accept="image/*" label="File Referensi" description="Opsional, scan/foto surat permohonan asli dari RT/warga/pemerintah (gambar saja)." />
+                <flux:input wire:model="file_referensi" type="file" accept="image/*,application/pdf" label="File Referensi" description="Opsional, scan/foto surat permohonan asli dari RT/warga/pemerintah (gambar atau PDF)." />
 
                 <flux:textarea wire:model="catatan_pekerja_tambahan" label="Catatan" placeholder="Catatan tambahan untuk pekerja (opsional)" rows="3" />
             </flux:card>

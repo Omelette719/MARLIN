@@ -75,6 +75,12 @@ class Edit extends Component
 
     public string $catatan_pembatalan = '';
 
+    // file_referensi is a scanned request letter, not a field photo — allow PDF too.
+    protected function pdfAllowedFields(): array
+    {
+        return ['file_referensi'];
+    }
+
     public function mount(Spk $spk): void
     {
         abort_if($spk->status !== StatusSpk::Aktif, 403, 'SPK yang sudah selesai/dibatalkan tidak bisa diedit.');
@@ -326,7 +332,7 @@ class Edit extends Component
             'keterangan_asal' => 'nullable|string|max:1000',
             'tanggal_survei' => 'nullable|date',
             'petugas_survei' => 'nullable|string|max:500|required_with:tanggal_survei',
-            'file_referensi' => 'nullable|image|max:5120',
+            'file_referensi' => 'nullable|mimes:jpg,jpeg,png,gif,webp,pdf|max:5120',
             'catatan_pekerja_tambahan' => 'nullable|string|max:2000',
             'rt_nama' => 'nullable|string|max:255',
             'rt_telepon' => ['nullable', 'string', 'max:30', 'regex:/^[0-9+\-\s()]+$/'],

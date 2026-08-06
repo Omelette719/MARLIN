@@ -31,6 +31,48 @@ class SpkTest extends TestCase
             ->assertHasErrors(['rambuItems.0.foto_survei']);
     }
 
+    public function test_admin_can_upload_a_pdf_as_file_referensi(): void
+    {
+        $this->actingAs(User::factory()->admin()->create());
+
+        Livewire::test(SpkCreateComponent::class)
+            ->set('file_referensi', UploadedFile::fake()->create('surat-permohonan.pdf', 100, 'application/pdf'))
+            ->assertSet('file_referensi', fn ($file) => $file !== null)
+            ->assertHasNoErrors(['file_referensi']);
+    }
+
+    public function test_admin_can_upload_an_image_as_file_referensi(): void
+    {
+        $this->actingAs(User::factory()->admin()->create());
+
+        Livewire::test(SpkCreateComponent::class)
+            ->set('file_referensi', UploadedFile::fake()->image('surat-permohonan.jpg'))
+            ->assertSet('file_referensi', fn ($file) => $file !== null)
+            ->assertHasNoErrors(['file_referensi']);
+    }
+
+    public function test_non_image_non_pdf_file_referensi_is_rejected_immediately_on_upload(): void
+    {
+        $this->actingAs(User::factory()->admin()->create());
+
+        Livewire::test(SpkCreateComponent::class)
+            ->set('file_referensi', UploadedFile::fake()->create('dokumen.docx', 100, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'))
+            ->assertSet('file_referensi', null)
+            ->assertHasErrors(['file_referensi']);
+    }
+
+    public function test_foto_survei_still_rejects_pdf_even_though_file_referensi_allows_it(): void
+    {
+        $this->actingAs(User::factory()->admin()->create());
+
+        Livewire::test(SpkCreateComponent::class)
+            ->set('file_referensi', UploadedFile::fake()->create('surat-permohonan.pdf', 100, 'application/pdf'))
+            ->assertHasNoErrors(['file_referensi'])
+            ->set('rambuItems.0.foto_survei', UploadedFile::fake()->create('dokumen.pdf', 100, 'application/pdf'))
+            ->assertSet('rambuItems.0.foto_survei', null)
+            ->assertHasErrors(['rambuItems.0.foto_survei']);
+    }
+
     public function test_petugas_cannot_access_admin_spk_pages(): void
     {
         $this->actingAs(User::factory()->create());

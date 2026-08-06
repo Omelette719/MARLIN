@@ -15,19 +15,40 @@ use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 // full dotted path.
 trait RejectsNonImageUploads
 {
+    // Property names allowed to also accept a PDF on top of images — for
+    // scanned documents (e.g. Spk's file_referensi) rather than field photos.
+    // None of these fields feed a live preview via temporaryUrl(), so a PDF
+    // here never hits the crash this trait exists to prevent. A method
+    // (not a property) so using classes can override it without a PHP
+    // trait/class property-collision error.
+    protected function pdfAllowedFields(): array
+    {
+        return [];
+    }
+
     public function updated($name, $value = null): void
     {
         if (! $value instanceof TemporaryUploadedFile) {
             return;
         }
 
-        if (str_starts_with((string) $value->getMimeType(), 'image/')) {
+        $mime = (string) $value->getMimeType();
+
+        if (str_starts_with($mime, 'image/')) {
+            return;
+        }
+
+        $bolehPdf = in_array($name, $this->pdfAllowedFields(), true);
+
+        if ($bolehPdf && $mime === 'application/pdf') {
             return;
         }
 
         data_set($this, $name, null);
-        $this->addError($name, 'File harus berupa gambar (JPG, PNG, dll).');
+        $this->addError($name, $bolehPdf ? 'File harus berupa gambar atau PDF.' : 'File harus berupa gambar (JPG, PNG, dll).');
 
-        Flux::toast(variant: 'danger', text: 'File yang dipilih bukan gambar. Hanya file gambar (JPG, PNG, GIF, WebP, dll) yang diterima.');
+        Flux::toast(variant: 'danger', text: $bolehPdf
+            ? 'File yang dipilih bukan gambar/PDF. Hanya file gambar atau PDF yang diterima.'
+            : 'File yang dipilih bukan gambar. Hanya file gambar (JPG, PNG, GIF, WebP, dll) yang diterima.');
     }
 }

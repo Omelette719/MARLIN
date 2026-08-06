@@ -46,7 +46,7 @@
                 <flux:checkbox wire:model="prioritas" label="Tandai sebagai prioritas" description="Jika dicentang, urgensi otomatis menjadi Tinggi terlepas dari deadline." />
 
                 <div>
-                    <flux:input wire:model="file_referensi" type="file" accept="image/*" label="Ganti File Referensi" description="Opsional, scan/foto surat permohonan asli dari RT/warga/pemerintah (gambar saja)." />
+                    <flux:input wire:model="file_referensi" type="file" accept="image/*,application/pdf" label="Ganti File Referensi" description="Opsional, scan/foto surat permohonan asli dari RT/warga/pemerintah (gambar atau PDF)." />
                     @if ($spk->file_referensi && ! $file_referensi)
                         <flux:text class="mt-1 text-sm text-zinc-500">
                             File saat ini: <flux:link :href="Storage::url($spk->file_referensi)" target="_blank">lihat file</flux:link>

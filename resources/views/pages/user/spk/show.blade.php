@@ -92,6 +92,14 @@
                     <flux:text>{{ $spk->catatan_pekerja_tambahan }}</flux:text>
                 </div>
             @endif
+
+            @if ($spk->file_referensi)
+                <div>
+                    <flux:button size="sm" variant="ghost" icon="paper-clip" href="{{ Storage::url($spk->file_referensi) }}" target="_blank">
+                        Lihat File Referensi
+                    </flux:button>
+                </div>
+            @endif
         </flux:card>
 
         <flux:card class="flex flex-col gap-4">
