@@ -7,6 +7,7 @@ use App\Enums\StatusRambuPasang;
 use App\Enums\Urgensi;
 use App\Livewire\Admin\Spk\Create as SpkCreateComponent;
 use App\Livewire\Admin\Spk\Index as SpkIndexComponent;
+use App\Models\DikerjakanOleh;
 use App\Models\JenisRambu;
 use App\Models\Notifikasi;
 use App\Models\Rambu;
@@ -130,6 +131,45 @@ class SpkTest extends TestCase
         $response->assertOk();
         $response->assertSee('rambu-pasang/survei/contoh-satu.jpg', false);
         $response->assertSee('rambu-pasang/survei/contoh-dua.jpg', false);
+    }
+
+    public function test_daftar_surat_card_shows_whether_a_team_has_joined(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $this->actingAs($admin);
+
+        $spkDenganTim = Spk::create([
+            'nomor_surat' => 'SR-2026/BJM/8021',
+            'dibuat_oleh' => $admin->id,
+            'jenis_spk' => 'pasang_baru',
+            'wilayah' => 'Banjarmasin Tengah',
+            'deadline' => now()->addDays(5),
+            'urgensi' => 'sedang',
+            'status' => 'aktif',
+            'asal_permintaan' => 'internal',
+        ]);
+        DikerjakanOleh::create([
+            'by_spk_id' => $spkDenganTim->id,
+            'by_user_id' => User::factory()->create()->id,
+            'is_perwakilan' => true,
+        ]);
+
+        Spk::create([
+            'nomor_surat' => 'SR-2026/BJM/8022',
+            'dibuat_oleh' => $admin->id,
+            'jenis_spk' => 'pasang_baru',
+            'wilayah' => 'Banjarmasin Tengah',
+            'deadline' => now()->addDays(5),
+            'urgensi' => 'sedang',
+            'status' => 'aktif',
+            'asal_permintaan' => 'internal',
+        ]);
+
+        $response = $this->get(route('admin.spk.index'));
+
+        $response->assertOk();
+        $response->assertSee('Tim Terdaftar');
+        $response->assertSee('Belum Ada Tim');
     }
 
     public function test_admin_can_filter_daftar_surat_by_jenis(): void

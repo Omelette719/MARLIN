@@ -44,7 +44,7 @@
         @else
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 @foreach ($spk as $item)
-                    <div wire:key="spk-{{ $item->id }}" class="flex flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-xs transition hover:shadow-md">
+                    <div wire:key="spk-{{ $item->id }}" class="flex flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-xs transition hover:shadow-md {{ $item->dikerjakan_oleh_count > 0 ? 'ring-2 ring-blue-400' : '' }}">
                         <x-photo-slideshow :photos="$item->cover_photos->map(fn ($p) => Storage::url($p))" class="aspect-video w-full" />
 
                         <div class="flex flex-1 flex-col gap-2 p-4">
@@ -68,6 +68,9 @@
                                     Urgensi::Sedang => 'amber',
                                     Urgensi::Rendah => 'zinc',
                                 }">{{ $item->urgensi->label() }}</flux:badge>
+                                <flux:badge size="sm" :color="$item->dikerjakan_oleh_count > 0 ? 'blue' : 'zinc'" :variant="$item->dikerjakan_oleh_count > 0 ? 'solid' : null">
+                                    {{ $item->dikerjakan_oleh_count > 0 ? 'Tim Terdaftar' : 'Belum Ada Tim' }}
+                                </flux:badge>
                             </div>
 
                             <flux:text class="text-sm text-zinc-500">

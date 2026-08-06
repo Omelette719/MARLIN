@@ -53,7 +53,7 @@ class Riwayat extends Component
                 ->orWhere('wilayah', 'like', "%{$this->search}%")))
             ->when($this->status, fn ($query) => $query->where('status', $this->status))
             ->when($this->jenis, fn ($query) => $query->where('jenis_spk', $this->jenis))
-            ->withCount('rambuPasang')
+            ->withCount(['rambuPasang', 'dikerjakanOleh'])
             ->with(['rambuPasang' => fn ($q) => $q->with('rambu.jenisRambu')])
             ->orderByDesc('updated_at')
             ->paginate(9);

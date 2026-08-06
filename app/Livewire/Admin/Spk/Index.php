@@ -46,7 +46,7 @@ class Index extends Component
                 ->where('nomor_surat', 'like', "%{$this->search}%")
                 ->orWhere('wilayah', 'like', "%{$this->search}%")))
             ->when($this->jenis, fn ($query) => $query->where('jenis_spk', $this->jenis))
-            ->withCount('rambuPasang')
+            ->withCount(['rambuPasang', 'dikerjakanOleh'])
             ->with(['rambuPasang' => fn ($q) => $q->with('rambu.jenisRambu')])
             ->orderByDesc('prioritas')
             ->orderBy('deadline')
