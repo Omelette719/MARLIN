@@ -79,8 +79,6 @@
                     <td>
                         @if ($item->status === \App\Enums\StatusRambuPasang::Batal)
                             Dibatalkan: {{ $item->catatan_pembatalan ?: 'Tidak ada alasan tercatat' }}
-                        @elseif ($item->status === \App\Enums\StatusRambuPasang::Tertunda)
-                            Kendala: {{ $item->kendala->first()?->alasan ?: 'Tidak ada alasan tercatat' }}
                         @endif
                     </td>
                 </tr>

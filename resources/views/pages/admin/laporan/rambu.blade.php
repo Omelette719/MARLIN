@@ -84,8 +84,6 @@
 
                                 @if ($item->status === StatusRambuPasang::Batal && $item->catatan_pembatalan)
                                     <flux:text class="mt-1 text-xs text-zinc-500">{{ $item->catatan_pembatalan }}</flux:text>
-                                @elseif ($item->status === StatusRambuPasang::Tertunda && $item->kendala->first()?->alasan)
-                                    <flux:text class="mt-1 text-xs text-zinc-500">{{ $item->kendala->first()->alasan }}</flux:text>
                                 @endif
                             </flux:table.cell>
                         </flux:table.row>

@@ -107,8 +107,6 @@
                     <td>
                         @if ($rp->status === \App\Enums\StatusRambuPasang::Batal)
                             DIBATALKAN: {{ $rp->catatan_pembatalan ?: 'Tidak ada alasan tercatat' }}
-                        @elseif ($rp->status === \App\Enums\StatusRambuPasang::Tertunda)
-                            KENDALA: {{ $rp->kendala->first()?->alasan ?: 'Tidak ada alasan tercatat' }}
                         @else
                             {{ $rp->catatan_instruksi ?: 'Tidak ada catatan khusus' }}
                         @endif

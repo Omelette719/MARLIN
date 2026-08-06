@@ -25,7 +25,7 @@ class LaporanRambu
         $status = $filters['status'] ?? null;
 
         $items = RambuPasang::query()
-            ->with(['rambu.jenisRambu', 'spk', 'kendala' => fn ($q) => $q->latest()])
+            ->with(['rambu.jenisRambu', 'spk'])
             ->when($jenisRambuId, fn ($q) => $q->whereHas('rambu', fn ($r) => $r->where('jenis_rambu_id', $jenisRambuId)))
             ->when($status, fn ($q) => $q->where('status', $status))
             ->when($tanggalDari, fn ($q) => $q->whereDate('created_at', '>=', $tanggalDari))
