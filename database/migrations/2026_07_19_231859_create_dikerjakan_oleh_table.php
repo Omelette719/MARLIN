@@ -18,7 +18,15 @@ return new class extends Migration
             $table->boolean('is_perwakilan')->default(false);
             $table->timestamp('created_at')->useCurrent();
 
-            $table->index(['by_user_id', 'by_spk_id']);
+            // Unique (not just an index): tambahAnggota()/daftarkanTim() only
+            // check for an existing row in PHP before inserting, which is a
+            // real TOCTOU race between two concurrent requests — this is the
+            // actual backstop. by_spk_id leads because "who's on this SPK's
+            // team" (by_spk_id alone) is the far more common lookup than the
+            // reverse; by_user_id gets its own index for "which SPKs has
+            // this petugas joined" (Dashboard/Riwayat/SpkDikerjakan).
+            $table->unique(['by_spk_id', 'by_user_id']);
+            $table->index('by_user_id');
         });
     }
 

@@ -25,6 +25,8 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index('status');
+            $table->index('rambu_spk_id');
+            $table->index('rambu_id');
         });
     }
 

@@ -20,6 +20,10 @@ return new class extends Migration
             $table->string('foto')->nullable();
             $table->boolean('dibaca')->default(false);
             $table->timestamp('created_at')->useCurrent();
+
+            // The header's unread-count badge queries this on every
+            // authenticated page load (WHERE user_id = ? AND dibaca = 0).
+            $table->index('user_id');
         });
     }
 

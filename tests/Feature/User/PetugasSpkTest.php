@@ -19,6 +19,7 @@ use App\Models\RambuPasang;
 use App\Models\RtPerwakilan;
 use App\Models\Spk;
 use App\Models\User;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Livewire\Livewire;
@@ -435,6 +436,26 @@ class PetugasSpkTest extends TestCase
         Livewire::test(UserSpkShowComponent::class, ['spk' => $spk])
             ->call('hapusAnggota', $sudahHilangId)
             ->assertDispatched('toast-show', fn ($name, $params) => $params['dataset']['variant'] === 'warning');
+    }
+
+    // daftarkanTim()/tambahAnggota() only check for an existing team-member
+    // row in PHP before inserting, which is a real race between two
+    // concurrent requests — the unique(by_spk_id, by_user_id) constraint on
+    // dikerjakan_oleh is the actual backstop that stops a duplicate row from
+    // ever landing, regardless of what the app-level check missed.
+    public function test_dikerjakan_oleh_rejects_a_duplicate_member_at_the_database_level(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $petugas = User::factory()->create();
+
+        $rambuPasang = $this->makeRambuPasang($admin);
+        $spk = $rambuPasang->spk;
+
+        DikerjakanOleh::create(['by_spk_id' => $spk->id, 'by_user_id' => $petugas->id, 'is_perwakilan' => false]);
+
+        $this->expectException(QueryException::class);
+
+        DikerjakanOleh::create(['by_spk_id' => $spk->id, 'by_user_id' => $petugas->id, 'is_perwakilan' => false]);
     }
 
     public function test_non_perwakilan_cannot_remove_members(): void

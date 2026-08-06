@@ -50,7 +50,7 @@ Satu baris = satu rambu fisik.
 
 | Kolom | Tipe | Keterangan |
 |---|---|---|
-| `jenis_rambu_id` | FK &rarr; `jenis_rambu`, **restrict** | |
+| `jenis_rambu_id` | FK &rarr; `jenis_rambu`, **restrict**, indexed | |
 | `wilayah` | string, indexed | Teks alamat gabungan (disusun otomatis dari `jalan`/`rt`/`kelurahan` lewat trait `ComposesWilayah` kalau kosong) |
 | `jalan` | string, nullable | |
 | `rt` | string, nullable | |
@@ -98,8 +98,8 @@ Baris pekerjaan per rambu, dalam konteks satu SPK. Ini "jembatan" antara `spk` d
 
 | Kolom | Tipe | Keterangan |
 |---|---|---|
-| `rambu_spk_id` | FK &rarr; `spk`, **cascade** | Ikut terhapus kalau SPK dihapus (walau SPK sendiri tidak pernah dihapus di aplikasi nyata) |
-| `rambu_id` | FK &rarr; `rambu`, **restrict** | Rambu tidak boleh dihapus selama masih dirujuk |
+| `rambu_spk_id` | FK &rarr; `spk`, **cascade**, indexed | Ikut terhapus kalau SPK dihapus (walau SPK sendiri tidak pernah dihapus di aplikasi nyata) |
+| `rambu_id` | FK &rarr; `rambu`, **restrict**, indexed | Rambu tidak boleh dihapus selama masih dirujuk |
 | `laporan_kondisi_id` | FK &rarr; `laporan_kondisi`, nullable, **restrict** | Diisi kalau SPK ini berasal dari temuan kondisi |
 | `jenis_pekerjaan` | string | `pasang_baru`/`perbaikan` |
 | `jumlah` | unsigned int, default `1` | |
@@ -117,10 +117,10 @@ Pivot petugas &harr; SPK. Hanya `created_at` (`const UPDATED_AT = null`).
 | Kolom | Tipe | Keterangan |
 |---|---|---|
 | `by_spk_id` | FK &rarr; `spk`, **cascade** | |
-| `by_user_id` | FK &rarr; `users`, **restrict** | |
+| `by_user_id` | FK &rarr; `users`, **restrict**, indexed | |
 | `is_perwakilan` | boolean, default `false` | Perwakilan yang bisa daftarkan/tambah anggota & ajukan laporan akhir |
 
-Index komposit `(by_user_id, by_spk_id)`.
+**Unique komposit `(by_spk_id, by_user_id)`**: satu petugas cuma bisa punya satu baris per SPK. Ini bukan cuma index, tapi backstop integritas data yang sesungguhnya — `daftarkanTim()`/`tambahAnggota()` cuma mengecek baris yang sudah ada lewat PHP sebelum insert, yang secara teori punya celah race condition antara dua request bersamaan; constraint inilah yang benar-benar mencegah baris duplikat, apapun yang terlewat di pengecekan level aplikasi.
 
 ## `laporan_pengerjaan`
 
@@ -128,7 +128,7 @@ Laporan hasil kerja petugas, per `rambu_pasang`.
 
 | Kolom | Tipe | Keterangan |
 |---|---|---|
-| `rambu_pasang_id` | FK &rarr; `rambu_pasang`, **cascade** | |
+| `rambu_pasang_id` | FK &rarr; `rambu_pasang`, **cascade**, indexed | |
 | `dilaporkan_oleh` | FK &rarr; `users`, **restrict** | |
 | `foto_sesudah` | string, nullable | |
 | `koordinat_gps` | string, nullable | |
@@ -161,7 +161,7 @@ Laporan kendala lapangan per `rambu_pasang`.
 
 | Kolom | Tipe | Keterangan |
 |---|---|---|
-| `rambu_pasang_id` | FK &rarr; `rambu_pasang`, **cascade** | |
+| `rambu_pasang_id` | FK &rarr; `rambu_pasang`, **cascade**, indexed | |
 | `dilaporkan_oleh` | FK &rarr; `users`, **restrict** | |
 | `alasan` | string, **wajib diisi** | |
 | `foto` | string, nullable | |
@@ -208,7 +208,7 @@ Notifikasi in-app per user. Hanya `created_at`.
 
 | Kolom | Tipe | Keterangan |
 |---|---|---|
-| `user_id` | FK &rarr; `users`, **restrict** | |
+| `user_id` | FK &rarr; `users`, **restrict**, indexed | Query paling sering di seluruh sistem (badge notifikasi belum-dibaca di header, tiap halaman) |
 | `judul` | string | |
 | `pesan` | string | |
 | `url` | string, nullable | Link tujuan kalau notifikasi ini punya halaman terkait yang relevan (kartu notifikasinya jadi bisa diklik langsung). Sebagian notifikasi (mis. temuan ditolak) sengaja tidak punya `url` kalau memang tidak ada halaman yang pas dituju |

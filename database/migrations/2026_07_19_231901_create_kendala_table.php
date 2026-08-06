@@ -18,6 +18,8 @@ return new class extends Migration
             $table->string('alasan');
             $table->string('foto')->nullable();
             $table->timestamps();
+
+            $table->index('rambu_pasang_id');
         });
     }
 

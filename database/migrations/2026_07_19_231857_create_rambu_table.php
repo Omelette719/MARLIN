@@ -25,6 +25,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index('wilayah');
+            $table->index('jenis_rambu_id');
         });
     }
 

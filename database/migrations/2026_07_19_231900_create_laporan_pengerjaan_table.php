@@ -23,6 +23,8 @@ return new class extends Migration
             $table->foreignId('divalidasi_oleh')->nullable()->constrained('users')->restrictOnDelete();
             $table->timestamp('divalidasi_pada')->nullable();
             $table->timestamps();
+
+            $table->index('rambu_pasang_id');
         });
     }
 
