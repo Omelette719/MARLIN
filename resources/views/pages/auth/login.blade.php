@@ -5,21 +5,11 @@
 
         {{-- This page always uses the light appearance, regardless of the app's stored/system preference --}}
         <script>window.Flux && window.Flux.applyAppearance('light')</script>
-
-        <style>
-            @keyframes card-float {
-                0%, 100% { transform: translateY(0); }
-                50% { transform: translateY(-12px); }
-            }
-            .animate-card-float {
-                animation: card-float 5s ease-in-out infinite;
-            }
-        </style>
     </head>
     <body class="min-h-screen bg-neutral-100 antialiased">
         <div class="bg-muted flex min-h-svh flex-col items-center justify-center gap-6 p-6 md:p-10">
             <div class="flex w-full max-w-lg flex-col items-center">
-                <div class="animate-card-float relative w-full">
+                <div class="relative w-full">
                     <div class="absolute -inset-6 -z-10 rounded-4xl bg-linear-to-br from-cyan-300 via-teal-400 to-cyan-300 opacity-60 blur-2xl"></div>
 
                     <div class="relative w-full rounded-2xl border bg-white p-10 shadow-[0_20px_60px_-15px_rgba(15,23,42,0.25)]">
