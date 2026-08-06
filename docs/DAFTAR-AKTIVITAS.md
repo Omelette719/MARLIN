@@ -2,7 +2,7 @@
 
 Katalog seluruh aktivitas dan interaksi dalam sistem, dikelompokkan per pasangan aktor: **Petugas <-> Sistem**, **Admin <-> Sistem**, **Admin <-> Petugas** (dampak yang saling terkait antara kedua peran, walau secara teknis dimediasi sistem), dan **Lainnya** (proses otomatis, integrasi eksternal, serta interaksi sebelum login).
 
-Dokumen ini disiapkan sebagai bahan mentah untuk menyusun activity diagram, jadi tiap baris ditulis sebagai satu aktivitas/proses bisnis yang bisa langsung diturunkan jadi diagram alur (mulai, keputusan, aksi, selesai). Untuk detail teknis di balik tiap aktivitas (aturan bisnis, urutan status, dan alasan desainnya), lihat [ALUR-BISNIS.md](ALUR-BISNIS.md), [FITUR.md](FITUR.md), dan [HALAMAN.md](HALAMAN.md). Diverifikasi langsung dari kode per 2026-08-06.
+Dokumen ini disiapkan sebagai bahan mentah untuk menyusun activity diagram, jadi tiap baris ditulis sebagai satu aktivitas/proses bisnis yang bisa langsung diturunkan jadi diagram alur (mulai, keputusan, aksi, selesai). Untuk detail teknis di balik tiap aktivitas (aturan bisnis, urutan status, dan alasan desainnya), lihat [ALUR-BISNIS.md](ALUR-BISNIS.md), [FITUR.md](FITUR.md), dan [HALAMAN.md](HALAMAN.md). Diverifikasi langsung dari kode per 2026-08-07.
 
 ---
 
@@ -25,11 +25,11 @@ Aktivitas yang dilakukan petugas lapangan langsung terhadap sistem.
 | US-02 | Reset password lewat wizard di halaman login | Lupa password, tahu NIP + password lama | Password baru tersimpan; dibatasi 5 percobaan/menit per NIP+IP |
 | US-03 | Lihat Dashboard (Daftar Surat Aktif) | Sudah login | Melihat semua SPK aktif (bukan cuma yang diikuti) untuk mencari pekerjaan baru |
 | US-04 | Lihat Detail SPK | Klik salah satu SPK aktif | Melihat detail surat, tim, daftar rambu, sebelum memutuskan bergabung |
-| US-05 | Daftarkan Tim (gabung SPK sebagai perwakilan) | Belum ada tim terdaftar di SPK tsb | Perwakilan + rekan setim tercatat sebagai tim SPK; ada modal konfirmasi karena tidak bisa dibatalkan lewat sistem |
-| US-06 | Tambah anggota tim belakangan | Sudah jadi perwakilan tim SPK tsb | Anggota baru tercatat; ada modal konfirmasi |
-| US-07 | Isi Form Kendala | Perwakilan tim, rambu berstatus Belum/Revisi | Status rambu jadi Tertunda; admin (pembuat SPK) dapat notifikasi |
+| US-05 | Daftarkan Tim (gabung SPK sebagai perwakilan) | Belum ada tim terdaftar di SPK tsb | Perwakilan + rekan setim tercatat sebagai tim SPK; ada modal konfirmasi karena tidak bisa dibatalkan lewat sistem; kalau ada petugas lain yang lebih dulu mendaftar (race), muncul toast peringatan dan halaman dimuat ulang |
+| US-06 | Tambah anggota tim belakangan | Sudah jadi perwakilan tim SPK tsb | Anggota baru tercatat; ada modal konfirmasi; wajib pilih minimal satu, ada toast peringatan kalau kosong atau semua yang dipilih sudah ada di tim |
+| US-07 | Isi Form Kendala | Perwakilan tim, rambu berstatus Belum/Revisi | Status rambu jadi Tertunda; alasan kendala langsung terlihat di Detail SPK (petugas & admin), admin baru dapat notifikasi nanti sekali saat Laporan Akhir diajukan (lihat US-11), bukan per-kendala |
 | US-08 | Edit/tukar Kendala jadi Laporan Pengerjaan | Rambu berstatus Tertunda, SPK belum ajukan Laporan Akhir | Kendala terhapus, laporan pengerjaan baru tercatat, status jadi Menunggu Validasi |
-| US-09 | Isi Form Laporan Pengerjaan | Perwakilan tim, rambu berstatus Belum/Revisi | Status rambu jadi Menunggu Validasi; admin dapat notifikasi |
+| US-09 | Isi Form Laporan Pengerjaan | Perwakilan tim, rambu berstatus Belum/Revisi | Status rambu jadi Menunggu Validasi; tidak ada notifikasi per-rambu ke admin (lihat US-11) |
 | US-10 | Edit/tukar Laporan Pengerjaan jadi Kendala | Rambu berstatus Menunggu Validasi, SPK belum ajukan Laporan Akhir | Laporan lama terhapus, kendala baru tercatat, status jadi Tertunda |
 | US-11 | Ajukan Laporan Akhir | Perwakilan tim, semua rambu SPK sudah Tertunda/Menunggu Validasi/Selesai (minimal satu yang baru) | SPK masuk antrean Validasi Pengerjaan admin |
 | US-12 | Lapor Temuan Kondisi | Siapa saja (tidak harus perwakilan), lihat rambu rusak di lapangan | `kondisi_terkini` rambu jadi Rusak, pin peta berubah warna, semua admin dapat notifikasi |
@@ -47,7 +47,7 @@ Aktivitas yang dilakukan petugas lapangan langsung terhadap sistem.
 | US-24 | Ubah Profil (nama, foto) | Sudah login | Data profil diperbarui |
 | US-25 | Ganti Password / kelola 2FA | Konfirmasi ulang password | Password baru aktif, atau 2FA diaktifkan/dinonaktifkan |
 | US-26 | Logout | Sudah login | Sesi berakhir, kembali ke halaman login |
-| US-27 | Hapus anggota tim (bukan perwakilan) | Perwakilan tim SPK tsb, konfirmasi modal | Anggota terkait dilepas dari tim SPK ini, dapat notifikasi; baris perwakilan sendiri tidak bisa dihapus lewat aksi ini |
+| US-27 | Hapus anggota tim (bukan perwakilan) | Perwakilan tim SPK tsb, konfirmasi modal | Anggota terkait dilepas dari tim SPK ini, dapat notifikasi; baris perwakilan sendiri tidak bisa dihapus lewat aksi ini; kalau anggotanya sudah lebih dulu dihapus di sesi lain, muncul toast peringatan alih-alih diam saja |
 
 ## B. Interaksi Admin <-> Sistem
 
@@ -64,6 +64,7 @@ Aktivitas yang dilakukan admin langsung terhadap sistem (mengelola master data, 
 | AS-07 | Hapus permanen satu baris rambu_pasang | Status Belum/Batal, belum ada kendala/laporan | Baris rambu_pasang terhapus; baris rambu (aset fisik) tetap ada |
 | AS-08 | Lihat Daftar Surat & Riwayat SPK | Sudah login | Daftar SPK aktif, dan arsip yang Selesai/Dibatalkan (filter status/jenis/pencarian) |
 | AS-09 | Proses Validasi Pengerjaan (terima/tolak per rambu) | SPK sudah mengajukan Laporan Akhir | Rambu diterima jadi Selesai (dan rambu.sudah_terpasang/kondisi_terkini ikut berubah), atau ditolak jadi Revisi dengan catatan wajib |
+| AS-09b | Perpanjang deadline SPK sambil menolak validasi (opsional) | Di Form Penolakan yang sama seperti AS-09, centang "beri kelonggaran" | Deadline & deadline_asli SPK berubah, urgensi terhitung ulang, tercatat di Audit Log, tim dapat notifikasi; satu transaksi dengan penolakan rambunya |
 | AS-10 | Lihat antrean Temuan Lapangan | Sudah login | Daftar laporan kondisi rusak yang belum ditindaklanjuti |
 | AS-11 | Tindaklanjuti Temuan: buat SPK perbaikan dari temuan | Pilih temuan, isi form SPK | SPK perbaikan baru tercipta, status temuan jadi "sudah dibuatkan SPK" |
 | AS-12 | Tindaklanjuti Temuan: tolak temuan | Pilih temuan | Status temuan jadi Ditolak, pelapor dapat notifikasi |
@@ -90,11 +91,12 @@ Aktivitas di atas jarang berdiri sendiri, kebanyakan aksi satu peran punya efek 
 | AU-03 | Admin membatalkan satu rambu (AS-06) | Tim dapat notifikasi; alasan pembatalan tampil di Detail SPK petugas, surat pengantar, dan Laporan Rambu |
 | AU-04 | Admin menerima laporan saat validasi (AS-09) | Status rambu berubah jadi Selesai, langsung terlihat petugas di Detail SPK |
 | AU-05 | Admin menolak laporan saat validasi (AS-09), isi catatan penolakan | Petugas dapat notifikasi; catatan tampil di kartu rambu terkait dan di form Kendala/Laporan Pengerjaan, jadi jelas apa yang perlu diperbaiki |
+| AU-05b | Admin sekaligus perpanjang deadline saat menolak (AS-09b) | Seluruh tim SPK dapat notifikasi terpisah bahwa deadline SPK berubah |
 | AU-06 | Admin membuat SPK dari Temuan Kondisi (AS-11) | Status temuan berubah, dan (kalau kebetulan admin memasukkan petugas yang sama) rambu itu jadi bisa dikerjakan lewat SPK baru |
-| AU-07 | Admin menolak Temuan Kondisi (AS-12) | Petugas pelapor dapat notifikasi penolakan |
-| AU-08 | Petugas mengajukan Kendala (US-07) | Admin (pembuat SPK) dapat notifikasi "Kendala Dilaporkan" |
-| AU-09 | Petugas mengirim Laporan Pengerjaan (US-09) | Admin dapat notifikasi "Laporan Pengerjaan Masuk" |
-| AU-10 | Petugas mengajukan Laporan Akhir (US-11) | SPK muncul di antrean Validasi Pengerjaan admin, siap diproses |
+| AU-07 | Admin menolak Temuan Kondisi (AS-12) | Petugas pelapor dapat notifikasi penolakan, mengarah ke halaman Detail Rambu terkait |
+| AU-08 | Petugas mengajukan Kendala (US-07) | Tidak ada notifikasi ke admin saat ini juga — alasannya langsung terlihat di Detail SPK, dan admin baru diberi tahu sekali lewat AU-10 begitu Laporan Akhir diajukan |
+| AU-09 | Petugas mengirim Laporan Pengerjaan (US-09) | Sama seperti AU-08: tidak ada notifikasi per-rambu, admin baru tahu lewat AU-10 |
+| AU-10 | Petugas mengajukan Laporan Akhir (US-11) | SPK muncul di antrean Validasi Pengerjaan admin, admin (pembuat SPK) dapat notifikasi "Laporan Akhir Masuk", siap diproses |
 | AU-11 | Petugas melaporkan Temuan Kondisi (US-12/US-17) | Semua admin dapat notifikasi, temuan masuk antrean Temuan Lapangan admin |
 | AU-12 | Admin menambah akun petugas baru (AS-17) | Petugas yang bersangkutan bisa mulai login dan menemukan pekerjaan |
 | AU-13 | Admin menonaktifkan akun petugas (AS-18) | Petugas itu tidak bisa login lagi (sesi yang sedang berjalan tidak otomatis terputus) |
@@ -106,7 +108,7 @@ Proses yang berjalan otomatis di sistem (tanpa aksi langsung dari admin/petugas 
 
 | Kode | Aktivitas | Pemicu | Hasil |
 |---|---|---|---|
-| L-01 | Perhitungan urgensi otomatis | Setiap SPK dibuat/diedit | Urgensi (Tinggi/Sedang/Rendah) dihitung ulang dari sisa hari ke deadline dan status prioritas |
+| L-01 | Perhitungan urgensi otomatis | Setiap SPK dibuat/diedit (kolom tersimpan); setiap halaman yang menampilkan urgensi SPK Aktif dimuat (dihitung ulang live, tidak dari kolom tersimpan) | Urgensi (Tinggi/Sedang/Rendah) dihitung ulang dari sisa hari ke deadline dan status prioritas |
 | L-02 | Penyesuaian deadline otomatis SPK lain | SPK baru ditandai Prioritas dibuat | Deadline SPK aktif non-prioritas lain ikut mundur (maksimal, tidak akumulatif), pemiliknya dapat notifikasi |
 | L-03 | Perubahan status SPK jadi Selesai otomatis | Semua rambu_pasang dalam SPK sudah Selesai/Batal | `spk.status` jadi Selesai, `selesai_pada` dicatat sekali untuk analitik durasi |
 | L-04 | Reset gate Laporan Akhir otomatis | Admin memproses validasi (AS-09), apapun hasilnya | `laporan_akhir_diajukan_at` kembali `null`, SPK keluar dari antrean validasi sampai diajukan ulang |

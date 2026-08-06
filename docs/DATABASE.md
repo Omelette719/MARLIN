@@ -198,7 +198,7 @@ Jejak aksi bisnis kunci. Hanya `created_at`, append-only, tidak ada `updated_at`
 |---|---|---|
 | `user_id` | FK &rarr; `users`, **restrict** | Siapa yang melakukan aksi |
 | `spk_id` | FK &rarr; `spk`, nullable, **set null**, indexed | Kalau SPK-nya dihapus (skenario non-aplikasi), log tidak ikut hilang, cuma referensinya di-null-kan |
-| `aksi` | string | Mis. `spk_dibuat`, `laporan_dikirim`, `validasi_diterima`, `spk_dibatalkan`, `spk_diedit`, `rambu_pasang_dibatalkan`, `rambu_pasang_dihapus`, `temuan_ditolak`, `deadline_disesuaikan` |
+| `aksi` | string | Mis. `spk_dibuat`, `laporan_dikirim`, `validasi_diterima`, `spk_dibatalkan`, `spk_diedit`, `rambu_pasang_dibatalkan`, `rambu_pasang_dihapus`, `temuan_ditolak`, `deadline_disesuaikan` (otomatis lewat `PenyesuaianDeadlineSpk`), `deadline_diperpanjang` (manual oleh admin saat menolak validasi, lihat [ALUR-BISNIS.md](ALUR-BISNIS.md)) |
 | `tabel_terkait`, `record_id_terkait` | nullable | Belum dipakai secara konsisten di kode saat ini |
 | `keterangan` | string, nullable | Deskripsi singkat aksi |
 
@@ -211,7 +211,8 @@ Notifikasi in-app per user. Hanya `created_at`.
 | `user_id` | FK &rarr; `users`, **restrict** | |
 | `judul` | string | |
 | `pesan` | string | |
-| `url` | string, nullable | Link tujuan kalau notifikasi ini punya halaman terkait yang relevan (ditampilkan sebagai tombol Lihat). Sebagian notifikasi (mis. temuan ditolak) sengaja tidak punya `url` kalau memang tidak ada halaman yang pas dituju |
+| `url` | string, nullable | Link tujuan kalau notifikasi ini punya halaman terkait yang relevan (kartu notifikasinya jadi bisa diklik langsung). Sebagian notifikasi (mis. temuan ditolak) sengaja tidak punya `url` kalau memang tidak ada halaman yang pas dituju |
+| `foto` | string, nullable | Path foto yang relevan saat notifikasi ini dibuat (mis. foto sesudah/kendala saat laporan diterima/ditolak, foto temuan), dibekukan sesuai kondisi saat itu. Dipakai buat melampirkan foto di pesan Telegram, bukan ditampilkan di halaman Notifikasi in-app |
 | `dibaca` | boolean, default `false` | |
 
 Setiap baris `notifikasi` yang dibuat untuk user yang sudah menghubungkan Telegram-nya otomatis memicu pengiriman pesan yang sama lewat bot (lewat `NotifikasiObserver`), tanpa perlu ubah kode di titik-titik yang membuat notifikasi.

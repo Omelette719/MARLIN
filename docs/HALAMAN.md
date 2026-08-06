@@ -70,7 +70,7 @@ Semua halaman berada di bawah middleware `auth` (harus login), kecuali disebutka
 | Jenis Rambu | `GET /jenis-rambu` | Siapa saja (auth) | Referensi kategori rambu. |
 | Daftar Rambu | `GET /rambu` | Siapa saja (auth) | Daftar semua rambu terpasang. |
 | Surat Pengantar (PDF) | `GET /spk/{spk}/surat-pengantar` | Admin, atau petugas anggota tim SPK tsb. | **Satu-satunya halaman terkait-SPK yang membatasi akses per-keanggotaan tim**, bukan cuma per-peran. Lihat [KEAMANAN.md](KEAMANAN.md). |
-| Notifikasi | `GET /notifikasi` | Siapa saja (auth) | Daftar notifikasi in-app milik sendiri; notifikasi yang punya tujuan halaman dapat tombol Lihat. |
+| Notifikasi | `GET /notifikasi` | Siapa saja (auth) | Daftar notifikasi in-app milik sendiri, tampil sebagai kartu terpisah; kartu yang punya tujuan halaman bisa diklik langsung (bukan tombol Lihat terpisah). |
 | Riwayat Aktivitas | `GET /audit-log` | Siapa saja (auth) | Admin lihat semua; petugas cuma lihat aksinya sendiri. |
 | Settings &rarr; Profil | `GET /settings/profile` | Siapa saja (auth) | Ubah nama, foto, data diri. |
 | Settings &rarr; Keamanan | `GET /settings/security` | Siapa saja (auth) | Ganti password, kelola 2FA. **Butuh konfirmasi ulang password** sebelum bisa diakses. |

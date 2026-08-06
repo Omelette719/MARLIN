@@ -1,6 +1,6 @@
 # Alur Bisnis Sistem MARLIN
 
-Penjelasan detail siklus hidup SPK dan aturan bisnis di baliknya, untuk memahami *kenapa* sistem berperilaku seperti yang dijelaskan di [FITUR.md](FITUR.md). Diverifikasi langsung dari kode per 2026-08-03.
+Penjelasan detail siklus hidup SPK dan aturan bisnis di baliknya, untuk memahami *kenapa* sistem berperilaku seperti yang dijelaskan di [FITUR.md](FITUR.md). Diverifikasi langsung dari kode per 2026-08-07.
 
 ---
 
@@ -89,6 +89,20 @@ Kalau satu rambu ditolak validasinya, **hanya rambu itu** yang statusnya kembali
 
 Alasan penolakan (`catatan_penolakan`) yang diisi admin tidak cuma tersimpan di database dan terkirim lewat notifikasi, tapi juga ditampilkan langsung di kartu rambu terkait pada Detail SPK petugas, dan di form Kendala/Laporan Pengerjaan-nya, supaya jelas apa yang perlu diperbaiki.
 
+Alasan kendala (`kendala.alasan`, beda dengan `catatan_penolakan` di atas, ini yang diisi **petugas** waktu melapor kalau pemasangan/perbaikan tidak bisa dilanjutkan) juga ditampilkan di Detail SPK, baik versi admin maupun petugas, dengan gaya warning-callout yang sama seperti di halaman Validasi. Sebelumnya alasan ini cuma terlihat lewat halaman Validasi Pengerjaan atau dengan membuka ulang form Kendala-nya, sekarang siapapun yang membuka Detail SPK bisa langsung tahu kenapa satu rambu Tertunda tanpa harus mencari-cari.
+
+### Perpanjangan Deadline Saat Menolak Validasi
+
+Selain lewat Edit Surat, admin juga bisa memperpanjang `deadline` SPK langsung dari **Form Penolakan** di halaman Detail Validasi, lewat checkbox opsional "Beri kelonggaran, perpanjang deadline SPK ini juga". Ini dipisah dari alur Edit Surat supaya admin tidak perlu keluar dari konteks "kenapa saya menolak rambu ini" hanya untuk memberi waktu tambahan yang wajar untuk revisinya.
+
+Kalau dicentang dan tanggal baru diisi:
+- `deadline` **dan** `deadline_asli` SPK sama-sama diperbarui (konvensi yang sama dipakai Edit Surat dan `PenyesuaianDeadlineSpk`), lalu `urgensi` dihitung ulang dari deadline baru.
+- Tercatat di Audit Log (`deadline_diperpanjang`).
+- Seluruh tim SPK dapat notifikasi bahwa deadline-nya berubah.
+- Perpanjangan berlaku untuk **seluruh SPK**, bukan cuma rambu yang sedang direvisi, karena `deadline` memang atribut di level SPK, bukan per rambu.
+
+Perubahan deadline ini dan proses penolakan rambunya sendiri dibungkus dalam **satu transaksi database**, supaya deadline yang sudah berubah tidak pernah "nyangkut" tanpa penolakan yang menyertainya benar-benar tercatat, atau sebaliknya.
+
 ### Laporan pengerjaan bisa berlapis, dan bisa diedit ulang sebelum Laporan Akhir diajukan
 
 Satu `rambu_pasang` bisa punya lebih dari satu baris `laporan_pengerjaan` seiring waktu, kalau laporan pertama ditolak, laporan revisi berikutnya jadi baris BARU (bukan menimpa yang lama), jadi riwayat penolakan tetap tersimpan lengkap.
@@ -116,7 +130,7 @@ Begitu dilaporkan:
 | Sisa ≤ 7 hari | Sedang |
 | Selebihnya | Rendah |
 
-Dihitung ulang setiap kali SPK dibuat atau di-edit (kalau deadline/prioritas berubah).
+Kolom `urgensi` di database sendiri cuma diisi ulang saat SPK dibuat/di-edit/deadline-nya berubah (lewat perpanjangan manual di atas atau `PenyesuaianDeadlineSpk`), jadi nilainya bisa jadi basi begitu waktu berjalan (mis. SPK yang tadinya Sedang jadi seharusnya Tinggi begitu sisa harinya tinggal 2 hari, tanpa ada yang mengedit apapun). Untuk SPK yang masih **Aktif**, semua tempat yang menampilkan urgensi (badge di kartu SPK, pin peta, sorting "butuh perhatian" di Dashboard Admin) memanggil `Spk::urgensiSaatIni()`, yang menghitung ulang secara live dari deadline+prioritas saat ini alih-alih membaca kolom `urgensi` yang tersimpan. Untuk SPK yang sudah **Selesai**/**Dibatalkan**, `urgensiSaatIni()` mengembalikan nilai `urgensi` yang tersimpan apa adanya (dibekukan), karena menghitung ulang urgensi pekerjaan yang sudah final tidak ada gunanya.
 
 ## Warna Pin di Peta: Urutan Prioritas
 

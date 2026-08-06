@@ -48,11 +48,13 @@ Ada juga widget peta ringkas dengan filter sendiri (jenis rambu, tingkat, rentan
 ### Daftar Surat
 - Pencarian (nomor surat/wilayah), filter jenis pekerjaan.
 - **Hanya menampilkan SPK berstatus Aktif**. Yang Selesai/Dibatalkan pindah ke halaman Riwayat SPK (lihat di bawah), supaya daftar ini tetap fokus ke pekerjaan yang masih berjalan.
-- Kartu SPK menampilkan foto (dari foto survei rambu pertama yang punya foto) atau ikon placeholder.
+- Kartu SPK menampilkan foto: kalau lebih dari satu rambu dalam SPK itu punya foto, kartunya auto-cycle (crossfade tiap 4 detik) lewat semua foto tersebut (`<x-photo-slideshow>`); satu foto atau tidak ada foto sama sekali cukup ditampilkan statis/placeholder, tanpa timer yang tidak perlu.
+- Kartu juga dapat ring biru + badge **"Tim Terdaftar"**/**"Belum Ada Tim"** tergantung ada tidaknya tim yang sudah gabung, memudahkan admin memantau SPK aktif mana yang belum ada yang mengambil.
 
 ### Riwayat SPK
 - Arsip SPK yang sudah **Selesai** atau **Dibatalkan**, dipisah dari Daftar Surat supaya tidak bercampur dengan pekerjaan aktif.
 - Pencarian (nomor surat/wilayah), filter status (Selesai/Dibatalkan), filter jenis pekerjaan.
+- Kartu SPK memakai slideshow foto yang sama seperti Daftar Surat.
 - Klik "Lihat Detail" tetap membuka Detail Surat yang sama seperti SPK aktif (cuma tombol Edit/Batalkan tidak muncul lagi karena SPK-nya sudah final).
 - Untuk SPK berstatus **Selesai**, Detail Surat menampilkan **Durasi Pengerjaan** (jumlah hari dari SPK dibuat sampai selesai) dan **Selisih dari Deadline** (badge hijau kalau selesai lebih cepat, merah kalau terlambat). Data ini juga tersedia lewat method di model `Spk` untuk dipakai di analitik dashboard/laporan berikutnya.
 - Rambu yang dibatalkan satu per satu (lewat Edit Surat) menampilkan alasan pembatalannya di kartu rambu, juga muncul di surat pengantar dan Laporan Rambu.
@@ -60,8 +62,9 @@ Ada juga widget peta ringkas dengan filter sendiri (jenis rambu, tingkat, rentan
 ### Validasi Pengerjaan
 - Daftar SPK yang sudah mengajukan **Laporan Akhir** (lihat [ALUR-BISNIS.md](ALUR-BISNIS.md) untuk detail gate ini).
 - Halaman detail menampilkan **semua** rambu dalam SPK itu, termasuk yang sudah divalidasi di putaran sebelumnya, supaya admin lihat konteks penuh (bukan cuma rambu yang baru masuk lagi setelah revisi).
-- Per rambu, admin centang/tidak-centang untuk terima/tolak.
+- Per rambu, checklist berupa kartu yang bisa diklik di mana saja untuk tandai sesuai/tidak (bukan checkbox kecil di pojok), rambu yang terkendala dan yang sudah ada laporan pengerjaan tampil dalam gaya kartu yang sama.
 - Rambu yang tidak dicentang wajib diisi **catatan penolakan**, statusnya kembali ke `revisi`, petugas mengerjakan ulang khusus rambu itu (rambu lain di SPK yang sama tidak terganggu). Alasan ini juga ditampilkan kembali ke petugas di halaman Detail SPK dan form Kendala/Laporan-nya, supaya jelas apa yang perlu diperbaiki.
+- Di form penolakan yang sama, admin bisa opsional centang **"Beri kelonggaran, perpanjang deadline SPK ini juga"** untuk langsung menggeser deadline (berlaku ke seluruh SPK, bukan cuma rambu yang direvisi) tanpa perlu membuka Edit Surat terpisah. Perubahan ini, penolakan rambunya, urgensi yang terhitung ulang, audit log, dan notifikasi ke tim, semuanya jadi satu transaksi (lihat [ALUR-BISNIS.md](ALUR-BISNIS.md)).
 - Rambu yang diterima: `pasang_baru` → `rambu.sudah_terpasang = true`; `perbaikan` → `rambu.kondisi_terkini = baik`.
 - Kalau semua rambu dalam SPK sudah `selesai`/`batal`, status SPK otomatis berubah jadi `selesai`, dan sistem mencatat `selesai_pada` untuk dipakai sebagai analitik durasi pengerjaan (lihat bagian Detail SPK di bawah).
 
@@ -100,14 +103,16 @@ Ada juga widget peta ringkas dengan filter sendiri (jenis rambu, tingkat, rentan
 ### Dashboard: Daftar Surat Aktif
 - Menampilkan **semua** SPK berstatus aktif (bukan cuma yang sudah diikuti). Ini tempat petugas menemukan pekerjaan baru untuk diambil.
 - Ringkasan: jumlah tugas aktif, tugas dalam progres, tugas mendekati deadline, tugas selesai bulan ini (khusus milik tim sendiri).
+- Kartu SPK memakai slideshow foto yang sama seperti versi admin (lihat Daftar Surat di atas), auto-cycle lewat semua foto rambu dalam SPK itu.
+- Kartu juga dapat ring + badge yang membedakan 3 keadaan: **"Sudah Bergabung"** (petugas ini sendiri sudah jadi anggota tim, ring biru solid), **"Sudah Ada Tim Lain"** (ada tim terdaftar tapi bukan petugas ini, ring kuning), atau **"Belum Ada Tim"** (belum ada siapapun, netral). Ini supaya "belum ada yang mengambil" dan "sudah diambil orang lain" tidak terlihat sama di kartu.
 
 ### Detail SPK & Gabung Tim
 - Perwakilan tim mendaftarkan diri + rekan setim sekaligus (`daftarkanTim`), bukan tiap orang gabung sendiri-sendiri. Ada modal konfirmasi sebelum mendaftar karena belum ada cara keluar dari peran perwakilan lewat sistem.
-- Bisa menambah anggota belakangan (`tambahAnggota`), khusus oleh perwakilan, dengan konfirmasi.
+- Bisa menambah anggota belakangan (`tambahAnggota`), khusus oleh perwakilan, dengan konfirmasi. Wajib pilih minimal satu anggota, ada pesan/toast peringatan kalau submit kosong atau semua yang dipilih ternyata sudah ada di tim.
 - Perwakilan juga bisa menghapus anggota non-perwakilan dari tim (`hapusAnggota`), misalnya kalau salah input orang. Baris perwakilan sendiri tidak bisa dihapus lewat sini. Anggota yang dihapus dapat notifikasi, dan aksinya tercatat di Audit Log.
 - Unduh Surat Pengantar (PDF, dibuat on-the-fly).
 - Untuk SPK berstatus **Selesai**, halaman ini juga menampilkan Durasi Pengerjaan dan Selisih dari Deadline, sama seperti versi admin.
-- Kalau ada rambu yang ditolak admin saat validasi, alasan penolakannya ditampilkan di kartu rambu itu.
+- Kalau ada rambu yang ditolak admin saat validasi, alasan penolakannya ditampilkan di kartu rambu itu. Kalau rambu sedang Tertunda karena ada kendala, alasan kendalanya juga ditampilkan di kartu yang sama (dulu cuma terlihat lewat form Kendala atau halaman Validasi admin).
 
 ### Form Laporan Pengerjaan
 - **Hanya bisa diisi oleh perwakilan tim** (`is_perwakilan = true`). Anggota lain boleh ikut kerja fisik di lapangan, tapi yang mengirim laporan cuma satu orang per SPK.
@@ -161,8 +166,8 @@ Ada juga widget peta ringkas dengan filter sendiri (jenis rambu, tingkat, rentan
 
 ### Notifikasi
 - Bell icon di header dengan badge bulat merah menampilkan jumlah belum dibaca (maks. tampil "9+").
-- Notifikasi meliputi: SPK baru tersedia, laporan diterima/ditolak, kendala diajukan, temuan kondisi, dll, tergantung peran.
-- Notifikasi yang berkaitan dengan sesuatu yang bisa dilihat langsung (SPK, validasi, temuan) punya tombol **Lihat** yang menandai notifikasi terbaca sekaligus membuka halaman terkait.
+- Notifikasi meliputi: SPK baru tersedia, Laporan Akhir masuk, laporan diterima/ditolak, temuan kondisi, dll, tergantung peran. Kendala/Laporan Pengerjaan yang dikirim petugas per-rambu **tidak** memicu notifikasi tersendiri ke admin, karena admin baru bisa (dan baru perlu) bertindak setelah seluruh SPK-nya diajukan sebagai Laporan Akhir, jadi notifikasi per-rambu sebelum itu cuma jadi gangguan.
+- Daftar notifikasi ditampilkan sebagai kartu-kartu terpisah, mirip notification center di ponsel. Kartu yang punya tujuan halaman bisa diklik di mana saja (bukan tombol "Lihat" terpisah) untuk sekaligus menandai terbaca dan membuka halaman terkait; "Tandai Dibaca" tetap tombol tersendiri untuk yang belum dibaca.
 - Bisa dihubungkan ke **Telegram** (lewat Settings) supaya notifikasi yang sama juga masuk sebagai pesan chat, tidak cuma tampil di halaman ini.
 
 ### Riwayat Aktivitas (Audit Log)
