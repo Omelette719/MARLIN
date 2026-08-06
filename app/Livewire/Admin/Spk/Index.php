@@ -53,8 +53,7 @@ class Index extends Component
             ->paginate(9);
 
         $spk->getCollection()->transform(function (Spk $item) {
-            $dengan_foto = $item->rambuPasang->first(fn ($rp) => filled($rp->foto_survei));
-            $item->cover_photo = $dengan_foto?->foto_survei;
+            $item->cover_photos = $item->rambuPasang->pluck('foto_survei')->filter()->unique()->values();
 
             return $item;
         });

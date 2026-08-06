@@ -24,13 +24,7 @@
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 @foreach ($spk as $item)
                     <div wire:key="spk-{{ $item->id }}" class="flex flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-xs transition hover:shadow-md">
-                        <div class="aspect-video w-full overflow-hidden bg-zinc-100">
-                            @if ($item->cover_photo)
-                                <img src="{{ Storage::url($item->cover_photo) }}" class="size-full object-cover" />
-                            @else
-                                <x-photo-placeholder class="size-full" />
-                            @endif
-                        </div>
+                        <x-photo-slideshow :photos="$item->cover_photos->map(fn ($p) => Storage::url($p))" class="aspect-video w-full" />
 
                         <div class="flex flex-1 flex-col gap-2 p-4">
                             <div class="flex items-start justify-between gap-2">

@@ -56,7 +56,7 @@ class Dashboard extends Component
             $item->progress_status = collect(self::STATUS_PRIORITAS)
                 ->first(fn ($p) => $statuses->contains($p)) ?? StatusRambuPasang::Selesai;
 
-            $item->cover_photo = $item->rambuPasang->first(fn ($rp) => filled($rp->foto_survei))?->foto_survei;
+            $item->cover_photos = $item->rambuPasang->pluck('foto_survei')->filter()->unique()->values();
 
             return $item;
         });

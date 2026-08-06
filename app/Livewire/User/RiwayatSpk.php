@@ -52,7 +52,7 @@ class RiwayatSpk extends Component
             ->paginate(9);
 
         $spk->getCollection()->transform(function (Spk $item) {
-            $item->cover_photo = $item->rambuPasang->first(fn ($rp) => filled($rp->foto_survei))?->foto_survei;
+            $item->cover_photos = $item->rambuPasang->pluck('foto_survei')->filter()->unique()->values();
             $item->selesai_count = $item->rambuPasang->where('status', 'selesai')->count();
 
             return $item;

@@ -44,7 +44,7 @@ class SpkDikerjakan extends Component
             $item->progress_status = collect(self::STATUS_PRIORITAS)
                 ->first(fn ($p) => $statuses->contains($p)) ?? StatusRambuPasang::Selesai;
 
-            $item->cover_photo = $item->rambuPasang->first(fn ($rp) => filled($rp->foto_survei))?->foto_survei;
+            $item->cover_photos = $item->rambuPasang->pluck('foto_survei')->filter()->unique()->values();
 
             $item->siap_diajukan = $item->rambuPasang->isNotEmpty() && $statuses->every(
                 fn ($s) => in_array($s, [StatusRambuPasang::Tertunda, StatusRambuPasang::MenungguValidasi], true)

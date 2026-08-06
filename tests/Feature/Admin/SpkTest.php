@@ -10,6 +10,7 @@ use App\Livewire\Admin\Spk\Index as SpkIndexComponent;
 use App\Models\JenisRambu;
 use App\Models\Notifikasi;
 use App\Models\Rambu;
+use App\Models\RambuPasang;
 use App\Models\Spk;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -86,6 +87,49 @@ class SpkTest extends TestCase
         $this->actingAs(User::factory()->admin()->create());
 
         $this->get(route('admin.spk.index'))->assertOk();
+    }
+
+    public function test_daftar_surat_card_shows_photos_from_every_rambu_for_the_slideshow(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $this->actingAs($admin);
+
+        $jenisRambu = JenisRambu::create(['nama_jenis' => 'Rambu Peringatan']);
+
+        $spk = Spk::create([
+            'nomor_surat' => 'SR-2026/BJM/8020',
+            'dibuat_oleh' => $admin->id,
+            'jenis_spk' => 'pasang_baru',
+            'wilayah' => 'Banjarmasin Tengah',
+            'deadline' => now()->addDays(5),
+            'urgensi' => 'sedang',
+            'status' => 'aktif',
+            'asal_permintaan' => 'internal',
+        ]);
+
+        foreach (['satu', 'dua'] as $label) {
+            $rambu = Rambu::create([
+                'jenis_rambu_id' => $jenisRambu->id,
+                'wilayah' => 'Banjarmasin Tengah',
+                'lokasi' => "Lokasi {$label}",
+                'koordinat' => '-3.30,114.59',
+            ]);
+
+            RambuPasang::create([
+                'rambu_spk_id' => $spk->id,
+                'rambu_id' => $rambu->id,
+                'jenis_pekerjaan' => 'pasang_baru',
+                'jumlah' => 1,
+                'status' => 'belum',
+                'foto_survei' => "rambu-pasang/survei/contoh-{$label}.jpg",
+            ]);
+        }
+
+        $response = $this->get(route('admin.spk.index'));
+
+        $response->assertOk();
+        $response->assertSee('rambu-pasang/survei/contoh-satu.jpg', false);
+        $response->assertSee('rambu-pasang/survei/contoh-dua.jpg', false);
     }
 
     public function test_admin_can_filter_daftar_surat_by_jenis(): void
