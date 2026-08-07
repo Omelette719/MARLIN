@@ -32,6 +32,7 @@ Semua rambu dalam SPK sudah tertunda/menunggu_validasi/selesai
         │
         ▼
 Admin buka Detail Validasi, per rambu centang terima/tidak
+   (rambu yang tertunda/kendala TIDAK BISA dicentang — lihat di bawah)
         │
         ├─ Tidak dicentang → wajib isi catatan penolakan
         │   → laporan_pengerjaan.status = ditolak
@@ -90,6 +91,12 @@ Kalau satu rambu ditolak validasinya, **hanya rambu itu** yang statusnya kembali
 Alasan penolakan (`catatan_penolakan`) yang diisi admin tidak cuma tersimpan di database dan terkirim lewat notifikasi, tapi juga ditampilkan langsung di kartu rambu terkait pada Detail SPK petugas, dan di form Kendala/Laporan Pengerjaan-nya, supaya jelas apa yang perlu diperbaiki.
 
 Alasan kendala (`kendala.alasan`, beda dengan `catatan_penolakan` di atas, ini yang diisi **petugas** waktu melapor kalau pemasangan/perbaikan tidak bisa dilanjutkan) juga ditampilkan di Detail SPK, baik versi admin maupun petugas, dengan gaya warning-callout yang sama seperti di halaman Validasi. Sebelumnya alasan ini cuma terlihat lewat halaman Validasi Pengerjaan atau dengan membuka ulang form Kendala-nya, sekarang siapapun yang membuka Detail SPK bisa langsung tahu kenapa satu rambu Tertunda tanpa harus mencari-cari.
+
+### Rambu yang terkendala tidak pernah bisa "diterima" saat validasi
+
+Di halaman Detail Validasi, rambu berstatus `tertunda` (ada kendala) **tidak bisa dicentang sesuai/diterima sama sekali** — kartunya sengaja tidak punya interaksi klik, cuma menampilkan badge "Akan dikembalikan untuk direvisi". Alasannya sederhana: kendala artinya pekerjaan itu memang belum selesai dikerjakan, jadi tidak ada laporan pengerjaan nyata yang bisa "diterima" sebagai bukti selesai. Rambu kendala selalu masuk ke jalur penolakan (`revisi`) begitu admin lanjut memproses, dan admin **wajib** mengisi catatan penolakan untuknya sama seperti rambu laporan pengerjaan yang ditolak — biasanya berisi instruksi/arahan untuk mengatasi kendalanya, bukan berarti pekerjaannya "salah".
+
+Ini juga dijaga di sisi server (`Admin\Validasi\Show::normalisasiCheckedKendala()`), bukan cuma di tampilan: begitu admin klik "Proses Validasi" atau "Konfirmasi & Selesaikan", status "dicentang" untuk rambu manapun yang sedang `tertunda` dipaksa jadi tidak-dicentang, terlepas dari apa yang dikirim client — supaya tidak ada jalan, sengaja atau tidak, untuk menandai kendala sebagai selesai tanpa laporan pengerjaan sungguhan.
 
 ### Perpanjangan Deadline Saat Menolak Validasi
 

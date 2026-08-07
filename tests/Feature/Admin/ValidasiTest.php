@@ -280,7 +280,7 @@ class ValidasiTest extends TestCase
         $this->assertSame(StatusLaporan::Diajukan, $laporan->fresh()->status);
     }
 
-    public function test_validasi_includes_kendala_flagged_rambu_and_can_approve_it(): void
+    public function test_validasi_includes_kendala_flagged_rambu_but_cannot_approve_it(): void
     {
         $admin = User::factory()->admin()->create();
         $petugas = User::factory()->create();
@@ -324,14 +324,25 @@ class ValidasiTest extends TestCase
         $response->assertOk();
         $response->assertSee('Akses jalan tertutup proyek lain.');
         $response->assertSee('kendala/contoh.jpg', false);
+        $response->assertSee('Akan dikembalikan untuk direvisi');
+        // No click-to-approve affordance rendered for the kendala card at all.
+        $response->assertDontSee("wire:click=\"\$toggle('checked.{$rambuPasang->id}')\"", false);
 
+        // A kendala report exists precisely because the work COULDN'T be
+        // completed — there's no laporan_pengerjaan behind it to accept as
+        // done. The UI never renders a way to check a kendala card (see
+        // show.blade.php), but $checked is still a public Livewire property
+        // reachable directly; this simulates that and confirms the server
+        // ignores it rather than trusting the client.
         Livewire::test(ValidasiShowComponent::class, ['spk' => $spk])
             ->set("checked.{$rambuPasang->id}", true)
-            ->call('lanjutkan');
+            ->call('lanjutkan')
+            ->assertSet('showPenolakanForm', true)
+            ->assertSet("checked.{$rambuPasang->id}", false);
 
-        $this->assertSame(StatusRambuPasang::Selesai, $rambuPasang->fresh()->status);
-        $this->assertTrue($rambu->fresh()->sudah_terpasang);
-        $this->assertSame(1, Notifikasi::where('user_id', $petugas->id)->count());
+        $this->assertSame(StatusRambuPasang::Tertunda, $rambuPasang->fresh()->status);
+        $this->assertFalse($rambu->fresh()->sudah_terpasang);
+        $this->assertSame(0, Notifikasi::where('user_id', $petugas->id)->count());
     }
 
     public function test_admin_can_reject_kendala_flagged_rambu_back_to_revisi(): void

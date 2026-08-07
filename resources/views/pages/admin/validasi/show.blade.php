@@ -43,21 +43,24 @@
             <div class="flex flex-col gap-4">
                 <div>
                     <flux:heading size="lg">Laporan Akhir Masuk</flux:heading>
-                    <flux:subheading>Rambu yang selesai dikerjakan maupun yang terkendala sama-sama perlu dicentang kalau memang sudah bisa dianggap selesai. Yang tidak dicentang akan diminta revisi/dikerjakan ulang.</flux:subheading>
+                    <flux:subheading>Rambu yang selesai dikerjakan bisa dicentang kalau memang sudah sesuai. Rambu yang terkendala tidak bisa dicentang selesai — otomatis dikembalikan untuk direvisi, karena belum ada pekerjaan yang benar-benar selesai untuk divalidasi.</flux:subheading>
                 </div>
 
                 @foreach ($pending as $rp)
                     @php
                         $isKendala = $rp->status === StatusRambuPasang::Tertunda;
-                        $isChecked = $checked[$rp->id] ?? false;
+                        // Kendala never checkable: a kendala report exists precisely
+                        // because the work COULDN'T be completed, so there's no
+                        // finished work to accept — it always needs to go through
+                        // the rejection/revision path below instead.
+                        $isChecked = ! $isKendala && ($checked[$rp->id] ?? false);
                     @endphp
                     <div
                         wire:key="rp-{{ $rp->id }}"
-                        wire:click="$toggle('checked.{{ $rp->id }}')"
-                        role="checkbox"
-                        aria-checked="{{ $isChecked ? 'true' : 'false' }}"
-                        tabindex="0"
-                        class="flex cursor-pointer flex-col overflow-hidden rounded-2xl border-2 bg-white shadow-xs transition hover:shadow-md {{ $isChecked ? 'border-green-400' : 'border-transparent' }}"
+                        @unless ($isKendala) wire:click="$toggle('checked.{{ $rp->id }}')" @endunless
+                        role="{{ $isKendala ? 'group' : 'checkbox' }}"
+                        @unless ($isKendala) aria-checked="{{ $isChecked ? 'true' : 'false' }}" tabindex="0" @endunless
+                        class="flex flex-col overflow-hidden rounded-2xl border-2 bg-white shadow-xs transition hover:shadow-md {{ $isKendala ? 'cursor-default border-amber-300' : 'cursor-pointer '.($isChecked ? 'border-green-400' : 'border-transparent') }}"
                     >
                         <div class="relative">
                             @if ($isKendala)
@@ -98,9 +101,11 @@
                                 </div>
                             @endif
 
-                            <div class="absolute top-3 right-3 flex size-9 items-center justify-center rounded-full shadow transition {{ $isChecked ? 'bg-green-500 text-white' : 'bg-white/90 text-transparent' }}">
-                                <flux:icon icon="check" class="size-5" />
-                            </div>
+                            @unless ($isKendala)
+                                <div class="absolute top-3 right-3 flex size-9 items-center justify-center rounded-full shadow transition {{ $isChecked ? 'bg-green-500 text-white' : 'bg-white/90 text-transparent' }}">
+                                    <flux:icon icon="check" class="size-5" />
+                                </div>
+                            @endunless
                         </div>
 
                         <div class="flex flex-col gap-3 p-5">
@@ -112,9 +117,13 @@
                                         &middot; Dilaporkan oleh {{ ($isKendala ? $kendala?->pelapor : $laporan?->pelapor)?->name }}
                                     </flux:subheading>
                                 </div>
-                                <flux:badge size="sm" :color="$isChecked ? 'green' : 'zinc'">
-                                    {{ $isChecked ? 'Sesuai' : 'Klik untuk tandai sesuai' }}
-                                </flux:badge>
+                                @if ($isKendala)
+                                    <flux:badge size="sm" color="amber">Akan dikembalikan untuk direvisi</flux:badge>
+                                @else
+                                    <flux:badge size="sm" :color="$isChecked ? 'green' : 'zinc'">
+                                        {{ $isChecked ? 'Sesuai' : 'Klik untuk tandai sesuai' }}
+                                    </flux:badge>
+                                @endif
                             </div>
 
                             @if ($isKendala)

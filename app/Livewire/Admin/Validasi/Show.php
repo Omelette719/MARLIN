@@ -72,9 +72,28 @@ class Show extends Component
             ->get();
     }
 
+    // Kendala items have no "checked" affordance in the UI at all (see
+    // show.blade.php), but $checked is still a plain public property —
+    // reachable via a direct Livewire method call, not just the rendered
+    // checkbox. Called from both entrypoints below (not just lanjutkan())
+    // since konfirmasiPenolakan() can in principle be invoked on its own,
+    // so a kendala can never be approved as if it were completed work
+    // regardless of what a client sends: there's no laporan_pengerjaan
+    // behind it to actually validate.
+    private function normalisasiCheckedKendala(): void
+    {
+        foreach ($this->pendingRambuPasang() as $rp) {
+            if ($rp->status === StatusRambuPasang::Tertunda) {
+                $this->checked[$rp->id] = false;
+            }
+        }
+    }
+
     public function lanjutkan(): void
     {
         Flux::modal('proses-validasi')->close();
+
+        $this->normalisasiCheckedKendala();
 
         $uncheckedIds = collect($this->checked)->filter(fn ($v) => ! $v)->keys();
 
@@ -96,6 +115,8 @@ class Show extends Component
 
     public function konfirmasiPenolakan(): void
     {
+        $this->normalisasiCheckedKendala();
+
         $this->validate([
             'catatanPenolakan.*' => 'required|string|max:1000',
             'deadlineBaru' => 'required|date|after_or_equal:today',
