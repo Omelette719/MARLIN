@@ -243,6 +243,53 @@ class ValidasiTest extends TestCase
         $this->assertSame(0, AuditLog::where('aksi', 'deadline_diperpanjang')->count());
     }
 
+    public function test_deadline_baru_of_today_is_rejected(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $petugas = User::factory()->create();
+        $this->actingAs($admin);
+
+        ['spk' => $spk, 'rambuPasang' => $rambuPasang] =
+            $this->makeSpkWithPendingLaporan($admin, $petugas);
+
+        Livewire::test(ValidasiShowComponent::class, ['spk' => $spk])
+            ->set("checked.{$rambuPasang->id}", false)
+            ->call('lanjutkan')
+            ->set('ubahDeadline', true)
+            ->set('deadlineBaru', now()->toDateString())
+            ->set("catatanPenolakan.{$rambuPasang->id}", 'Perlu revisi.')
+            ->call('konfirmasiPenolakan')
+            ->assertHasErrors(['deadlineBaru' => 'after']);
+
+        $this->assertSame(0, AuditLog::where('aksi', 'deadline_diperpanjang')->count());
+    }
+
+    // deadlineBaru is always pre-filled with the SPK's current deadline (see
+    // lanjutkan()) even when the admin never checks "ubahDeadline" — for an
+    // overdue-but-still-Aktif SPK (deadline already in the past, a normal
+    // state this app allows), validating that pre-filled value unconditionally
+    // would block rejecting a rambu entirely unless the admin also pushed the
+    // deadline out, which isn't what leaving the checkbox unchecked means.
+    public function test_can_reject_without_changing_deadline_even_when_spk_is_already_overdue(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $petugas = User::factory()->create();
+        $this->actingAs($admin);
+
+        ['spk' => $spk, 'rambuPasang' => $rambuPasang] =
+            $this->makeSpkWithPendingLaporan($admin, $petugas);
+        $spk->update(['deadline' => now()->subDays(3)]);
+
+        Livewire::test(ValidasiShowComponent::class, ['spk' => $spk])
+            ->set("checked.{$rambuPasang->id}", false)
+            ->call('lanjutkan')
+            ->set("catatanPenolakan.{$rambuPasang->id}", 'Perlu revisi.')
+            ->call('konfirmasiPenolakan')
+            ->assertHasNoErrors();
+
+        $this->assertSame(StatusRambuPasang::Revisi, $rambuPasang->fresh()->status);
+    }
+
     public function test_validasi_page_shows_before_photo_from_rambu_pasang_and_after_photo_from_laporan(): void
     {
         $admin = User::factory()->admin()->create();

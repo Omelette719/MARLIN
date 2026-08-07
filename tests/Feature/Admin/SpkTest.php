@@ -246,6 +246,114 @@ class SpkTest extends TestCase
         $this->assertSame(1, $spk->auditLogs()->count());
     }
 
+    public function test_rt_with_letters_is_rejected(): void
+    {
+        $this->actingAs(User::factory()->admin()->create());
+
+        Livewire::test(SpkCreateComponent::class)
+            ->set('jenis_spk', JenisPekerjaan::PasangBaru->value)
+            ->set('jalan', 'Lambung Mangkurat')
+            ->set('rt', '5A')
+            ->set('kelurahan', 'Kertak Baru')
+            ->set('deadline', now()->addDays(5)->toDateString())
+            ->set('asal_permintaan', 'internal')
+            ->call('save')
+            ->assertHasErrors(['rt' => 'regex']);
+
+        $this->assertSame(0, Spk::count());
+    }
+
+    public function test_deadline_today_is_rejected(): void
+    {
+        $this->actingAs(User::factory()->admin()->create());
+
+        Livewire::test(SpkCreateComponent::class)
+            ->set('jenis_spk', JenisPekerjaan::PasangBaru->value)
+            ->set('jalan', 'Lambung Mangkurat')
+            ->set('rt', '5')
+            ->set('kelurahan', 'Kertak Baru')
+            ->set('deadline', now()->toDateString())
+            ->set('asal_permintaan', 'internal')
+            ->call('save')
+            ->assertHasErrors(['deadline' => 'after']);
+
+        $this->assertSame(0, Spk::count());
+    }
+
+    public function test_tanggal_survei_in_future_is_rejected(): void
+    {
+        $this->actingAs(User::factory()->admin()->create());
+
+        Livewire::test(SpkCreateComponent::class)
+            ->set('jenis_spk', JenisPekerjaan::PasangBaru->value)
+            ->set('jalan', 'Lambung Mangkurat')
+            ->set('rt', '5')
+            ->set('kelurahan', 'Kertak Baru')
+            ->set('deadline', now()->addDays(5)->toDateString())
+            ->set('asal_permintaan', 'internal')
+            ->set('tanggal_survei', now()->addDay()->toDateString())
+            ->set('petugas_survei', 'Budi')
+            ->call('save')
+            ->assertHasErrors(['tanggal_survei' => 'before_or_equal']);
+
+        $this->assertSame(0, Spk::count());
+    }
+
+    public function test_petugas_survei_with_symbol_is_rejected_but_comma_is_allowed(): void
+    {
+        $this->actingAs(User::factory()->admin()->create());
+
+        Livewire::test(SpkCreateComponent::class)
+            ->set('jenis_spk', JenisPekerjaan::PasangBaru->value)
+            ->set('jalan', 'Lambung Mangkurat')
+            ->set('rt', '5')
+            ->set('kelurahan', 'Kertak Baru')
+            ->set('deadline', now()->addDays(5)->toDateString())
+            ->set('asal_permintaan', 'internal')
+            ->set('tanggal_survei', now()->toDateString())
+            ->set('petugas_survei', 'Budi #2, Andi')
+            ->call('save')
+            ->assertHasErrors(['petugas_survei' => 'regex']);
+
+        $this->assertSame(0, Spk::count());
+    }
+
+    public function test_rt_nama_with_numbers_is_rejected(): void
+    {
+        $this->actingAs(User::factory()->admin()->create());
+
+        Livewire::test(SpkCreateComponent::class)
+            ->set('jenis_spk', JenisPekerjaan::PasangBaru->value)
+            ->set('jalan', 'Lambung Mangkurat')
+            ->set('rt', '5')
+            ->set('kelurahan', 'Kertak Baru')
+            ->set('deadline', now()->addDays(5)->toDateString())
+            ->set('asal_permintaan', 'internal')
+            ->set('rt_nama', 'Abdul RT27')
+            ->call('save')
+            ->assertHasErrors(['rt_nama' => 'regex']);
+
+        $this->assertSame(0, Spk::count());
+    }
+
+    public function test_rt_telepon_with_symbols_is_rejected(): void
+    {
+        $this->actingAs(User::factory()->admin()->create());
+
+        Livewire::test(SpkCreateComponent::class)
+            ->set('jenis_spk', JenisPekerjaan::PasangBaru->value)
+            ->set('jalan', 'Lambung Mangkurat')
+            ->set('rt', '5')
+            ->set('kelurahan', 'Kertak Baru')
+            ->set('deadline', now()->addDays(5)->toDateString())
+            ->set('asal_permintaan', 'internal')
+            ->set('rt_telepon', '0812-345-6789')
+            ->call('save')
+            ->assertHasErrors(['rt_telepon' => 'regex']);
+
+        $this->assertSame(0, Spk::count());
+    }
+
     public function test_admin_can_create_spk_with_tanggal_survei_and_rt_perwakilan(): void
     {
         $admin = User::factory()->admin()->create();
@@ -263,7 +371,7 @@ class SpkTest extends TestCase
             ->set('asal_permintaan', 'internal')
             ->set('tanggal_survei', '2026-06-15')
             ->set('petugas_survei', 'Budi, Andi')
-            ->set('rt_nama', 'RT. 27 Matoha')
+            ->set('rt_nama', 'Ahmad Matoha')
             ->set('rt_telepon', '08981112210')
             ->set('rambuItems.0.jenis_rambu_id', (string) $jenisRambu->id)
             ->set('rambuItems.0.lokasi', 'Perempatan 1')
@@ -283,7 +391,7 @@ class SpkTest extends TestCase
         $this->assertSame(1, $spk->rtPerwakilan()->count());
 
         $rt = $spk->rtPerwakilan()->first();
-        $this->assertSame('RT. 27 Matoha', $rt->nama_lengkap);
+        $this->assertSame('Ahmad Matoha', $rt->nama_lengkap);
         $this->assertSame('08981112210', $rt->no_telepon);
     }
 

@@ -59,10 +59,12 @@ class Index extends Component
         abort_unless(Auth::user()->isAdmin(), 403);
 
         $validated = $this->validate([
-            'nama_jenis' => 'required|string|max:255',
+            'nama_jenis' => ['required', 'string', 'max:255', 'regex:/^[a-zA-Z\s]+$/'],
             'spesifikasi_standar' => 'nullable|string|max:1000',
             'bentuk_ikon' => 'required|in:bulat,kotak',
             'gambar_referensi' => 'nullable|image|max:5120',
+        ], [
+            'nama_jenis.regex' => 'Nama jenis rambu hanya boleh berisi huruf dan spasi, tanpa angka atau simbol.',
         ]);
 
         if ($this->gambar_referensi) {

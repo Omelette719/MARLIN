@@ -21,14 +21,15 @@ Ada juga widget peta ringkas dengan filter sendiri (jenis rambu, tingkat, rentan
 
 ### Buat Surat (SPK)
 - Dua jenis: **Pemasangan Baru** dan **Perbaikan**.
-- Alamat dipecah jadi field terstruktur: **Jalan**, **RT**, **Kelurahan**. Kolom `wilayah` (teks gabungan seperti "Jl. X RT. Y Kel. Z") disusun otomatis dari ketiganya, dipakai di surat pengantar & tampilan lain tanpa perlu ubah kode di tempat lain.
+- Alamat dipecah jadi field terstruktur: **Jalan**, **RT**, **Kelurahan**. Kolom `wilayah` (teks gabungan seperti "Jl. X RT. Y Kel. Z") disusun otomatis dari ketiganya, dipakai di surat pengantar & tampilan lain tanpa perlu ubah kode di tempat lain. **RT** cuma boleh angka.
 - Banyak baris rambu dalam satu surat sekaligus (tombol **Tambah Rambu** di bagian bawah daftar).
 - Untuk **Perbaikan**: bisa pilih rambu yang sudah terdaftar di sistem (searchable-select) atau catat rambu yang secara fisik sudah ada tapi belum pernah tercatat.
 - Kalau dibuat dari tombol "Buat SPK" di Temuan Lapangan, foto yang sudah dilampirkan petugas saat melapor temuan otomatis dipakai sebagai foto rambu itu (bisa diganti dengan upload baru kalau perlu).
 - **Perihal Permohonan** opsional, kalau kosong dibuat otomatis dari jenis pekerjaan & jenis rambu (mis. "pemasangan cermin tikungan").
-- **Tanggal Survei** opsional, kalau diisi muncul di surat pengantar sebagai "(DISURVEI TGL ...)".
-- **Petugas Survei** opsional, tapi wajib diisi kalau Tanggal Survei diisi. Nama-nama petugas yang melakukan survei, dicatat manual (bukan pilih dari akun terdaftar) karena tidak selalu petugas sistem yang turun survei. Tidak ditampilkan di surat pengantar, hanya di halaman Detail Surat.
-- Data **Contact Person** (nama & telepon): kontak lokal yang bisa dihubungi di lapangan, bukan identitas RT/Perwakilan yang menandatangani surat. Nama RT/Perwakilan yang sebenarnya ditulis tangan langsung saat kunjungan lapangan, tidak diketik di sistem.
+- **Tanggal Survei** opsional, kalau diisi muncul di surat pengantar sebagai "(DISURVEI TGL ...)". Tidak boleh tanggal di masa depan (survei mencatat sesuatu yang sudah terjadi).
+- **Petugas Survei** opsional, tapi wajib diisi kalau Tanggal Survei diisi. Nama-nama petugas yang melakukan survei, dicatat manual (bukan pilih dari akun terdaftar) karena tidak selalu petugas sistem yang turun survei. Tidak ditampilkan di surat pengantar, hanya di halaman Detail Surat. Hanya huruf, spasi, dan koma (pemisah antar nama).
+- Data **Contact Person** (nama & telepon): kontak lokal yang bisa dihubungi di lapangan, bukan identitas RT/Perwakilan yang menandatangani surat. Nama RT/Perwakilan yang sebenarnya ditulis tangan langsung saat kunjungan lapangan, tidak diketik di sistem. Nama cuma huruf & spasi, telepon cuma angka.
+- **Deadline** wajib setelah hari ini (tidak boleh hari ini atau tanggal yang sudah lewat).
 - **Urgensi** dihitung otomatis: ≤2 hari ke deadline atau ditandai **Prioritas** → Tinggi; ≤7 hari → Sedang; selebihnya → Rendah.
 - Upload **File Referensi** (scan surat permohonan asli), maks. 5 MB.
 
@@ -78,7 +79,7 @@ Ada juga widget peta ringkas dengan filter sendiri (jenis rambu, tingkat, rentan
 - Sama seperti Laporan Bulanan, bisa diexport ke PDF; keduanya berbagi query filter yang sama (`App\Support\LaporanRambu`) supaya angkanya selalu konsisten.
 
 ### Kelola Jenis Rambu
-- Master data kategori rambu: nama, spesifikasi standar, gambar referensi, bentuk ikon di peta (bulat/kotak).
+- Master data kategori rambu: nama, spesifikasi standar, gambar referensi, bentuk ikon di peta (bulat/kotak). Nama jenis cuma boleh huruf & spasi.
 
 ### Kelola Rambu
 - Daftar semua rambu terpasang di sistem, filter berdasar kondisi/wilayah.
@@ -87,6 +88,7 @@ Ada juga widget peta ringkas dengan filter sendiri (jenis rambu, tingkat, rentan
 ### Kelola Pengguna
 - Tambah/edit akun petugas & admin.
 - **Aktifkan/nonaktifkan** akun (bukan hapus). Akun nonaktif tidak bisa login lagi (lihat [KEAMANAN.md](KEAMANAN.md)), tapi sesi yang sudah berjalan tidak otomatis terputus.
+- **Nama** dan **Nama Panggilan** cuma boleh huruf & spasi (tanpa angka/simbol). **No. Telepon** cuma boleh angka.
 
 ### Temuan Kondisi Belum Ditindaklanjuti
 - Antrean laporan kerusakan dari petugas (`laporan_kondisi`) yang belum dibuatkan SPK perbaikan.

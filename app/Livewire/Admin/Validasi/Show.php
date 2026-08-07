@@ -119,9 +119,18 @@ class Show extends Component
 
         $this->validate([
             'catatanPenolakan.*' => 'required|string|max:1000',
-            'deadlineBaru' => 'required|date|after_or_equal:today',
+            // Only actually enforced when the admin opted into changing the
+            // deadline — deadlineBaru is always pre-filled with the SPK's
+            // current deadline (see lanjutkan()) even when ubahDeadline is
+            // left unchecked, and that current deadline can legitimately
+            // already be today/in the past for an overdue-but-still-Aktif
+            // SPK. Validating it unconditionally would block rejecting a
+            // rambu on such an SPK entirely unless the admin also pushed
+            // its deadline out, which isn't what this checkbox is for.
+            'deadlineBaru' => $this->ubahDeadline ? 'required|date|after:today' : 'nullable',
         ], [
             'catatanPenolakan.*.required' => 'Catatan penolakan wajib diisi untuk setiap rambu yang tidak dicentang.',
+            'deadlineBaru.after' => 'Deadline baru harus setelah hari ini.',
         ]);
 
         $approvedIds = collect($this->checked)->filter(fn ($v) => $v)->keys();

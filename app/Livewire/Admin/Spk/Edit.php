@@ -342,21 +342,26 @@ class Edit extends Component
     {
         $this->validate([
             'jalan' => 'required|string|max:255',
-            'rt' => 'required|string|max:255',
+            'rt' => ['required', 'string', 'max:255', 'regex:/^[0-9]+$/'],
             'kelurahan' => 'required|string|max:255',
             'perihal' => 'nullable|string|max:500',
-            'deadline' => 'required|date',
+            'deadline' => 'required|date|after:today',
             'asal_permintaan' => ['required', Rule::enum(AsalPermintaan::class)],
             'keterangan_asal' => 'nullable|string|max:1000',
-            'tanggal_survei' => 'nullable|date',
-            'petugas_survei' => 'nullable|string|max:500|required_with:tanggal_survei',
+            'tanggal_survei' => 'nullable|date|before_or_equal:today',
+            'petugas_survei' => ['nullable', 'string', 'max:500', 'required_with:tanggal_survei', 'regex:/^[a-zA-Z\s,]+$/'],
             'file_referensi' => 'nullable|mimes:jpg,jpeg,png,gif,webp,pdf|max:5120',
             'catatan_pekerja_tambahan' => 'nullable|string|max:2000',
-            'rt_nama' => 'nullable|string|max:255',
-            'rt_telepon' => ['nullable', 'string', 'max:30', 'regex:/^[0-9+\-\s()]+$/'],
+            'rt_nama' => ['nullable', 'string', 'max:255', 'regex:/^[a-zA-Z\s]+$/'],
+            'rt_telepon' => ['nullable', 'string', 'max:30', 'regex:/^[0-9]+$/'],
         ], [
+            'rt.regex' => 'RT hanya boleh berisi angka.',
+            'deadline.after' => 'Deadline harus setelah hari ini.',
+            'tanggal_survei.before_or_equal' => 'Tanggal survei tidak boleh di masa depan.',
             'petugas_survei.required_with' => 'Isi petugas survei kalau tanggal survei sudah diisi.',
-            'rt_telepon.regex' => 'Nomor telepon hanya boleh berisi angka dan karakter +, -, spasi, atau tanda kurung.',
+            'petugas_survei.regex' => 'Petugas survei hanya boleh berisi huruf, spasi, dan koma (untuk memisahkan nama).',
+            'rt_nama.regex' => 'Nama Contact Person hanya boleh berisi huruf dan spasi, tanpa angka atau simbol.',
+            'rt_telepon.regex' => 'Nomor telepon hanya boleh berisi angka.',
         ]);
 
         if (count($this->rambuItems) < 1) {

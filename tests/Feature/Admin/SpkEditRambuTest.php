@@ -57,6 +57,42 @@ class SpkEditRambuTest extends TestCase
         ]);
     }
 
+    // Edit's deadline field previously had no date-comparison rule at all
+    // (unlike Create's), so a deadline of today/in the past always passed —
+    // now it's held to the same "must be strictly after today" standard.
+    public function test_deadline_today_is_rejected_on_edit(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $this->actingAs($admin);
+
+        $spk = $this->makeSpk($admin);
+        $this->makeRambuPasang($spk);
+
+        Livewire::test(SpkEditComponent::class, ['spk' => $spk])
+            ->set('deadline', now()->toDateString())
+            ->call('save')
+            ->assertHasErrors(['deadline' => 'after']);
+
+        $this->assertNotSame(now()->toDateString(), $spk->fresh()->deadline->toDateString());
+    }
+
+    public function test_rt_with_letters_is_rejected_on_edit(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $this->actingAs($admin);
+
+        $spk = $this->makeSpk($admin);
+        $this->makeRambuPasang($spk);
+        $rtSebelumnya = $spk->rt;
+
+        Livewire::test(SpkEditComponent::class, ['spk' => $spk])
+            ->set('rt', '5A')
+            ->call('save')
+            ->assertHasErrors(['rt' => 'regex']);
+
+        $this->assertSame($rtSebelumnya, $spk->fresh()->rt);
+    }
+
     public function test_admin_can_edit_existing_rambu_pasang_manual_fields_in_place(): void
     {
         $admin = User::factory()->admin()->create();

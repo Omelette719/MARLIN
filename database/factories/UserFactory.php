@@ -25,7 +25,10 @@ class UserFactory extends Factory
      */
     public function definition(): array
     {
-        $name = fake()->name();
+        // firstName()+lastName() instead of name(): the latter's en_US
+        // format occasionally appends a suffix like "Jr." or "MD", which
+        // fails the letters-only validation now enforced on User::name.
+        $name = fake()->firstName().' '.fake()->lastName();
 
         return [
             'name' => $name,

@@ -30,7 +30,7 @@ class Profile extends Component
     {
         $user = Auth::user();
 
-        $validated = $this->validate($this->profileRules());
+        $validated = $this->validate($this->profileRules(), $this->nameMessages());
 
         $user->fill($validated);
         $user->save();

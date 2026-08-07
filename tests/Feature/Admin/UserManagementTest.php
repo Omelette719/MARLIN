@@ -74,6 +74,37 @@ class UserManagementTest extends TestCase
         $this->assertSame(0, User::where('name', 'Petugas Baru')->count());
     }
 
+    public function test_no_telepon_with_symbols_is_rejected_on_create(): void
+    {
+        $this->actingAs(User::factory()->admin()->create());
+
+        Livewire::test(UsersCreateComponent::class)
+            ->set('name', 'Petugas Baru')
+            ->set('nip', '199901012020011010')
+            ->set('role', 'user')
+            ->set('no_telepon', '0812-345-6789')
+            ->set('password', 'password123')
+            ->call('save')
+            ->assertHasErrors(['no_telepon' => 'regex']);
+
+        $this->assertSame(0, User::where('name', 'Petugas Baru')->count());
+    }
+
+    public function test_name_with_numbers_or_symbols_is_rejected_on_create(): void
+    {
+        $this->actingAs(User::factory()->admin()->create());
+
+        Livewire::test(UsersCreateComponent::class)
+            ->set('name', 'Petugas 2 Baru!')
+            ->set('nip', '199901012020011011')
+            ->set('role', 'user')
+            ->set('password', 'password123')
+            ->call('save')
+            ->assertHasErrors(['name' => 'regex']);
+
+        $this->assertSame(0, User::where('nip', '199901012020011011')->count());
+    }
+
     public function test_tanggal_lahir_in_future_is_rejected_on_create(): void
     {
         $this->actingAs(User::factory()->admin()->create());
@@ -102,6 +133,34 @@ class UserManagementTest extends TestCase
             ->assertHasErrors(['nip' => 'regex']);
 
         $this->assertSame('199901012020011004', $user->fresh()->nip);
+    }
+
+    public function test_name_with_numbers_or_symbols_is_rejected_on_edit(): void
+    {
+        $this->actingAs(User::factory()->admin()->create());
+
+        $user = User::factory()->create(['name' => 'Nama Asli']);
+
+        Livewire::test(UsersEditComponent::class, ['user' => $user])
+            ->set('name', 'Nama-Palsu99')
+            ->call('save')
+            ->assertHasErrors(['name' => 'regex']);
+
+        $this->assertSame('Nama Asli', $user->fresh()->name);
+    }
+
+    public function test_no_telepon_with_symbols_is_rejected_on_edit(): void
+    {
+        $this->actingAs(User::factory()->admin()->create());
+
+        $user = User::factory()->create(['no_telepon' => '081234567890']);
+
+        Livewire::test(UsersEditComponent::class, ['user' => $user])
+            ->set('no_telepon', '(0812) 3456-789')
+            ->call('save')
+            ->assertHasErrors(['no_telepon' => 'regex']);
+
+        $this->assertSame('081234567890', $user->fresh()->no_telepon);
     }
 
     public function test_admin_can_edit_user_without_changing_password(): void

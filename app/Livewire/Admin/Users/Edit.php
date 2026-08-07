@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Admin\Users;
 
+use App\Concerns\ProfileValidationRules;
 use App\Enums\Kelamin;
 use App\Enums\Role;
 use App\Models\User;
@@ -13,6 +14,8 @@ use Livewire\Component;
 #[Title('Edit Akun')]
 class Edit extends Component
 {
+    use ProfileValidationRules;
+
     public User $user;
 
     public string $name = '';
@@ -58,8 +61,8 @@ class Edit extends Component
     public function save(): void
     {
         $validated = $this->validate([
-            'name' => 'required|string|max:255',
-            'nama_panggilan' => 'nullable|string|max:255',
+            'name' => $this->nameRules(),
+            'nama_panggilan' => ['nullable', 'string', 'max:255', 'regex:/^[a-zA-Z\s]+$/'],
             'nip' => ['required', 'string', 'max:30', 'regex:/^[0-9]+$/', 'unique:users,nip,'.$this->user->id],
             'username' => 'nullable|string|max:255|unique:users,username,'.$this->user->id,
             'role' => 'required|in:admin,user',
@@ -67,13 +70,15 @@ class Edit extends Component
             'jenis_kelamin' => 'nullable|in:L,P',
             'bidang' => 'nullable|string|max:255',
             'jabatan' => 'nullable|string|max:255',
-            'no_telepon' => ['nullable', 'string', 'max:30', 'regex:/^[0-9+\-\s()]+$/'],
+            'no_telepon' => ['nullable', 'string', 'max:30', 'regex:/^[0-9]+$/'],
             'aktif' => 'boolean',
             'password' => 'nullable|string|min:8',
         ], [
+            ...$this->nameMessages(),
+            'nama_panggilan.regex' => 'Nama panggilan hanya boleh berisi huruf dan spasi, tanpa angka atau simbol.',
             'nip.regex' => 'NIP hanya boleh berisi angka.',
             'tanggal_lahir.before' => 'Tanggal lahir tidak boleh di masa depan.',
-            'no_telepon.regex' => 'Nomor telepon hanya boleh berisi angka dan karakter +, -, spasi, atau tanda kurung.',
+            'no_telepon.regex' => 'Nomor telepon hanya boleh berisi angka.',
         ]);
 
         foreach (['nama_panggilan', 'username', 'tanggal_lahir', 'jenis_kelamin', 'bidang', 'jabatan', 'no_telepon'] as $field) {

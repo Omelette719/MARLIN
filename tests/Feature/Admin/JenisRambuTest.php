@@ -42,6 +42,18 @@ class JenisRambuTest extends TestCase
         $this->assertSame('Baru', $jenis->fresh()->nama_jenis);
     }
 
+    public function test_nama_jenis_with_numbers_or_symbols_is_rejected(): void
+    {
+        $this->actingAs(User::factory()->admin()->create());
+
+        Livewire::test(JenisRambuIndexComponent::class)
+            ->set('nama_jenis', 'Rambu Tipe-2!')
+            ->call('save')
+            ->assertHasErrors(['nama_jenis' => 'regex']);
+
+        $this->assertDatabaseMissing('jenis_rambu', ['nama_jenis' => 'Rambu Tipe-2!']);
+    }
+
     public function test_admin_can_delete_unused_jenis_rambu(): void
     {
         $this->actingAs(User::factory()->admin()->create());

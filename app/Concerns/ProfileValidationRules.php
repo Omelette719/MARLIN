@@ -25,6 +25,15 @@ trait ProfileValidationRules
      */
     protected function nameRules(): array
     {
-        return ['required', 'string', 'max:255'];
+        return ['required', 'string', 'max:255', 'regex:/^[a-zA-Z\s]+$/'];
+    }
+
+    /**
+     * Custom message for nameRules()'s regex failure, keyed to match
+     * whatever field name each caller validates it under.
+     */
+    protected function nameMessages(string $field = 'name'): array
+    {
+        return [$field.'.regex' => 'Nama hanya boleh berisi huruf dan spasi, tanpa angka atau simbol.'];
     }
 }
