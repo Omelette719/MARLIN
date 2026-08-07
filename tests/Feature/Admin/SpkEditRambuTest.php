@@ -93,6 +93,19 @@ class SpkEditRambuTest extends TestCase
         $this->assertSame($rtSebelumnya, $spk->fresh()->rt);
     }
 
+    public function test_rt_format_error_appears_live_without_calling_save_on_edit(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $this->actingAs($admin);
+
+        $spk = $this->makeSpk($admin);
+        $this->makeRambuPasang($spk);
+
+        Livewire::test(SpkEditComponent::class, ['spk' => $spk])
+            ->set('rt', '5A')
+            ->assertHasErrors(['rt' => 'regex']);
+    }
+
     public function test_admin_can_edit_existing_rambu_pasang_manual_fields_in_place(): void
     {
         $admin = User::factory()->admin()->create();

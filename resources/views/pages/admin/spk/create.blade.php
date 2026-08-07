@@ -21,13 +21,13 @@
 
                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
                     <flux:input wire:model="jalan" label="Jalan" placeholder="Mis. Gatot X" required />
-                    <flux:input wire:model="rt" label="RT" placeholder="Mis. 27" required />
+                    <flux:input wire:model.live.debounce.500ms="rt" label="RT" placeholder="Mis. 27" required />
                     <flux:input wire:model="kelurahan" label="Kelurahan" placeholder="Mis. Pengambangan" required />
                 </div>
 
                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <flux:input wire:model="perihal" label="Perihal Permohonan" placeholder="Mis. pemasangan cermin tikungan" description="Opsional. Kalau kosong, akan dibuat otomatis dari jenis pekerjaan &amp; jenis rambu." />
-                    <flux:input wire:model="deadline" type="date" label="Deadline" required />
+                    <flux:input wire:model.live.debounce.500ms="deadline" type="date" label="Deadline" required />
                 </div>
 
                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -40,8 +40,8 @@
                 </div>
 
                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <flux:input wire:model="tanggal_survei" type="date" label="Tanggal Survei" description="Opsional. Kalau diisi, akan muncul di surat pengantar sebagai '(DISURVEI TGL ...)'." />
-                    <flux:input wire:model="petugas_survei" label="Petugas Survei" placeholder="Nama-nama petugas, pisahkan dengan koma" description="Wajib diisi jika tanggal survei diisi. Tidak muncul di surat pengantar." />
+                    <flux:input wire:model.live.debounce.500ms="tanggal_survei" type="date" label="Tanggal Survei" description="Opsional. Kalau diisi, akan muncul di surat pengantar sebagai '(DISURVEI TGL ...)'." />
+                    <flux:input wire:model.live.debounce.500ms="petugas_survei" label="Petugas Survei" placeholder="Nama-nama petugas, pisahkan dengan koma" description="Wajib diisi jika tanggal survei diisi. Tidak muncul di surat pengantar." />
                 </div>
 
                 <flux:checkbox wire:model="prioritas" label="Tandai sebagai prioritas" description="Jika dicentang, urgensi otomatis menjadi Tinggi terlepas dari deadline." />
@@ -58,8 +58,8 @@
                 </div>
 
                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <flux:input wire:model="rt_nama" label="Nama Contact Person" placeholder="Mis. Abdul (warga setempat)" />
-                    <flux:input wire:model="rt_telepon" label="No. Telepon Contact Person" placeholder="Opsional" />
+                    <flux:input wire:model.live.debounce.500ms="rt_nama" label="Nama Contact Person" placeholder="Mis. Abdul (warga setempat)" />
+                    <flux:input wire:model.live.debounce.500ms="rt_telepon" label="No. Telepon Contact Person" placeholder="Opsional" />
                 </div>
             </flux:card>
 

@@ -171,21 +171,30 @@ class Edit extends Component
         $this->rambuItems = array_values($this->rambuItems);
     }
 
+    // Fields with format rules (regex/date-comparison) that are worth
+    // catching before the admin has finished editing the whole form — same
+    // reasoning as the koordinat warning below.
+    private const LIVE_VALIDATED_FIELDS = ['rt', 'rt_nama', 'rt_telepon', 'petugas_survei', 'deadline', 'tanggal_survei'];
+
     public function updated(string $property, mixed $value = null): void
     {
         $this->rejectNonImageUpload($property, $value);
 
-        if (! preg_match('/^rambuItems\.(\d+)\.koordinat$/', $property, $m)) {
+        if (preg_match('/^rambuItems\.(\d+)\.koordinat$/', $property, $m)) {
+            $index = (int) $m[1];
+
+            $this->validateOnly($property, [
+                $property => ['nullable', 'string', 'max:255', new Koordinat],
+            ]);
+
+            $this->refreshKoordinatWarning($index);
+
             return;
         }
 
-        $index = (int) $m[1];
-
-        $this->validateOnly($property, [
-            $property => ['nullable', 'string', 'max:255', new Koordinat],
-        ]);
-
-        $this->refreshKoordinatWarning($index);
+        if (in_array($property, self::LIVE_VALIDATED_FIELDS, true)) {
+            $this->validateOnly($property, $this->headerRules(), $this->headerMessages());
+        }
     }
 
     // See Create::refreshKoordinatWarning() for the rationale — advisory,
@@ -338,9 +347,12 @@ class Edit extends Component
         Flux::toast(variant: 'success', text: 'Rambu berhasil dihapus dari surat.');
     }
 
-    public function save(): void
+    // Shared with updated()'s live per-field validation, so the rules a
+    // field is held to are identical whether it's checked while typing or
+    // at final submit — one definition, never two copies to drift apart.
+    private function headerRules(): array
     {
-        $this->validate([
+        return [
             'jalan' => 'required|string|max:255',
             'rt' => ['required', 'string', 'max:255', 'regex:/^[0-9]+$/'],
             'kelurahan' => 'required|string|max:255',
@@ -354,7 +366,12 @@ class Edit extends Component
             'catatan_pekerja_tambahan' => 'nullable|string|max:2000',
             'rt_nama' => ['nullable', 'string', 'max:255', 'regex:/^[a-zA-Z\s]+$/'],
             'rt_telepon' => ['nullable', 'string', 'max:30', 'regex:/^[0-9]+$/'],
-        ], [
+        ];
+    }
+
+    private function headerMessages(): array
+    {
+        return [
             'rt.regex' => 'RT hanya boleh berisi angka.',
             'deadline.after' => 'Deadline harus setelah hari ini.',
             'tanggal_survei.before_or_equal' => 'Tanggal survei tidak boleh di masa depan.',
@@ -362,7 +379,12 @@ class Edit extends Component
             'petugas_survei.regex' => 'Petugas survei hanya boleh berisi huruf, spasi, dan koma (untuk memisahkan nama).',
             'rt_nama.regex' => 'Nama Contact Person hanya boleh berisi huruf dan spasi, tanpa angka atau simbol.',
             'rt_telepon.regex' => 'Nomor telepon hanya boleh berisi angka.',
-        ]);
+        ];
+    }
+
+    public function save(): void
+    {
+        $this->validate($this->headerRules(), $this->headerMessages());
 
         if (count($this->rambuItems) < 1) {
             $this->addError('rambuItems', 'Minimal harus ada satu rambu.');

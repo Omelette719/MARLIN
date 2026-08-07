@@ -263,6 +263,28 @@ class SpkTest extends TestCase
         $this->assertSame(0, Spk::count());
     }
 
+    // Format errors (rt, rt_nama, rt_telepon, petugas_survei, deadline,
+    // tanggal_survei) surface as soon as that field changes — same UX as
+    // the koordinat warning — instead of only appearing after Simpan Surat
+    // is clicked at the very end of a long form.
+    public function test_rt_format_error_appears_live_without_calling_save(): void
+    {
+        $this->actingAs(User::factory()->admin()->create());
+
+        Livewire::test(SpkCreateComponent::class)
+            ->set('rt', '5A')
+            ->assertHasErrors(['rt' => 'regex']);
+    }
+
+    public function test_deadline_format_error_appears_live_without_calling_save(): void
+    {
+        $this->actingAs(User::factory()->admin()->create());
+
+        Livewire::test(SpkCreateComponent::class)
+            ->set('deadline', now()->toDateString())
+            ->assertHasErrors(['deadline' => 'after']);
+    }
+
     public function test_deadline_today_is_rejected(): void
     {
         $this->actingAs(User::factory()->admin()->create());

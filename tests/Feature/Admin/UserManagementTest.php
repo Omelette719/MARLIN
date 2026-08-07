@@ -105,6 +105,18 @@ class UserManagementTest extends TestCase
         $this->assertSame(0, User::where('nip', '199901012020011011')->count());
     }
 
+    // Format errors (name, nama_panggilan, nip, tanggal_lahir, no_telepon)
+    // surface as soon as that field changes, same UX as the koordinat
+    // warning on Buat/Edit Surat, instead of only appearing after Simpan.
+    public function test_name_format_error_appears_live_without_calling_save(): void
+    {
+        $this->actingAs(User::factory()->admin()->create());
+
+        Livewire::test(UsersCreateComponent::class)
+            ->set('name', 'Petugas 2 Baru!')
+            ->assertHasErrors(['name' => 'regex']);
+    }
+
     public function test_tanggal_lahir_in_future_is_rejected_on_create(): void
     {
         $this->actingAs(User::factory()->admin()->create());

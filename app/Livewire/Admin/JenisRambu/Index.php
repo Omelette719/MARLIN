@@ -14,7 +14,9 @@ use Livewire\WithFileUploads;
 #[Title('Jenis Rambu')]
 class Index extends Component
 {
-    use RejectsNonImageUploads;
+    use RejectsNonImageUploads {
+        RejectsNonImageUploads::updated as rejectNonImageUpload;
+    }
     use WithFileUploads;
 
     public ?int $editingId = null;
@@ -26,6 +28,29 @@ class Index extends Component
     public string $bentuk_ikon = 'bulat';
 
     public $gambar_referensi = null;
+
+    // nama_jenis has a format rule (letters/spaces only) worth catching
+    // before the admin clicks Simpan — same reasoning as the koordinat
+    // warning on Buat/Edit Surat. Shared with save() so both are held to
+    // the exact same rule.
+    private function namaJenisRules(): array
+    {
+        return ['nama_jenis' => ['required', 'string', 'max:255', 'regex:/^[a-zA-Z\s]+$/']];
+    }
+
+    private function namaJenisMessages(): array
+    {
+        return ['nama_jenis.regex' => 'Nama jenis rambu hanya boleh berisi huruf dan spasi, tanpa angka atau simbol.'];
+    }
+
+    public function updated(string $property, mixed $value = null): void
+    {
+        $this->rejectNonImageUpload($property, $value);
+
+        if ($property === 'nama_jenis') {
+            $this->validateOnly('nama_jenis', $this->namaJenisRules(), $this->namaJenisMessages());
+        }
+    }
 
     public function tambahBaru(): void
     {
@@ -59,13 +84,11 @@ class Index extends Component
         abort_unless(Auth::user()->isAdmin(), 403);
 
         $validated = $this->validate([
-            'nama_jenis' => ['required', 'string', 'max:255', 'regex:/^[a-zA-Z\s]+$/'],
+            ...$this->namaJenisRules(),
             'spesifikasi_standar' => 'nullable|string|max:1000',
             'bentuk_ikon' => 'required|in:bulat,kotak',
             'gambar_referensi' => 'nullable|image|max:5120',
-        ], [
-            'nama_jenis.regex' => 'Nama jenis rambu hanya boleh berisi huruf dan spasi, tanpa angka atau simbol.',
-        ]);
+        ], $this->namaJenisMessages());
 
         if ($this->gambar_referensi) {
             $validated['gambar_referensi'] = $this->gambar_referensi->store('jenis-rambu', 'public');

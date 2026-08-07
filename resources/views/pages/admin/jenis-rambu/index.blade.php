@@ -60,7 +60,7 @@
         <form wire:submit="save" class="flex flex-col gap-4">
             <flux:heading size="lg">{{ $editingId ? 'Edit Jenis Rambu' : 'Tambah Jenis Rambu' }}</flux:heading>
 
-            <flux:input wire:model="nama_jenis" label="Nama Jenis" required />
+            <flux:input wire:model.live.debounce.500ms="nama_jenis" label="Nama Jenis" required />
             <flux:textarea wire:model="spesifikasi_standar" label="Spesifikasi Standar" rows="3" />
 
             <flux:radio.group wire:model="bentuk_ikon" label="Bentuk Ikon" variant="segmented">

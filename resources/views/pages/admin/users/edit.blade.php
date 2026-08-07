@@ -7,12 +7,12 @@
         <flux:card class="max-w-2xl">
             <form wire:submit="save" class="flex flex-col gap-4">
                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <flux:input wire:model="name" label="Nama Lengkap" required />
-                    <flux:input wire:model="nama_panggilan" label="Nama Panggilan" />
+                    <flux:input wire:model.live.debounce.500ms="name" label="Nama Lengkap" required />
+                    <flux:input wire:model.live.debounce.500ms="nama_panggilan" label="Nama Panggilan" />
                 </div>
 
                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <flux:input wire:model="nip" label="NIP" required />
+                    <flux:input wire:model.live.debounce.500ms="nip" label="NIP" required />
                     <flux:input wire:model="username" label="Username" description="Opsional" />
                 </div>
 
@@ -30,8 +30,8 @@
                 </div>
 
                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <flux:input wire:model="tanggal_lahir" type="date" label="Tanggal Lahir" />
-                    <flux:input wire:model="no_telepon" label="No. Telepon" />
+                    <flux:input wire:model.live.debounce.500ms="tanggal_lahir" type="date" label="Tanggal Lahir" />
+                    <flux:input wire:model.live.debounce.500ms="no_telepon" label="No. Telepon" />
                 </div>
 
                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">

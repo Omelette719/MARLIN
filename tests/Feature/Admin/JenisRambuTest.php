@@ -54,6 +54,17 @@ class JenisRambuTest extends TestCase
         $this->assertDatabaseMissing('jenis_rambu', ['nama_jenis' => 'Rambu Tipe-2!']);
     }
 
+    // Same UX as the koordinat warning on Buat/Edit Surat: the format error
+    // shows as soon as the field changes, not only after Simpan is clicked.
+    public function test_nama_jenis_format_error_appears_live_without_calling_save(): void
+    {
+        $this->actingAs(User::factory()->admin()->create());
+
+        Livewire::test(JenisRambuIndexComponent::class)
+            ->set('nama_jenis', 'Rambu Tipe-2!')
+            ->assertHasErrors(['nama_jenis' => 'regex']);
+    }
+
     public function test_admin_can_delete_unused_jenis_rambu(): void
     {
         $this->actingAs(User::factory()->admin()->create());
