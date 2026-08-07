@@ -202,7 +202,7 @@ Buka `http://localhost:8000` (atau domain Herd/Valet kamu kalau pakai itu), lalu
 > ```bash
 > php artisan db:seed --class=MarlinDemoSeeder
 > ```
-> Seeder ini akan menambah beberapa petugas contoh, beberapa SPK dengan berbagai status, dan beberapa temuan kondisi. Aman dijalankan kapan saja karena tidak menyentuh akun admin/petugas yang sudah ada.
+> Seeder ini akan menambah beberapa petugas contoh dan notifikasi selamat datang. Data contoh SPK/rambu/temuan kondisi untuk sementara dinonaktifkan (lihat `run()` di `MarlinDemoSeeder`, method-nya masih ada, tinggal diaktifkan lagi kalau dibutuhkan). Aman dijalankan kapan saja karena tidak menyentuh akun admin/petugas yang sudah ada.
 
 ### Reset database dari awal
 

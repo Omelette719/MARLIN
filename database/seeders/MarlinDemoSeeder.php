@@ -67,10 +67,12 @@ class MarlinDemoSeeder extends Seeder
         $this->admin = User::where('nip', '1')->firstOrFail();
 
         $this->seedPetugas();
-        $this->seedSpkAktifBeragamStatus();
-        $this->seedSpkSelesai();
-        $this->seedTemuanLapangan();
         $this->seedNotifikasiTambahan();
+
+        // Rambu/SPK/Temuan demo data (seedSpkAktifBeragamStatus,
+        // seedSpkSelesai, seedTemuanLapangan below) disabled for now —
+        // left in place, not deleted, so it's a one-line change to bring
+        // back later.
     }
 
     private function seedPetugas(): void
