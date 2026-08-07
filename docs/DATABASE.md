@@ -248,7 +248,7 @@ Semua kolom status/jenis disimpan sebagai string di database, tapi di-cast ke [P
 | `StatusLaporan` | `diajukan`, `diterima`, `ditolak` |
 | `JenisPekerjaan` | `pasang_baru`, `perbaikan` |
 | `StatusTindakLanjut` | `baru`, `sudah_dibuatkan_spk`, `ditolak` |
-| `AsalPermintaan` | `internal`, `laporan_masyarakat`, `instruksi_pemerintah`, `evaluasi_petugas` |
+| `AsalPermintaan` | `internal`, `laporan_masyarakat`, `instruksi_pemerintah`, `evaluasi_petugas`, `program_kinerja` |
 | `ErrorLevel` | `info`, `warning`, `error`, `critical` |
 | `BentukIkon` | `bulat`, `kotak` |
 

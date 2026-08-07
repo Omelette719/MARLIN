@@ -8,6 +8,7 @@ enum AsalPermintaan: string
     case LaporanMasyarakat = 'laporan_masyarakat';
     case InstruksiPemerintah = 'instruksi_pemerintah';
     case EvaluasiPetugas = 'evaluasi_petugas';
+    case ProgramKinerja = 'program_kinerja';
 
     public function label(): string
     {
@@ -16,6 +17,7 @@ enum AsalPermintaan: string
             self::LaporanMasyarakat => 'Laporan Masyarakat',
             self::InstruksiPemerintah => 'Instruksi Pemerintah',
             self::EvaluasiPetugas => 'Evaluasi Petugas',
+            self::ProgramKinerja => 'Program Kinerja',
         };
     }
 }
