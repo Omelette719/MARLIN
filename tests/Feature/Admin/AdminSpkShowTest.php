@@ -342,7 +342,35 @@ class AdminSpkShowTest extends TestCase
 
         $this->get(route('admin.spk.riwayat'))
             ->assertSee('Durasi 10 hari')
-            ->assertSee('12 hari lebih cepat dari deadline');
+            ->assertSee('12 hari lebih cepat dari deadline')
+            ->assertSee('bg-green-400', false);
+    }
+
+    // Was plain gray text (no color at all) until this was made to match
+    // Detail Surat's red/green badge treatment — an overdue SPK didn't stand
+    // out from an on-time one when scanning a page full of Riwayat cards.
+    public function test_riwayat_spk_card_shows_red_badge_when_terlambat(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $this->actingAs($admin);
+
+        $spk = Spk::create([
+            'nomor_surat' => 'SR-2026/BJM/8019',
+            'dibuat_oleh' => $admin->id,
+            'jenis_spk' => 'pasang_baru',
+            'wilayah' => 'Banjarmasin Tengah',
+            'deadline' => now()->subDays(5),
+            'urgensi' => 'rendah',
+            'status' => 'selesai',
+            'asal_permintaan' => 'internal',
+        ]);
+        $spk->created_at = now()->subDays(20);
+        $spk->selesai_pada = now()->subDays(2);
+        $spk->save();
+
+        $this->get(route('admin.spk.riwayat'))
+            ->assertSee('Terlambat 3 hari dari deadline')
+            ->assertSee('bg-red-400', false);
     }
 
     public function test_riwayat_spk_card_does_not_show_durasi_for_dibatalkan(): void

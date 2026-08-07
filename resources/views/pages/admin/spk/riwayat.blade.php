@@ -78,9 +78,12 @@
                             </flux:text>
 
                             @if ($item->status === StatusSpk::Selesai && $item->durasiPengerjaanHari() !== null)
-                                <flux:text class="text-sm text-zinc-500">
-                                    Durasi {{ $item->durasiPengerjaanHari() }} hari &middot; {{ $item->selisihDeadlineLabel() }}
-                                </flux:text>
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <flux:text class="text-sm text-zinc-500">Durasi {{ $item->durasiPengerjaanHari() }} hari</flux:text>
+                                    <flux:badge size="sm" :color="$item->selisihDeadlineHari() > 0 ? 'red' : 'green'">
+                                        {{ $item->selisihDeadlineLabel() }}
+                                    </flux:badge>
+                                </div>
                             @endif
 
                             <div class="mt-auto flex gap-2 pt-2">
