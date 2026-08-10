@@ -34,14 +34,54 @@ class TelegramServiceTest extends TestCase
     {
         Http::fake();
 
-        (new TelegramService)->sendMessage('12345', 'Halo', 'https://example.test/spk/1');
+        (new TelegramService)->sendMessage('12345', 'Halo', 'https://marlin.dishub-bjm.go.id/spk/1');
 
         Http::assertSent(function ($request) {
             $markup = json_decode($request['reply_markup'], true);
 
-            return $markup['inline_keyboard'][0][0]['url'] === 'https://example.test/spk/1'
+            return $markup['inline_keyboard'][0][0]['url'] === 'https://marlin.dishub-bjm.go.id/spk/1'
                 && $markup['inline_keyboard'][0][0]['text'] === 'Buka Halaman';
         });
+    }
+
+    // Telegram rejects the ENTIRE sendMessage call (not just the button) with
+    // a 400 "Wrong HTTP URL" when the inline button's host isn't a real,
+    // publicly-resolvable one — confirmed via a real local-dev delivery
+    // failure ("inline keyboard button URL 'http://localhost:8000/spk/5' is
+    // invalid"). These non-public hosts must have the button dropped instead
+    // of losing the whole notification.
+    public function test_send_message_omits_inline_button_for_localhost_url(): void
+    {
+        Http::fake();
+
+        (new TelegramService)->sendMessage('12345', 'Halo', 'http://localhost:8000/spk/5');
+
+        Http::assertSent(function ($request) {
+            return $request['chat_id'] === '12345'
+                && $request['text'] === 'Halo'
+                && ! isset($request['reply_markup']);
+        });
+    }
+
+    // .test is the reserved dev TLD this project's own local Herd/Valet
+    // domain uses (e.g. sistem-manajemen-rambu-lalin.test) — just as
+    // unreachable from Telegram's servers as localhost.
+    public function test_send_message_omits_inline_button_for_dot_test_domain(): void
+    {
+        Http::fake();
+
+        (new TelegramService)->sendMessage('12345', 'Halo', 'http://sistem-manajemen-rambu-lalin.test/spk/5');
+
+        Http::assertSent(fn ($request) => ! isset($request['reply_markup']));
+    }
+
+    public function test_send_message_omits_inline_button_for_127_url(): void
+    {
+        Http::fake();
+
+        (new TelegramService)->sendMessage('12345', 'Halo', 'http://127.0.0.1:8000/spk/5');
+
+        Http::assertSent(fn ($request) => ! isset($request['reply_markup']));
     }
 
     public function test_send_message_failure_does_not_throw(): void
@@ -104,12 +144,26 @@ class TelegramServiceTest extends TestCase
         Storage::disk('public')->put('kendala/contoh.jpg', 'fake-image-bytes');
         Http::fake();
 
-        (new TelegramService)->sendPhoto('12345', 'kendala/contoh.jpg', 'Ada kendala baru', 'https://example.test/spk/1');
+        (new TelegramService)->sendPhoto('12345', 'kendala/contoh.jpg', 'Ada kendala baru', 'https://marlin.dishub-bjm.go.id/spk/1');
 
         Http::assertSent(function ($request) {
             return str_contains($request->url(), '/sendPhoto')
                 && str_contains($request->body(), 'name="reply_markup"')
-                && str_contains($request->body(), 'https:\/\/example.test\/spk\/1');
+                && str_contains($request->body(), 'https:\/\/marlin.dishub-bjm.go.id\/spk\/1');
+        });
+    }
+
+    public function test_send_photo_omits_inline_button_for_localhost_url(): void
+    {
+        Storage::fake('public');
+        Storage::disk('public')->put('kendala/contoh.jpg', 'fake-image-bytes');
+        Http::fake();
+
+        (new TelegramService)->sendPhoto('12345', 'kendala/contoh.jpg', 'Ada kendala baru', 'http://localhost:8000/spk/1');
+
+        Http::assertSent(function ($request) {
+            return str_contains($request->url(), '/sendPhoto')
+                && ! str_contains($request->body(), 'name="reply_markup"');
         });
     }
 

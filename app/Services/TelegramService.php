@@ -15,7 +15,7 @@ class TelegramService
 
     private function replyMarkup(?string $url): ?string
     {
-        if (! $url) {
+        if (! $url || ! $this->isPubliclyReachable($url)) {
             return null;
         }
 
@@ -24,6 +24,27 @@ class TelegramService
                 ['text' => 'Buka Halaman', 'url' => $url],
             ]],
         ]);
+    }
+
+    // Telegram validates inline keyboard button URLs server-side and rejects
+    // the ENTIRE sendMessage/sendPhoto call (not just the button) with a 400
+    // if the host isn't a real, publicly-resolvable one — localhost, 127.*,
+    // and .test/.local dev domains all get "Wrong HTTP URL". Since the
+    // message text is worth delivering even without a working button, this
+    // just drops the button instead of losing the whole notification.
+    private function isPubliclyReachable(string $url): bool
+    {
+        $host = parse_url($url, PHP_URL_HOST);
+
+        if (! $host) {
+            return false;
+        }
+
+        if (in_array($host, ['localhost', '127.0.0.1'], true)) {
+            return false;
+        }
+
+        return ! preg_match('/\.(test|local|localhost|internal)$/i', $host);
     }
 
     // Failures are swallowed (logged only) so a Telegram outage never breaks

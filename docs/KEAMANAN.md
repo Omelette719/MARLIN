@@ -1,6 +1,6 @@
 # Keamanan Sistem MARLIN
 
-Dokumen ini merinci langkah-langkah keamanan yang sudah diterapkan, serta batasan/keputusan desain yang sengaja diambil. Semua poin di sini diverifikasi langsung dari kode (bukan asumsi) per 2026-08-07.
+Dokumen ini merinci langkah-langkah keamanan yang sudah diterapkan, serta batasan/keputusan desain yang sengaja diambil. Semua poin di sini diverifikasi langsung dari kode (bukan asumsi) per 2026-08-10.
 
 ---
 
@@ -100,4 +100,5 @@ Hal-hal berikut BUKAN kesalahan, tapi trade-off yang masuk akal untuk skala & ko
 3. **Reset password mandiri tidak mengecek status `aktif`**. Akun yang dinonaktifkan tetap bisa mengganti passwordnya sendiri lewat modal reset di halaman login (tapi tetap tidak akan bisa login setelahnya, karena pengecekan `aktif` ada di jalur login, bukan di jalur ganti-password).
 4. **`SESSION_ENCRYPT=false`** dan tidak ada `SESSION_SECURE_COOKIE` eksplisit di `.env.example`. Kalau nanti deploy ke server produksi yang diakses lewat internet publik, aktifkan HTTPS dan pertimbangkan set `SESSION_SECURE_COOKIE=true`.
 5. **Bot Telegram jalan lewat long-polling** (`php artisan telegram:poll`), bukan webhook, karena belum ada domain publik HTTPS. Proses ini (dan `php artisan queue:work` untuk pengiriman pesannya) harus dijalankan manual/terpisah dari server web; kalau tidak jalan, fitur notifikasi Telegram cuma diam-diam tidak mengirim apapun, tidak ada pesan error yang terlihat pengguna.
+6. **`TelegramService` cuma menyertakan tombol "Buka Halaman"** kalau host di URL notifikasinya publik/bisa di-resolve (bukan `localhost`/`127.0.0.1`/`*.test`/`*.local`) — Telegram API menolak **seluruh pesan** (bukan cuma tombolnya) kalau URL tombol inline-nya tidak valid, jadi di lingkungan dev (`APP_URL` lokal), pesan tetap terkirim tapi tanpa tombol. Begitu deploy ke domain publik, tombolnya otomatis ikut muncul lagi tanpa perlu ubah kode.
 6. **`.env.example` set `APP_DEBUG=true`** (cocok untuk dev). Wajib diubah jadi `APP_DEBUG=false` di `.env` produksi sebelum deploy publik, kalau tidak, error yang tak tertangani akan menampilkan stack trace lengkap (path server, query SQL, dst) ke pengguna alih-alih halaman error generik.
