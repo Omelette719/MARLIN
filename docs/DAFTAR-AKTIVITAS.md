@@ -86,7 +86,7 @@ Aktivitas di atas jarang berdiri sendiri, kebanyakan aksi satu peran punya efek 
 
 | Kode | Pemicu (Admin atau Petugas) | Dampak ke pihak lain |
 |---|---|---|
-| AU-01 | Admin membuat SPK baru (AS-03) | Seluruh petugas aktif dapat notifikasi "SPK Baru Tersedia", muncul di Dashboard Petugas |
+| AU-01 | Admin membuat SPK baru (AS-03) | Seluruh petugas aktif dapat notifikasi "SPK Baru Tersedia" (ikut foto rambu pertama yang ada fotonya, kalau ada), muncul di Dashboard Petugas |
 | AU-02 | Admin membatalkan SPK (AS-05) | Semua anggota tim yang sudah gabung dapat notifikasi pembatalan |
 | AU-03 | Admin membatalkan satu rambu (AS-06) | Tim dapat notifikasi; alasan pembatalan tampil di Detail SPK petugas, surat pengantar, dan Laporan Rambu |
 | AU-04 | Admin menerima laporan saat validasi (AS-09) | Status rambu berubah jadi Selesai, langsung terlihat petugas di Detail SPK |

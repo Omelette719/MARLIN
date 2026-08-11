@@ -398,6 +398,12 @@ class Create extends Component
                 ]);
             }
 
+            // First rambu's survey photo doubles as the SPK's "cover" photo
+            // elsewhere (see cover_photos on the list pages) — reused here so
+            // the "SPK Baru Tersedia" Telegram notification arrives as an
+            // actual photo instead of a bare text message.
+            $fotoUtamaSpk = null;
+
             foreach ($this->rambuItems as $item) {
                 if ($isPasangBaru) {
                     $rambu = Rambu::create([
@@ -425,13 +431,16 @@ class Create extends Component
                     $rambu = Rambu::findOrFail($item['rambu_id']);
                 }
 
+                $fotoSurvei = $this->resolveFotoSurvei($item);
+                $fotoUtamaSpk ??= $fotoSurvei;
+
                 RambuPasang::create([
                     'rambu_spk_id' => $spk->id,
                     'rambu_id' => $rambu->id,
                     'laporan_kondisi_id' => $item['laporan_kondisi_id'] ?: null,
                     'jenis_pekerjaan' => $this->jenis_spk,
                     'jumlah' => $item['jumlah'],
-                    'foto_survei' => $this->resolveFotoSurvei($item),
+                    'foto_survei' => $fotoSurvei,
                     'catatan_instruksi' => $item['catatan_instruksi'] ?: null,
                     'status' => StatusRambuPasang::Belum,
                 ]);
@@ -455,6 +464,7 @@ class Create extends Component
                     'judul' => 'SPK Baru Tersedia',
                     'pesan' => "SPK {$spk->nomor_surat} untuk wilayah {$spk->wilayah} sudah bisa dikerjakan.",
                     'url' => route('user.spk.show', $spk),
+                    'foto' => $fotoUtamaSpk,
                     'dibaca' => false,
                 ]);
             }

@@ -246,6 +246,42 @@ class SpkTest extends TestCase
         $this->assertSame(1, $spk->auditLogs()->count());
     }
 
+    // "SPK Baru Tersedia" used to be text-only regardless of whether the SPK
+    // actually had a photo — attaches the first rambu's foto_survei so the
+    // Telegram notification arrives as an actual photo, same as other
+    // notifications that have real evidence to show (kendala, laporan, dst).
+    public function test_spk_baru_tersedia_notification_carries_the_first_rambu_photo(): void
+    {
+        $this->actingAs(User::factory()->admin()->create());
+        $petugas = User::factory()->create();
+
+        $jenisRambu = JenisRambu::create(['nama_jenis' => 'Rambu Peringatan']);
+
+        Livewire::test(SpkCreateComponent::class)
+            ->set('jenis_spk', JenisPekerjaan::PasangBaru->value)
+            ->set('jalan', 'Lambung Mangkurat')
+            ->set('rt', '5')
+            ->set('kelurahan', 'Kertak Baru')
+            ->set('deadline', now()->addDays(5)->toDateString())
+            ->set('asal_permintaan', 'internal')
+            ->set('rambuItems.0.jenis_rambu_id', (string) $jenisRambu->id)
+            ->set('rambuItems.0.lokasi', 'Perempatan dekat masjid')
+            ->set('rambuItems.0.koordinat', '-3.3194,114.5908')
+            ->set('rambuItems.0.jumlah', 1)
+            ->set('rambuItems.0.foto_survei', UploadedFile::fake()->image('rambu.jpg'))
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $spk = Spk::first();
+        $rambuPasang = $spk->rambuPasang()->first();
+
+        $notifikasi = Notifikasi::where('user_id', $petugas->id)->where('judul', 'SPK Baru Tersedia')->first();
+
+        $this->assertNotNull($notifikasi);
+        $this->assertNotNull($notifikasi->foto);
+        $this->assertSame($rambuPasang->foto_survei, $notifikasi->foto);
+    }
+
     public function test_rt_with_letters_is_rejected(): void
     {
         $this->actingAs(User::factory()->admin()->create());
