@@ -52,7 +52,7 @@ class Riwayat extends Component
                 ->where('nomor_surat', 'like', "%{$this->search}%")
                 ->orWhere('wilayah', 'like', "%{$this->search}%")))
             ->when($this->status, fn ($query) => $query->where('status', $this->status))
-            ->when($this->jenis, fn ($query) => $query->where('jenis_spk', $this->jenis))
+            ->when($this->jenis, fn ($query) => $query->whereHas('rambuPasang', fn ($q) => $q->where('jenis_pekerjaan', $this->jenis)))
             ->withCount(['rambuPasang', 'dikerjakanOleh'])
             ->with(['rambuPasang' => fn ($q) => $q->with('rambu.jenisRambu')])
             ->orderByDesc('updated_at')

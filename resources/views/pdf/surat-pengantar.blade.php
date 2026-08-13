@@ -1,5 +1,9 @@
 <?php
-    $aksiKata = $spk->jenis_spk === \App\Enums\JenisPekerjaan::Perbaikan ? 'perbaikan' : 'pemasangan';
+    // Pemasangan wins whenever it's present at all — even in a surat that
+    // mixes both — only a surat that's entirely Perbaikan is worded that way.
+    $aksiKata = $spk->rambuPasang->every(fn ($rp) => $rp->jenis_pekerjaan === \App\Enums\JenisPekerjaan::Perbaikan)
+        ? 'perbaikan'
+        : 'pemasangan';
 
     $jenisRambuList = $spk->rambuPasang
         ->map(fn ($rp) => $rp->rambu->jenisRambu?->nama_jenis)

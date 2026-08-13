@@ -10,8 +10,13 @@
             <div>
                 <flux:heading size="xl">
                     {{ $spk->nomor_surat }}
-                    <flux:badge size="sm" :color="$spk->jenis_spk === JenisPekerjaan::Perbaikan ? 'amber' : 'cyan'">
-                        {{ $spk->jenis_spk->label() }}
+                    @php $jenisRingkasan = $spk->jenisRingkasan(); @endphp
+                    <flux:badge size="sm" :color="match (true) {
+                        $jenisRingkasan === null => 'violet',
+                        $jenisRingkasan === JenisPekerjaan::Perbaikan => 'amber',
+                        default => 'cyan',
+                    }">
+                        {{ $jenisRingkasan?->label() ?? 'Campuran' }}
                     </flux:badge>
                     @if ($spk->prioritas)
                         <flux:badge color="red" size="sm">Prioritas</flux:badge>

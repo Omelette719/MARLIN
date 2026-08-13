@@ -28,7 +28,6 @@ class PenyesuaianDeadlineSpkTest extends TestCase
         return Spk::create(array_merge([
             'nomor_surat' => 'SR-2026/BJM/3'.str_pad((string) ++self::$nomorUrut, 4, '0', STR_PAD_LEFT),
             'dibuat_oleh' => $admin->id,
-            'jenis_spk' => 'pasang_baru',
             'wilayah' => 'Banjarmasin Tengah',
             'jalan' => 'Veteran',
             'rt' => '5',
@@ -47,13 +46,13 @@ class PenyesuaianDeadlineSpkTest extends TestCase
         $jenisRambu = JenisRambu::create(['nama_jenis' => 'Rambu Peringatan '.random_int(1000, 9999)]);
 
         Livewire::test(SpkCreateComponent::class)
-            ->set('jenis_spk', 'pasang_baru')
             ->set('jalan', 'Lambung Mangkurat')
             ->set('rt', '5')
             ->set('kelurahan', 'Kertak Baru')
             ->set('deadline', now()->addDays($hariDeadline)->toDateString())
             ->set('prioritas', true)
             ->set('asal_permintaan', 'internal')
+            ->set('rambuItems.0.jenis_pekerjaan', 'pasang_baru')
             ->set('rambuItems.0.jenis_rambu_id', (string) $jenisRambu->id)
             ->set('rambuItems.0.lokasi', 'Perempatan dekat masjid')
             ->set('rambuItems.0.koordinat', '-3.3194,114.5908')

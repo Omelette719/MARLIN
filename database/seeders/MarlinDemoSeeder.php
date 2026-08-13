@@ -162,7 +162,6 @@ class MarlinDemoSeeder extends Seeder
         $spk1 = Spk::create([
             'nomor_surat' => $this->nomorSurat(1),
             'dibuat_oleh' => $this->admin->id,
-            'jenis_spk' => 'pasang_baru',
             'jalan' => $jalan,
             'rt' => $rt,
             'kelurahan' => $this->randomKelurahan($wilayah),
@@ -204,7 +203,6 @@ class MarlinDemoSeeder extends Seeder
         $spk2 = Spk::create([
             'nomor_surat' => $this->nomorSurat(2),
             'dibuat_oleh' => $this->admin->id,
-            'jenis_spk' => 'perbaikan',
             'jalan' => $jalan,
             'rt' => $rt,
             'kelurahan' => $this->randomKelurahan($wilayah),
@@ -268,7 +266,6 @@ class MarlinDemoSeeder extends Seeder
         $spk3 = Spk::create([
             'nomor_surat' => $this->nomorSurat(3),
             'dibuat_oleh' => $this->admin->id,
-            'jenis_spk' => 'pasang_baru',
             'jalan' => $jalan,
             'rt' => $rt,
             'kelurahan' => $this->randomKelurahan($wilayah),
@@ -309,7 +306,6 @@ class MarlinDemoSeeder extends Seeder
         $spk4 = Spk::create([
             'nomor_surat' => $this->nomorSurat(4),
             'dibuat_oleh' => $this->admin->id,
-            'jenis_spk' => 'pasang_baru',
             'jalan' => $jalan,
             'rt' => $rt,
             'kelurahan' => $this->randomKelurahan($wilayah),
@@ -357,7 +353,6 @@ class MarlinDemoSeeder extends Seeder
         $spk5 = Spk::create([
             'nomor_surat' => $this->nomorSurat(5),
             'dibuat_oleh' => $this->admin->id,
-            'jenis_spk' => 'perbaikan',
             'jalan' => $jalan,
             'rt' => $rt,
             'kelurahan' => $this->randomKelurahan($wilayah),
@@ -417,7 +412,6 @@ class MarlinDemoSeeder extends Seeder
         $spk6 = Spk::create([
             'nomor_surat' => $this->nomorSurat(6),
             'dibuat_oleh' => $this->admin->id,
-            'jenis_spk' => 'pasang_baru',
             'jalan' => $jalan,
             'rt' => $rt,
             'kelurahan' => $this->randomKelurahan($wilayah),

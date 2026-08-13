@@ -10,8 +10,13 @@
             <div>
                 <flux:heading size="xl">
                     {{ $spk->nomor_surat }}
-                    <flux:badge size="sm" :color="$spk->jenis_spk === JenisPekerjaan::Perbaikan ? 'amber' : 'cyan'">
-                        {{ $spk->jenis_spk->label() }}
+                    @php $jenisRingkasan = $spk->jenisRingkasan(); @endphp
+                    <flux:badge size="sm" :color="match (true) {
+                        $jenisRingkasan === null => 'violet',
+                        $jenisRingkasan === JenisPekerjaan::Perbaikan => 'amber',
+                        default => 'cyan',
+                    }">
+                        {{ $jenisRingkasan?->label() ?? 'Campuran' }}
                     </flux:badge>
                     @if ($spk->prioritas)
                         <flux:badge color="red" size="sm">Prioritas</flux:badge>
@@ -158,14 +163,19 @@
                                     <flux:heading size="sm">{{ $rp->rambu->jenisRambu?->nama_jenis }}</flux:heading>
                                     <flux:text class="text-sm text-zinc-500">{{ $rp->rambu->wilayah }}, {{ $rp->rambu->lokasi }}</flux:text>
                                 </div>
-                                <flux:badge size="sm" :color="match ($rp->status) {
-                                    StatusRambuPasang::Selesai => 'green',
-                                    StatusRambuPasang::MenungguValidasi => 'blue',
-                                    StatusRambuPasang::Urgent, StatusRambuPasang::Revisi => 'red',
-                                    StatusRambuPasang::Tertunda => 'amber',
-                                    StatusRambuPasang::Batal => 'zinc',
-                                    default => 'zinc',
-                                }">{{ $rp->status->label() }}</flux:badge>
+                                <div class="flex flex-col items-end gap-1">
+                                    <flux:badge size="sm" :color="match ($rp->status) {
+                                        StatusRambuPasang::Selesai => 'green',
+                                        StatusRambuPasang::MenungguValidasi => 'blue',
+                                        StatusRambuPasang::Urgent, StatusRambuPasang::Revisi => 'red',
+                                        StatusRambuPasang::Tertunda => 'amber',
+                                        StatusRambuPasang::Batal => 'zinc',
+                                        default => 'zinc',
+                                    }">{{ $rp->status->label() }}</flux:badge>
+                                    <flux:badge size="sm" :color="$rp->jenis_pekerjaan === JenisPekerjaan::Perbaikan ? 'amber' : 'cyan'">
+                                        {{ $rp->jenis_pekerjaan->label() }}
+                                    </flux:badge>
+                                </div>
                             </div>
 
                             @if ($rp->rambu->koordinat)

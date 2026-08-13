@@ -18,7 +18,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 #[Table('spk')]
 #[Fillable([
     'nomor_surat', 'dibuat_oleh', 'wilayah', 'jalan', 'rt', 'kelurahan', 'deadline', 'deadline_asli', 'prioritas',
-    'urgensi', 'status', 'jenis_spk', 'asal_permintaan', 'keterangan_asal', 'perihal', 'tanggal_survei',
+    'urgensi', 'status', 'asal_permintaan', 'keterangan_asal', 'perihal', 'tanggal_survei',
     'petugas_survei', 'file_referensi', 'catatan_pekerja_tambahan', 'laporan_akhir_diajukan_at', 'selesai_pada',
 ])]
 class Spk extends Model
@@ -33,7 +33,6 @@ class Spk extends Model
             'prioritas' => 'boolean',
             'urgensi' => Urgensi::class,
             'status' => StatusSpk::class,
-            'jenis_spk' => JenisPekerjaan::class,
             'asal_permintaan' => AsalPermintaan::class,
             'tanggal_survei' => 'date',
             'laporan_akhir_diajukan_at' => 'datetime',
@@ -126,6 +125,19 @@ class Spk extends Model
             $daysUntilDeadline <= 7 => Urgensi::Sedang,
             default => Urgensi::Rendah,
         };
+    }
+
+    // Each rambu_pasang row now picks its own jenis_pekerjaan independently
+    // (an SPK is no longer forced to be entirely Pasang Baru or entirely
+    // Perbaikan) — this collapses that back into a single value for display
+    // surfaces that show one badge per SPK, returning null when the rows
+    // are genuinely mixed so callers can show a "Campuran" state instead of
+    // picking one type arbitrarily.
+    public function jenisRingkasan(): ?JenisPekerjaan
+    {
+        $jenisUnik = $this->rambuPasang->pluck('jenis_pekerjaan')->unique();
+
+        return $jenisUnik->count() === 1 ? $jenisUnik->first() : null;
     }
 
     public function pembuat(): BelongsTo

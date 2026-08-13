@@ -89,7 +89,7 @@
                     <td>{{ $i + 1 }}</td>
                     <td>{{ $item->nomor_surat }}</td>
                     <td>{{ $item->wilayah }}</td>
-                    <td>{{ $item->jenis_spk->label() }}</td>
+                    <td>{{ $item->jenisRingkasan()?->label() ?? 'Campuran' }}</td>
                     <td>{{ $item->rambu_pasang_count }}</td>
                     <td>{{ $item->durasiPengerjaanHari() !== null ? $item->durasiPengerjaanHari().' hari' : '-' }}</td>
                     <td>{{ $item->selisihDeadlineLabel() ?? '-' }}</td>

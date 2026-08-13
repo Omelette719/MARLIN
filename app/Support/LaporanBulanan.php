@@ -48,6 +48,7 @@ class LaporanBulanan
         $spkSelesaiPeriode = $spkQuery()->where('status', StatusSpk::Selesai)
             ->whereBetween('updated_at', [$awal, $akhir])
             ->withCount('rambuPasang')
+            ->with(['rambuPasang:id,rambu_spk_id,jenis_pekerjaan'])
             ->orderBy('nomor_surat')
             ->get();
 

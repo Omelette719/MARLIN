@@ -33,7 +33,7 @@ class SpkDikerjakan extends Component
             ->whereIn('id', $joinedSpkIds)
             ->where('status', StatusSpk::Aktif)
             ->withCount('rambuPasang')
-            ->with(['rambuPasang:id,rambu_spk_id,status,foto_survei'])
+            ->with(['rambuPasang:id,rambu_spk_id,status,jenis_pekerjaan,foto_survei'])
             ->orderByDesc('prioritas')
             ->orderBy('deadline')
             ->paginate(9);

@@ -32,7 +32,6 @@ class AdminSpkShowTest extends TestCase
         $spk = Spk::create([
             'nomor_surat' => 'SR-2026/BJM/7001',
             'dibuat_oleh' => User::factory()->admin()->create()->id,
-            'jenis_spk' => 'pasang_baru',
             'wilayah' => 'Banjarmasin Tengah',
             'deadline' => now()->addDays(5),
             'urgensi' => 'sedang',
@@ -59,7 +58,6 @@ class AdminSpkShowTest extends TestCase
         $spk = Spk::create([
             'nomor_surat' => 'SR-2026/BJM/7002',
             'dibuat_oleh' => $admin->id,
-            'jenis_spk' => 'pasang_baru',
             'wilayah' => 'Banjarmasin Tengah',
             'deadline' => now()->addDays(5),
             'urgensi' => 'sedang',
@@ -98,7 +96,6 @@ class AdminSpkShowTest extends TestCase
         $spk = Spk::create([
             'nomor_surat' => 'SR-2026/BJM/7006',
             'dibuat_oleh' => $admin->id,
-            'jenis_spk' => 'pasang_baru',
             'wilayah' => 'Banjarmasin Tengah',
             'deadline' => now()->addDays(5),
             'urgensi' => 'sedang',
@@ -132,7 +129,6 @@ class AdminSpkShowTest extends TestCase
         $spk = Spk::create([
             'nomor_surat' => 'SR-2026/BJM/7007',
             'dibuat_oleh' => $admin->id,
-            'jenis_spk' => 'pasang_baru',
             'wilayah' => 'Banjarmasin Tengah',
             'deadline' => now()->addDays(5),
             'urgensi' => 'sedang',
@@ -168,7 +164,6 @@ class AdminSpkShowTest extends TestCase
         $spk = Spk::create([
             'nomor_surat' => 'SR-2026/BJM/7004',
             'dibuat_oleh' => $admin->id,
-            'jenis_spk' => 'pasang_baru',
             'wilayah' => 'Banjarmasin Tengah',
             'deadline' => now()->addDays(5),
             'urgensi' => 'sedang',
@@ -207,7 +202,6 @@ class AdminSpkShowTest extends TestCase
         $spk = Spk::create([
             'nomor_surat' => 'SR-2026/BJM/7005',
             'dibuat_oleh' => $admin->id,
-            'jenis_spk' => 'pasang_baru',
             'wilayah' => 'Banjarmasin Tengah',
             'deadline' => now()->addDays(5),
             'urgensi' => 'sedang',
@@ -238,7 +232,6 @@ class AdminSpkShowTest extends TestCase
         $spk = Spk::create([
             'nomor_surat' => 'SR-2026/BJM/7003',
             'dibuat_oleh' => $admin->id,
-            'jenis_spk' => 'pasang_baru',
             'wilayah' => 'Banjarmasin Tengah',
             'deadline' => now()->addDays(5),
             'urgensi' => 'sedang',
@@ -260,7 +253,6 @@ class AdminSpkShowTest extends TestCase
         Spk::create([
             'nomor_surat' => 'SR-2026/BJM/8010',
             'dibuat_oleh' => $admin->id,
-            'jenis_spk' => 'pasang_baru',
             'wilayah' => 'Banjarmasin Tengah',
             'deadline' => now()->addDays(5),
             'urgensi' => 'sedang',
@@ -271,7 +263,6 @@ class AdminSpkShowTest extends TestCase
         Spk::create([
             'nomor_surat' => 'SR-2026/BJM/8014',
             'dibuat_oleh' => $admin->id,
-            'jenis_spk' => 'pasang_baru',
             'wilayah' => 'Banjarmasin Tengah',
             'deadline' => now()->addDays(5),
             'urgensi' => 'sedang',
@@ -292,7 +283,6 @@ class AdminSpkShowTest extends TestCase
         Spk::create([
             'nomor_surat' => 'SR-2026/BJM/8015',
             'dibuat_oleh' => $admin->id,
-            'jenis_spk' => 'pasang_baru',
             'wilayah' => 'Banjarmasin Tengah',
             'deadline' => now()->addDays(5),
             'urgensi' => 'sedang',
@@ -303,7 +293,6 @@ class AdminSpkShowTest extends TestCase
         Spk::create([
             'nomor_surat' => 'SR-2026/BJM/8016',
             'dibuat_oleh' => $admin->id,
-            'jenis_spk' => 'pasang_baru',
             'wilayah' => 'Banjarmasin Tengah',
             'deadline' => now()->addDays(5),
             'urgensi' => 'sedang',
@@ -329,7 +318,6 @@ class AdminSpkShowTest extends TestCase
         $spk = Spk::create([
             'nomor_surat' => 'SR-2026/BJM/8017',
             'dibuat_oleh' => $admin->id,
-            'jenis_spk' => 'pasang_baru',
             'wilayah' => 'Banjarmasin Tengah',
             'deadline' => now()->addDays(10),
             'urgensi' => 'sedang',
@@ -357,7 +345,6 @@ class AdminSpkShowTest extends TestCase
         $spk = Spk::create([
             'nomor_surat' => 'SR-2026/BJM/8019',
             'dibuat_oleh' => $admin->id,
-            'jenis_spk' => 'pasang_baru',
             'wilayah' => 'Banjarmasin Tengah',
             'deadline' => now()->subDays(5),
             'urgensi' => 'rendah',
@@ -381,7 +368,6 @@ class AdminSpkShowTest extends TestCase
         Spk::create([
             'nomor_surat' => 'SR-2026/BJM/8018',
             'dibuat_oleh' => $admin->id,
-            'jenis_spk' => 'pasang_baru',
             'wilayah' => 'Banjarmasin Tengah',
             'deadline' => now()->addDays(10),
             'urgensi' => 'sedang',
@@ -401,7 +387,6 @@ class AdminSpkShowTest extends TestCase
         $spk = Spk::create([
             'nomor_surat' => 'SR-2026/BJM/8011',
             'dibuat_oleh' => $admin->id,
-            'jenis_spk' => 'pasang_baru',
             'jalan' => 'Veteran',
             'rt' => '5',
             'kelurahan' => 'Antasan Besar',
@@ -453,7 +438,6 @@ class AdminSpkShowTest extends TestCase
         $spk = Spk::create([
             'nomor_surat' => 'SR-2026/BJM/8017',
             'dibuat_oleh' => $admin->id,
-            'jenis_spk' => 'pasang_baru',
             'jalan' => 'Veteran',
             'rt' => '5',
             'kelurahan' => 'Antasan Besar',
@@ -505,7 +489,6 @@ class AdminSpkShowTest extends TestCase
         $spk = Spk::create([
             'nomor_surat' => 'SR-2026/BJM/8012',
             'dibuat_oleh' => $admin->id,
-            'jenis_spk' => 'pasang_baru',
             'wilayah' => 'Banjarmasin Tengah',
             'deadline' => now()->addDays(5),
             'urgensi' => 'sedang',
@@ -524,7 +507,6 @@ class AdminSpkShowTest extends TestCase
         $spk = Spk::create([
             'nomor_surat' => 'SR-2026/BJM/7008',
             'dibuat_oleh' => $admin->id,
-            'jenis_spk' => 'pasang_baru',
             'wilayah' => 'Banjarmasin Tengah',
             'deadline' => now()->addDays(10),
             'urgensi' => 'sedang',
@@ -563,7 +545,6 @@ class AdminSpkShowTest extends TestCase
         $spk = Spk::create([
             'nomor_surat' => 'SR-2026/BJM/7020',
             'dibuat_oleh' => $admin->id,
-            'jenis_spk' => 'pasang_baru',
             'wilayah' => 'Banjarmasin Tengah',
             'deadline' => now()->subDays(3),
             'urgensi' => 'rendah',
@@ -582,7 +563,6 @@ class AdminSpkShowTest extends TestCase
         $spk = Spk::create([
             'nomor_surat' => 'SR-2026/BJM/7021',
             'dibuat_oleh' => $admin->id,
-            'jenis_spk' => 'pasang_baru',
             'wilayah' => 'Banjarmasin Tengah',
             'deadline' => now()->subDays(30),
             'urgensi' => 'rendah',
@@ -604,7 +584,6 @@ class AdminSpkShowTest extends TestCase
         Spk::create([
             'nomor_surat' => 'SR-2026/BJM/7022',
             'dibuat_oleh' => $admin->id,
-            'jenis_spk' => 'pasang_baru',
             'wilayah' => 'Banjarmasin Tengah',
             'deadline' => now()->subDays(3),
             'urgensi' => 'rendah',
@@ -627,7 +606,6 @@ class AdminSpkShowTest extends TestCase
         $spk = Spk::create([
             'nomor_surat' => 'SR-2026/BJM/7009',
             'dibuat_oleh' => $admin->id,
-            'jenis_spk' => 'pasang_baru',
             'wilayah' => 'Banjarmasin Tengah',
             'deadline' => now()->addDays(5),
             'urgensi' => 'sedang',
@@ -657,7 +635,6 @@ class AdminSpkShowTest extends TestCase
         $spk = Spk::create([
             'nomor_surat' => 'SR-2026/BJM/7010',
             'dibuat_oleh' => $admin->id,
-            'jenis_spk' => 'pasang_baru',
             'wilayah' => 'Banjarmasin Tengah',
             'deadline' => now()->addDays(5),
             'urgensi' => 'sedang',
@@ -710,7 +687,6 @@ class AdminSpkShowTest extends TestCase
         $spk = Spk::create([
             'nomor_surat' => 'SR-2026/BJM/8013',
             'dibuat_oleh' => $admin->id,
-            'jenis_spk' => 'pasang_baru',
             'wilayah' => 'Banjarmasin Tengah',
             'deadline' => now()->addDays(5),
             'urgensi' => 'sedang',

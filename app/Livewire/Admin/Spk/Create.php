@@ -43,8 +43,6 @@ class Create extends Component
     #[Url(as: 'laporan_kondisi')]
     public ?int $laporanKondisiId = null;
 
-    public string $jenis_spk = 'pasang_baru';
-
     public string $jalan = '';
 
     public string $rt = '';
@@ -90,10 +88,10 @@ class Create extends Component
             : null;
 
         if ($temuan) {
-            $this->jenis_spk = JenisPekerjaan::Perbaikan->value;
             $this->jalan = $temuan->rambu->jalan ?? '';
             $this->rt = $temuan->rambu->rt ?? '';
             $this->rambuItems[] = [
+                'jenis_pekerjaan' => JenisPekerjaan::Perbaikan->value,
                 'rambu_terdaftar' => true,
                 'jenis_rambu_id' => '',
                 'lokasi' => '',
@@ -117,6 +115,7 @@ class Create extends Component
     public function addRambuItem(): void
     {
         $this->rambuItems[] = [
+            'jenis_pekerjaan' => JenisPekerjaan::PasangBaru->value,
             'rambu_terdaftar' => true,
             'jenis_rambu_id' => '',
             'lokasi' => '',
@@ -255,6 +254,7 @@ class Create extends Component
     protected function validationAttributes(): array
     {
         return [
+            'rambuItems.*.jenis_pekerjaan' => 'Jenis Pekerjaan',
             'rambuItems.*.jenis_rambu_id' => 'Jenis Rambu',
             'rambuItems.*.lokasi' => 'Lokasi',
             'rambuItems.*.koordinat' => 'Koordinat',
@@ -291,7 +291,6 @@ class Create extends Component
     private function headerRules(): array
     {
         return [
-            'jenis_spk' => 'required|in:pasang_baru,perbaikan',
             'jalan' => 'required|string|max:255',
             'rt' => ['required', 'string', 'max:255', 'regex:/^[0-9]+$/'],
             'kelurahan' => 'required|string|max:255',
@@ -331,10 +330,13 @@ class Create extends Component
             return;
         }
 
-        $isPasangBaru = $this->jenis_spk === JenisPekerjaan::PasangBaru->value;
-
         foreach ($this->rambuItems as $index => $item) {
-            $butuhEntriManual = $isPasangBaru || ! $item['rambu_terdaftar'];
+            $this->validate([
+                "rambuItems.$index.jenis_pekerjaan" => 'required|in:pasang_baru,perbaikan',
+            ]);
+
+            $isPasangBaruItem = $item['jenis_pekerjaan'] === JenisPekerjaan::PasangBaru->value;
+            $butuhEntriManual = $isPasangBaruItem || ! $item['rambu_terdaftar'];
 
             if ($butuhEntriManual) {
                 $this->validate([
@@ -368,11 +370,10 @@ class Create extends Component
         $urgensi = Spk::computeUrgensi(Carbon::parse($this->deadline), $this->prioritas);
         $nomorSurat = $this->generateNomorSurat();
 
-        $spk = DB::transaction(function () use ($urgensi, $nomorSurat, $isPasangBaru) {
+        $spk = DB::transaction(function () use ($urgensi, $nomorSurat) {
             $spk = Spk::create([
                 'nomor_surat' => $nomorSurat,
                 'dibuat_oleh' => Auth::id(),
-                'jenis_spk' => $this->jenis_spk,
                 'jalan' => $this->jalan,
                 'rt' => $this->rt,
                 'kelurahan' => $this->kelurahan,
@@ -405,7 +406,9 @@ class Create extends Component
             $fotoUtamaSpk = null;
 
             foreach ($this->rambuItems as $item) {
-                if ($isPasangBaru) {
+                $isPasangBaruItem = $item['jenis_pekerjaan'] === JenisPekerjaan::PasangBaru->value;
+
+                if ($isPasangBaruItem) {
                     $rambu = Rambu::create([
                         'jenis_rambu_id' => $item['jenis_rambu_id'],
                         'jalan' => $this->jalan,
@@ -438,7 +441,7 @@ class Create extends Component
                     'rambu_spk_id' => $spk->id,
                     'rambu_id' => $rambu->id,
                     'laporan_kondisi_id' => $item['laporan_kondisi_id'] ?: null,
-                    'jenis_pekerjaan' => $this->jenis_spk,
+                    'jenis_pekerjaan' => $item['jenis_pekerjaan'],
                     'jumlah' => $item['jumlah'],
                     'foto_survei' => $fotoSurvei,
                     'catatan_instruksi' => $item['catatan_instruksi'] ?: null,

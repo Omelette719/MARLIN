@@ -134,7 +134,7 @@ class TemuanTest extends TestCase
             ->test(SpkCreateComponent::class)
             ->assertSet('jalan', $rambu->jalan)
             ->assertSet('rt', $rambu->rt)
-            ->assertSet('jenis_spk', JenisPekerjaan::Perbaikan->value)
+            ->assertSet('rambuItems.0.jenis_pekerjaan', JenisPekerjaan::Perbaikan->value)
             ->assertSet('rambuItems.0.rambu_id', (string) $rambu->id)
             ->set('kelurahan', 'Kertak Baru')
             ->set('deadline', now()->addDays(5)->toDateString())

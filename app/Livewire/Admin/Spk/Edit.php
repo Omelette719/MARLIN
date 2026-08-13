@@ -37,8 +37,6 @@ class Edit extends Component
 
     public Spk $spk;
 
-    public bool $isPasangBaru = false;
-
     public string $jalan = '';
 
     public string $rt = '';
@@ -89,6 +87,7 @@ class Edit extends Component
     protected function validationAttributes(): array
     {
         return [
+            'rambuItems.*.jenis_pekerjaan' => 'Jenis Pekerjaan',
             'rambuItems.*.jenis_rambu_id' => 'Jenis Rambu',
             'rambuItems.*.lokasi' => 'Lokasi',
             'rambuItems.*.koordinat' => 'Koordinat',
@@ -104,7 +103,6 @@ class Edit extends Component
         abort_if($spk->status !== StatusSpk::Aktif, 403, 'SPK yang sudah selesai/dibatalkan tidak bisa diedit.');
 
         $this->spk = $spk;
-        $this->isPasangBaru = $spk->jenis_spk === JenisPekerjaan::PasangBaru;
         $this->jalan = $spk->jalan ?? '';
         $this->rt = $spk->rt ?? '';
         $this->kelurahan = $spk->kelurahan ?? '';
@@ -123,6 +121,7 @@ class Edit extends Component
 
         $this->rambuItems = $spk->rambuPasang()->with('rambu')->get()->map(fn (RambuPasang $rp) => [
             'id' => $rp->id,
+            'jenis_pekerjaan' => $rp->jenis_pekerjaan->value,
             'rambu_terdaftar' => true,
             'jenis_rambu_id' => (string) $rp->rambu->jenis_rambu_id,
             'lokasi' => $rp->rambu->lokasi,
@@ -144,6 +143,7 @@ class Edit extends Component
     {
         $this->rambuItems[] = [
             'id' => null,
+            'jenis_pekerjaan' => JenisPekerjaan::PasangBaru->value,
             'rambu_terdaftar' => true,
             'jenis_rambu_id' => '',
             'lokasi' => '',
@@ -393,7 +393,11 @@ class Edit extends Component
         }
 
         foreach ($this->rambuItems as $index => $item) {
-            $manual = $this->isPasangBaru || ! $item['rambu_terdaftar'];
+            $this->validate([
+                "rambuItems.$index.jenis_pekerjaan" => 'required|in:pasang_baru,perbaikan',
+            ]);
+
+            $manual = $item['jenis_pekerjaan'] === JenisPekerjaan::PasangBaru->value || ! $item['rambu_terdaftar'];
 
             if ($manual) {
                 $this->validate([
@@ -451,7 +455,8 @@ class Edit extends Component
             }
 
             foreach ($this->rambuItems as $item) {
-                $manual = $this->isPasangBaru || ! $item['rambu_terdaftar'];
+                $isPasangBaruItem = $item['jenis_pekerjaan'] === JenisPekerjaan::PasangBaru->value;
+                $manual = $isPasangBaruItem || ! $item['rambu_terdaftar'];
 
                 if ($item['id']) {
                     $rambuPasang = RambuPasang::with('rambu')->findOrFail($item['id']);
@@ -466,6 +471,7 @@ class Edit extends Component
                         $rambuPasang->rambu_id = (int) $item['rambu_id'];
                     }
 
+                    $rambuPasang->jenis_pekerjaan = $item['jenis_pekerjaan'];
                     $rambuPasang->jumlah = $item['jumlah'];
                     $rambuPasang->catatan_instruksi = $item['catatan_instruksi'] ?: null;
 
@@ -478,7 +484,7 @@ class Edit extends Component
                     continue;
                 }
 
-                if ($this->isPasangBaru) {
+                if ($isPasangBaruItem) {
                     $rambu = Rambu::create([
                         'jenis_rambu_id' => $item['jenis_rambu_id'],
                         'jalan' => $this->jalan,
@@ -505,7 +511,7 @@ class Edit extends Component
                     'rambu_spk_id' => $this->spk->id,
                     'rambu_id' => $rambu->id,
                     'laporan_kondisi_id' => $item['laporan_kondisi_id'] ?: null,
-                    'jenis_pekerjaan' => $this->spk->jenis_spk,
+                    'jenis_pekerjaan' => $item['jenis_pekerjaan'],
                     'jumlah' => $item['jumlah'],
                     'foto_survei' => $item['foto_survei'] ? $item['foto_survei']->store('rambu-pasang/survei', 'public') : null,
                     'catatan_instruksi' => $item['catatan_instruksi'] ?: null,

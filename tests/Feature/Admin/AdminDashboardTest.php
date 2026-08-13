@@ -49,7 +49,6 @@ class AdminDashboardTest extends TestCase
         Spk::create([
             'nomor_surat' => 'SR-2026/BJM/9001',
             'dibuat_oleh' => $admin->id,
-            'jenis_spk' => 'pasang_baru',
             'wilayah' => 'Banjarmasin Tengah',
             'deadline' => now()->addDays(5),
             'urgensi' => 'sedang',
@@ -71,7 +70,6 @@ class AdminDashboardTest extends TestCase
         $spk = Spk::create(array_merge([
             'nomor_surat' => $nomorSurat,
             'dibuat_oleh' => $admin->id,
-            'jenis_spk' => 'pasang_baru',
             'wilayah' => 'Banjarmasin Tengah',
             'deadline' => now()->addDays(10),
             'urgensi' => 'rendah',

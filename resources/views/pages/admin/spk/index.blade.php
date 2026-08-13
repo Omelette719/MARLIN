@@ -43,8 +43,13 @@
                         <div class="flex flex-1 flex-col gap-2 p-4">
                             <div class="flex items-start justify-between gap-2">
                                 <flux:heading size="sm">{{ $item->nomor_surat }}</flux:heading>
-                                <flux:badge size="sm" :color="$item->jenis_spk === JenisPekerjaan::Perbaikan ? 'amber' : 'cyan'">
-                                    {{ $item->jenis_spk->label() }}
+                                @php $jenisRingkasan = $item->jenisRingkasan(); @endphp
+                                <flux:badge size="sm" :color="match (true) {
+                                    $jenisRingkasan === null => 'violet',
+                                    $jenisRingkasan === JenisPekerjaan::Perbaikan => 'amber',
+                                    default => 'cyan',
+                                }">
+                                    {{ $jenisRingkasan?->label() ?? 'Campuran' }}
                                 </flux:badge>
                             </div>
 

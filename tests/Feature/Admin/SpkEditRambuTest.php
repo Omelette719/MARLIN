@@ -21,12 +21,11 @@ class SpkEditRambuTest extends TestCase
 {
     use RefreshDatabase;
 
-    private function makeSpk(User $admin, string $jenisSpk = 'pasang_baru'): Spk
+    private function makeSpk(User $admin): Spk
     {
         return Spk::create([
             'nomor_surat' => 'SR-2026/BJM/9'.random_int(100, 999),
             'dibuat_oleh' => $admin->id,
-            'jenis_spk' => $jenisSpk,
             'jalan' => 'Veteran',
             'rt' => '5',
             'kelurahan' => 'Antasan Besar',
@@ -135,7 +134,7 @@ class SpkEditRambuTest extends TestCase
         $admin = User::factory()->admin()->create();
         $this->actingAs($admin);
 
-        $spk = $this->makeSpk($admin, 'perbaikan');
+        $spk = $this->makeSpk($admin);
         $rp = $this->makeRambuPasang($spk, 'perbaikan');
 
         $jenis = JenisRambu::create(['nama_jenis' => 'Rambu Larangan']);
@@ -408,7 +407,7 @@ class SpkEditRambuTest extends TestCase
         $admin = User::factory()->admin()->create();
         $this->actingAs($admin);
 
-        $spk = $this->makeSpk($admin, 'perbaikan');
+        $spk = $this->makeSpk($admin);
         $rp1 = $this->makeRambuPasang($spk, 'perbaikan');
         $rp2 = $this->makeRambuPasang($spk, 'perbaikan');
 

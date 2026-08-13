@@ -12,13 +12,6 @@
             <flux:card class="flex flex-col gap-4">
                 <flux:heading size="lg">Detail Surat</flux:heading>
 
-                <div>
-                    <flux:radio.group wire:model.live="jenis_spk" label="Jenis Surat" variant="segmented">
-                        <flux:radio value="{{ \App\Enums\JenisPekerjaan::PasangBaru->value }}" label="Pemasangan Baru" />
-                        <flux:radio value="{{ \App\Enums\JenisPekerjaan::Perbaikan->value }}" label="Perbaikan" />
-                    </flux:radio.group>
-                </div>
-
                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
                     <flux:input wire:model="jalan" label="Jalan" placeholder="Mis. Gatot X" required />
                     <flux:input wire:model.live.debounce.500ms="rt" label="RT" placeholder="Mis. 27" required />
@@ -94,11 +87,16 @@
                             class="max-w-sm"
                         />
 
-                        @if ($jenis_spk === \App\Enums\JenisPekerjaan::Perbaikan->value)
+                        <flux:radio.group wire:model.live="rambuItems.{{ $index }}.jenis_pekerjaan" label="Jenis Pekerjaan" variant="segmented">
+                            <flux:radio value="{{ \App\Enums\JenisPekerjaan::PasangBaru->value }}" label="Pemasangan Baru" />
+                            <flux:radio value="{{ \App\Enums\JenisPekerjaan::Perbaikan->value }}" label="Perbaikan" />
+                        </flux:radio.group>
+
+                        @if ($item['jenis_pekerjaan'] === \App\Enums\JenisPekerjaan::Perbaikan->value)
                             <flux:checkbox wire:model="rambuItems.{{ $index }}.rambu_terdaftar" label="Rambu sudah terdaftar di sistem" description="Matikan jika rambu ini sudah ada secara fisik tapi belum pernah dicatat di sistem." />
                         @endif
 
-                        @if ($jenis_spk === \App\Enums\JenisPekerjaan::PasangBaru->value || ! $item['rambu_terdaftar'])
+                        @if ($item['jenis_pekerjaan'] === \App\Enums\JenisPekerjaan::PasangBaru->value || ! $item['rambu_terdaftar'])
                             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                 <x-searchable-select
                                     wire-model="rambuItems.{{ $index }}.jenis_rambu_id"

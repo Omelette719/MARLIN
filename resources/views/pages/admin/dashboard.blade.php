@@ -257,8 +257,13 @@
                         <flux:table.row>
                             <flux:table.cell variant="strong">{{ $row['spk']->nomor_surat }}</flux:table.cell>
                             <flux:table.cell>
-                                <flux:badge size="sm" :color="$row['spk']->jenis_spk === JenisPekerjaan::Perbaikan ? 'amber' : 'cyan'">
-                                    {{ $row['spk']->jenis_spk->label() }}
+                                @php $jenisRingkasan = $row['spk']->jenisRingkasan(); @endphp
+                                <flux:badge size="sm" :color="match (true) {
+                                    $jenisRingkasan === null => 'violet',
+                                    $jenisRingkasan === JenisPekerjaan::Perbaikan => 'amber',
+                                    default => 'cyan',
+                                }">
+                                    {{ $jenisRingkasan?->label() ?? 'Campuran' }}
                                 </flux:badge>
                             </flux:table.cell>
                             <flux:table.cell>{{ $row['spk']->wilayah }}</flux:table.cell>

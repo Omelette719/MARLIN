@@ -66,6 +66,7 @@ class Dashboard extends Component
             'jenisRambuOptions' => JenisRambu::orderBy('nama_jenis')->get(),
             'tingkatOptions' => PetaData::TINGKAT_LABELS,
             'spkTerbaru' => Spk::withCount('rambuPasang')
+                ->with(['rambuPasang:id,rambu_spk_id,jenis_pekerjaan'])
                 ->latest()
                 ->limit(6)
                 ->get()

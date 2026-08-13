@@ -114,11 +114,16 @@
                             class="max-w-sm"
                         />
 
-                        @if (! $isPasangBaru)
+                        <flux:radio.group wire:model.live="rambuItems.{{ $index }}.jenis_pekerjaan" label="Jenis Pekerjaan" variant="segmented">
+                            <flux:radio value="{{ \App\Enums\JenisPekerjaan::PasangBaru->value }}" label="Pemasangan Baru" />
+                            <flux:radio value="{{ \App\Enums\JenisPekerjaan::Perbaikan->value }}" label="Perbaikan" />
+                        </flux:radio.group>
+
+                        @if ($item['jenis_pekerjaan'] === \App\Enums\JenisPekerjaan::Perbaikan->value)
                             <flux:checkbox wire:model="rambuItems.{{ $index }}.rambu_terdaftar" label="Rambu sudah terdaftar di sistem" description="Matikan untuk mengubah data rambu ini (jenis/lokasi/koordinat) langsung." />
                         @endif
 
-                        @if ($isPasangBaru || ! $item['rambu_terdaftar'])
+                        @if ($item['jenis_pekerjaan'] === \App\Enums\JenisPekerjaan::PasangBaru->value || ! $item['rambu_terdaftar'])
                             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                 <x-searchable-select
                                     wire-model="rambuItems.{{ $index }}.jenis_rambu_id"

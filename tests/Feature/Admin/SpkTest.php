@@ -100,7 +100,6 @@ class SpkTest extends TestCase
         $spk = Spk::create([
             'nomor_surat' => 'SR-2026/BJM/8020',
             'dibuat_oleh' => $admin->id,
-            'jenis_spk' => 'pasang_baru',
             'wilayah' => 'Banjarmasin Tengah',
             'deadline' => now()->addDays(5),
             'urgensi' => 'sedang',
@@ -141,7 +140,6 @@ class SpkTest extends TestCase
         $spkDenganTim = Spk::create([
             'nomor_surat' => 'SR-2026/BJM/8021',
             'dibuat_oleh' => $admin->id,
-            'jenis_spk' => 'pasang_baru',
             'wilayah' => 'Banjarmasin Tengah',
             'deadline' => now()->addDays(5),
             'urgensi' => 'sedang',
@@ -157,7 +155,6 @@ class SpkTest extends TestCase
         Spk::create([
             'nomor_surat' => 'SR-2026/BJM/8022',
             'dibuat_oleh' => $admin->id,
-            'jenis_spk' => 'pasang_baru',
             'wilayah' => 'Banjarmasin Tengah',
             'deadline' => now()->addDays(5),
             'urgensi' => 'sedang',
@@ -177,26 +174,52 @@ class SpkTest extends TestCase
         $admin = User::factory()->admin()->create();
         $this->actingAs($admin);
 
-        Spk::create([
+        $jenisRambu = JenisRambu::create(['nama_jenis' => 'Rambu Peringatan']);
+
+        $spkPasangBaru = Spk::create([
             'nomor_surat' => 'SR-2026/BJM/8001',
             'dibuat_oleh' => $admin->id,
-            'jenis_spk' => 'pasang_baru',
             'wilayah' => 'Banjarmasin Tengah',
             'deadline' => now()->addDays(5),
             'urgensi' => 'sedang',
             'status' => 'aktif',
             'asal_permintaan' => 'internal',
         ]);
+        RambuPasang::create([
+            'rambu_spk_id' => $spkPasangBaru->id,
+            'rambu_id' => Rambu::create([
+                'jenis_rambu_id' => $jenisRambu->id,
+                'wilayah' => 'Banjarmasin Tengah',
+                'lokasi' => 'Depan pasar',
+                'koordinat' => '-3.30,114.59',
+            ])->id,
+            'jenis_pekerjaan' => 'pasang_baru',
+            'jumlah' => 1,
+            'status' => 'belum',
+        ]);
 
-        Spk::create([
+        $spkPerbaikan = Spk::create([
             'nomor_surat' => 'SR-2026/BJM/8002',
             'dibuat_oleh' => $admin->id,
-            'jenis_spk' => 'perbaikan',
             'wilayah' => 'Banjarmasin Selatan',
             'deadline' => now()->addDays(5),
             'urgensi' => 'sedang',
             'status' => 'aktif',
             'asal_permintaan' => 'internal',
+        ]);
+        RambuPasang::create([
+            'rambu_spk_id' => $spkPerbaikan->id,
+            'rambu_id' => Rambu::create([
+                'jenis_rambu_id' => $jenisRambu->id,
+                'wilayah' => 'Banjarmasin Selatan',
+                'lokasi' => 'Depan sekolah',
+                'koordinat' => '-3.34,114.59',
+                'kondisi_terkini' => 'rusak',
+                'sudah_terpasang' => true,
+            ])->id,
+            'jenis_pekerjaan' => 'perbaikan',
+            'jumlah' => 1,
+            'status' => 'belum',
         ]);
 
         Livewire::test(SpkIndexComponent::class)
@@ -216,7 +239,7 @@ class SpkTest extends TestCase
         ]);
 
         Livewire::test(SpkCreateComponent::class)
-            ->set('jenis_spk', JenisPekerjaan::PasangBaru->value)
+            ->set('rambuItems.0.jenis_pekerjaan', JenisPekerjaan::PasangBaru->value)
             ->set('jalan', 'Lambung Mangkurat')
             ->set('rt', '5')
             ->set('kelurahan', 'Kertak Baru')
@@ -234,7 +257,6 @@ class SpkTest extends TestCase
 
         $this->assertNotNull($spk);
         $this->assertSame('Jl. Lambung Mangkurat RT. 5 Kel. Kertak Baru', $spk->wilayah);
-        $this->assertSame(JenisPekerjaan::PasangBaru, $spk->jenis_spk);
         $this->assertSame(Urgensi::Sedang, $spk->urgensi);
         $this->assertSame($admin->id, $spk->dibuat_oleh);
 
@@ -244,6 +266,7 @@ class SpkTest extends TestCase
         $this->assertSame(2, $rambuPasang->jumlah);
 
         $this->assertSame(1, $spk->auditLogs()->count());
+        $this->assertSame(JenisPekerjaan::PasangBaru, $spk->jenisRingkasan());
     }
 
     // "SPK Baru Tersedia" used to be text-only regardless of whether the SPK
@@ -258,7 +281,7 @@ class SpkTest extends TestCase
         $jenisRambu = JenisRambu::create(['nama_jenis' => 'Rambu Peringatan']);
 
         Livewire::test(SpkCreateComponent::class)
-            ->set('jenis_spk', JenisPekerjaan::PasangBaru->value)
+            ->set('rambuItems.0.jenis_pekerjaan', JenisPekerjaan::PasangBaru->value)
             ->set('jalan', 'Lambung Mangkurat')
             ->set('rt', '5')
             ->set('kelurahan', 'Kertak Baru')
@@ -287,7 +310,7 @@ class SpkTest extends TestCase
         $this->actingAs(User::factory()->admin()->create());
 
         Livewire::test(SpkCreateComponent::class)
-            ->set('jenis_spk', JenisPekerjaan::PasangBaru->value)
+            ->set('rambuItems.0.jenis_pekerjaan', JenisPekerjaan::PasangBaru->value)
             ->set('jalan', 'Lambung Mangkurat')
             ->set('rt', '5A')
             ->set('kelurahan', 'Kertak Baru')
@@ -326,7 +349,7 @@ class SpkTest extends TestCase
         $this->actingAs(User::factory()->admin()->create());
 
         Livewire::test(SpkCreateComponent::class)
-            ->set('jenis_spk', JenisPekerjaan::PasangBaru->value)
+            ->set('rambuItems.0.jenis_pekerjaan', JenisPekerjaan::PasangBaru->value)
             ->set('jalan', 'Lambung Mangkurat')
             ->set('rt', '5')
             ->set('kelurahan', 'Kertak Baru')
@@ -343,7 +366,7 @@ class SpkTest extends TestCase
         $this->actingAs(User::factory()->admin()->create());
 
         Livewire::test(SpkCreateComponent::class)
-            ->set('jenis_spk', JenisPekerjaan::PasangBaru->value)
+            ->set('rambuItems.0.jenis_pekerjaan', JenisPekerjaan::PasangBaru->value)
             ->set('jalan', 'Lambung Mangkurat')
             ->set('rt', '5')
             ->set('kelurahan', 'Kertak Baru')
@@ -362,7 +385,7 @@ class SpkTest extends TestCase
         $this->actingAs(User::factory()->admin()->create());
 
         Livewire::test(SpkCreateComponent::class)
-            ->set('jenis_spk', JenisPekerjaan::PasangBaru->value)
+            ->set('rambuItems.0.jenis_pekerjaan', JenisPekerjaan::PasangBaru->value)
             ->set('jalan', 'Lambung Mangkurat')
             ->set('rt', '5')
             ->set('kelurahan', 'Kertak Baru')
@@ -381,7 +404,7 @@ class SpkTest extends TestCase
         $this->actingAs(User::factory()->admin()->create());
 
         Livewire::test(SpkCreateComponent::class)
-            ->set('jenis_spk', JenisPekerjaan::PasangBaru->value)
+            ->set('rambuItems.0.jenis_pekerjaan', JenisPekerjaan::PasangBaru->value)
             ->set('jalan', 'Lambung Mangkurat')
             ->set('rt', '5')
             ->set('kelurahan', 'Kertak Baru')
@@ -399,7 +422,7 @@ class SpkTest extends TestCase
         $this->actingAs(User::factory()->admin()->create());
 
         Livewire::test(SpkCreateComponent::class)
-            ->set('jenis_spk', JenisPekerjaan::PasangBaru->value)
+            ->set('rambuItems.0.jenis_pekerjaan', JenisPekerjaan::PasangBaru->value)
             ->set('jalan', 'Lambung Mangkurat')
             ->set('rt', '5')
             ->set('kelurahan', 'Kertak Baru')
@@ -420,7 +443,7 @@ class SpkTest extends TestCase
         $jenisRambu = JenisRambu::create(['nama_jenis' => 'Cermin Tikungan']);
 
         Livewire::test(SpkCreateComponent::class)
-            ->set('jenis_spk', JenisPekerjaan::PasangBaru->value)
+            ->set('rambuItems.0.jenis_pekerjaan', JenisPekerjaan::PasangBaru->value)
             ->set('jalan', 'Gatot X')
             ->set('rt', '27')
             ->set('kelurahan', 'Pengambangan')
@@ -461,7 +484,7 @@ class SpkTest extends TestCase
         $jenisRambu = JenisRambu::create(['nama_jenis' => 'Cermin Tikungan']);
 
         Livewire::test(SpkCreateComponent::class)
-            ->set('jenis_spk', JenisPekerjaan::PasangBaru->value)
+            ->set('rambuItems.0.jenis_pekerjaan', JenisPekerjaan::PasangBaru->value)
             ->set('jalan', 'Gatot X')
             ->set('rt', '27')
             ->set('kelurahan', 'Pengambangan')
@@ -487,7 +510,7 @@ class SpkTest extends TestCase
         $jenisRambu = JenisRambu::create(['nama_jenis' => 'Rambu Peringatan']);
 
         Livewire::test(SpkCreateComponent::class)
-            ->set('jenis_spk', JenisPekerjaan::PasangBaru->value)
+            ->set('rambuItems.0.jenis_pekerjaan', JenisPekerjaan::PasangBaru->value)
             ->set('jalan', 'Lambung Mangkurat')
             ->set('rt', '5')
             ->set('kelurahan', 'Kertak Baru')
@@ -552,7 +575,7 @@ class SpkTest extends TestCase
         ]);
 
         Livewire::test(SpkCreateComponent::class)
-            ->set('jenis_spk', JenisPekerjaan::Perbaikan->value)
+            ->set('rambuItems.0.jenis_pekerjaan', JenisPekerjaan::Perbaikan->value)
             ->set('jalan', 'Veteran')
             ->set('rt', '10')
             ->set('kelurahan', 'Antasan Besar')
@@ -567,7 +590,6 @@ class SpkTest extends TestCase
         $this->assertSame(1, Rambu::count());
 
         $spk = Spk::first();
-        $this->assertSame(JenisPekerjaan::Perbaikan, $spk->jenis_spk);
         $this->assertSame(Urgensi::Tinggi, $spk->urgensi);
 
         $rambuPasang = $spk->rambuPasang()->first();
@@ -583,7 +605,7 @@ class SpkTest extends TestCase
         $jenisRambu = JenisRambu::create(['nama_jenis' => 'Rambu Larangan']);
 
         Livewire::test(SpkCreateComponent::class)
-            ->set('jenis_spk', JenisPekerjaan::Perbaikan->value)
+            ->set('rambuItems.0.jenis_pekerjaan', JenisPekerjaan::Perbaikan->value)
             ->set('jalan', 'Veteran')
             ->set('rt', '10')
             ->set('kelurahan', 'Antasan Besar')
@@ -607,6 +629,57 @@ class SpkTest extends TestCase
         $rambuPasang = Spk::first()->rambuPasang()->first();
         $this->assertSame(JenisPekerjaan::Perbaikan, $rambuPasang->jenis_pekerjaan);
         $this->assertSame($rambu->id, $rambuPasang->rambu_id);
+    }
+
+    // The whole point of moving jenis_pekerjaan onto each row: one surat can
+    // now cover a brand-new install and a repair of an already-registered
+    // rambu at the same time, instead of being forced to pick one type for
+    // the entire SPK.
+    public function test_admin_can_create_one_spk_with_mixed_pasang_baru_and_perbaikan_rows(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $this->actingAs($admin);
+
+        $jenisRambu = JenisRambu::create(['nama_jenis' => 'Rambu Peringatan']);
+        $rambuLama = Rambu::create([
+            'jenis_rambu_id' => $jenisRambu->id,
+            'wilayah' => 'Banjarmasin Utara',
+            'lokasi' => 'Depan pasar',
+            'koordinat' => '-3.30,114.59',
+            'kondisi_terkini' => 'rusak',
+            'sudah_terpasang' => true,
+        ]);
+
+        Livewire::test(SpkCreateComponent::class)
+            ->set('jalan', 'Veteran')
+            ->set('rt', '10')
+            ->set('kelurahan', 'Antasan Besar')
+            ->set('deadline', now()->addDays(5)->toDateString())
+            ->set('asal_permintaan', 'internal')
+            ->set('rambuItems.0.jenis_pekerjaan', JenisPekerjaan::PasangBaru->value)
+            ->set('rambuItems.0.jenis_rambu_id', (string) $jenisRambu->id)
+            ->set('rambuItems.0.lokasi', 'Perempatan dekat masjid')
+            ->set('rambuItems.0.koordinat', '-3.3194,114.5908')
+            ->set('rambuItems.0.jumlah', 1)
+            ->call('addRambuItem')
+            ->set('rambuItems.1.jenis_pekerjaan', JenisPekerjaan::Perbaikan->value)
+            ->set('rambuItems.1.rambu_id', (string) $rambuLama->id)
+            ->set('rambuItems.1.jumlah', 1)
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertRedirect(route('admin.spk.index'));
+
+        $spk = Spk::first();
+        $this->assertNotNull($spk);
+        $this->assertSame(2, $spk->rambuPasang()->count());
+
+        $baruRow = $spk->rambuPasang()->where('rambu_id', '!=', $rambuLama->id)->first();
+        $this->assertSame(JenisPekerjaan::PasangBaru, $baruRow->jenis_pekerjaan);
+
+        $perbaikanRow = $spk->rambuPasang()->where('rambu_id', $rambuLama->id)->first();
+        $this->assertSame(JenisPekerjaan::Perbaikan, $perbaikanRow->jenis_pekerjaan);
+
+        $this->assertNull($spk->jenisRingkasan());
     }
 
     public function test_rambu_items_are_required(): void
@@ -667,7 +740,7 @@ class SpkTest extends TestCase
         $jenisRambu = JenisRambu::create(['nama_jenis' => 'Rambu Peringatan']);
 
         Livewire::test(SpkCreateComponent::class)
-            ->set('jenis_spk', JenisPekerjaan::PasangBaru->value)
+            ->set('rambuItems.0.jenis_pekerjaan', JenisPekerjaan::PasangBaru->value)
             ->set('jalan', 'Lambung Mangkurat')
             ->set('rt', '5')
             ->set('kelurahan', 'Kertak Baru')
@@ -691,7 +764,7 @@ class SpkTest extends TestCase
         $jenisRambu = JenisRambu::create(['nama_jenis' => 'Rambu Peringatan']);
 
         Livewire::test(SpkCreateComponent::class)
-            ->set('jenis_spk', JenisPekerjaan::PasangBaru->value)
+            ->set('rambuItems.0.jenis_pekerjaan', JenisPekerjaan::PasangBaru->value)
             ->set('jalan', 'Lambung Mangkurat')
             ->set('rt', '5')
             ->set('kelurahan', 'Kertak Baru')
@@ -723,7 +796,7 @@ class SpkTest extends TestCase
         ]);
 
         Livewire::test(SpkCreateComponent::class)
-            ->set('jenis_spk', JenisPekerjaan::Perbaikan->value)
+            ->set('rambuItems.0.jenis_pekerjaan', JenisPekerjaan::Perbaikan->value)
             ->set('jalan', 'Veteran')
             ->set('rt', '10')
             ->set('kelurahan', 'Antasan Besar')
@@ -732,6 +805,7 @@ class SpkTest extends TestCase
             ->set('rambuItems.0.rambu_id', (string) $rambu->id)
             ->set('rambuItems.0.jumlah', 1)
             ->call('addRambuItem')
+            ->set('rambuItems.1.jenis_pekerjaan', JenisPekerjaan::Perbaikan->value)
             ->set('rambuItems.1.rambu_id', (string) $rambu->id)
             ->set('rambuItems.1.jumlah', 1)
             ->call('save')
@@ -757,7 +831,7 @@ class SpkTest extends TestCase
         $jenisRambuBaru = JenisRambu::create(['nama_jenis' => 'Rambu Peringatan']);
 
         $component = Livewire::test(SpkCreateComponent::class)
-            ->set('jenis_spk', JenisPekerjaan::PasangBaru->value)
+            ->set('rambuItems.0.jenis_pekerjaan', JenisPekerjaan::PasangBaru->value)
             ->set('rambuItems.0.jenis_rambu_id', (string) $jenisRambuBaru->id)
             ->set('rambuItems.0.koordinat', '-3.3194,114.5908');
 
@@ -775,7 +849,7 @@ class SpkTest extends TestCase
         $jenisRambu = JenisRambu::create(['nama_jenis' => 'Rambu Peringatan']);
 
         Livewire::test(SpkCreateComponent::class)
-            ->set('jenis_spk', JenisPekerjaan::PasangBaru->value)
+            ->set('rambuItems.0.jenis_pekerjaan', JenisPekerjaan::PasangBaru->value)
             ->set('jalan', 'Lambung Mangkurat')
             ->set('rt', '5')
             ->set('kelurahan', 'Kertak Baru')
@@ -801,7 +875,7 @@ class SpkTest extends TestCase
         $jenisRambu = JenisRambu::create(['nama_jenis' => 'Rambu Peringatan']);
 
         Livewire::test(SpkCreateComponent::class)
-            ->set('jenis_spk', JenisPekerjaan::PasangBaru->value)
+            ->set('rambuItems.0.jenis_pekerjaan', JenisPekerjaan::PasangBaru->value)
             ->set('jalan', 'Lambung Mangkurat')
             ->set('rt', '5')
             ->set('kelurahan', 'Kertak Baru')
@@ -825,7 +899,7 @@ class SpkTest extends TestCase
         $jenisRambu = JenisRambu::create(['nama_jenis' => 'Rambu Peringatan']);
 
         $component = Livewire::test(SpkCreateComponent::class)
-            ->set('jenis_spk', JenisPekerjaan::PasangBaru->value)
+            ->set('rambuItems.0.jenis_pekerjaan', JenisPekerjaan::PasangBaru->value)
             ->set('rambuItems.0.jenis_rambu_id', (string) $jenisRambu->id)
             ->set('rambuItems.0.koordinat', '-3.3194,114.5908');
 
