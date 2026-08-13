@@ -65,27 +65,33 @@
                 </flux:sidebar.item>
             </flux:sidebar.group>
         @else
-            <flux:sidebar.group :heading="__('Petugas')" expandable icon="squares-2x2" class="grid">
+            <flux:sidebar.group :heading="__('Pengerjaan')" expandable icon="briefcase" class="grid">
                 <flux:sidebar.item icon="home" :href="route($homeRoute)" :current="request()->routeIs('dashboard')" wire:navigate>
                     {{ __('Daftar Surat Aktif') }}
                 </flux:sidebar.item>
                 <flux:sidebar.item icon="clipboard-document-check" :href="route('user.spk-dikerjakan')" :current="request()->routeIs('user.spk-dikerjakan')" wire:navigate>
                     {{ __('SPK Sedang Dikerjakan') }}
                 </flux:sidebar.item>
-                <flux:sidebar.item icon="document-chart-bar" :href="route('user.riwayat-spk')" :current="request()->routeIs('user.riwayat-spk')" wire:navigate>
-                    {{ __('Riwayat Pekerjaan Saya') }}
-                </flux:sidebar.item>
-                <flux:sidebar.item icon="map-pin" :href="route('user.temuan')" :current="request()->routeIs('user.temuan')" wire:navigate>
-                    {{ __('Laporan Temuan Kondisi') }}
-                </flux:sidebar.item>
+            </flux:sidebar.group>
+
+            <flux:sidebar.group :heading="__('Rambu')" expandable icon="exclamation-triangle" class="grid">
                 <flux:sidebar.item icon="map" :href="route('peta')" :current="request()->routeIs('peta')" wire:navigate>
                     {{ __('Peta Rambu') }}
+                </flux:sidebar.item>
+                <flux:sidebar.item icon="clipboard-document-list" :href="route('rambu.index')" :current="request()->routeIs('rambu.index')" wire:navigate>
+                    {{ __('Daftar Rambu') }}
                 </flux:sidebar.item>
                 <flux:sidebar.item icon="tag" :href="route('jenis-rambu.index')" :current="request()->routeIs('jenis-rambu.index')" wire:navigate>
                     {{ __('Jenis Rambu') }}
                 </flux:sidebar.item>
-                <flux:sidebar.item icon="clipboard-document-list" :href="route('rambu.index')" :current="request()->routeIs('rambu.index')" wire:navigate>
-                    {{ __('Daftar Rambu') }}
+            </flux:sidebar.group>
+
+            <flux:sidebar.group :heading="__('Laporan & Riwayat')" expandable icon="document-chart-bar" class="grid">
+                <flux:sidebar.item icon="map-pin" :href="route('user.temuan')" :current="request()->routeIs('user.temuan')" wire:navigate>
+                    {{ __('Laporan Temuan Kondisi') }}
+                </flux:sidebar.item>
+                <flux:sidebar.item icon="document-chart-bar" :href="route('user.riwayat-spk')" :current="request()->routeIs('user.riwayat-spk')" wire:navigate>
+                    {{ __('Riwayat Pekerjaan Saya') }}
                 </flux:sidebar.item>
                 <flux:sidebar.item icon="clock" :href="route('audit-log')" :current="request()->routeIs('audit-log')" wire:navigate>
                     {{ __('Riwayat Aktivitas') }}
