@@ -7,7 +7,11 @@
             <div class="flex items-center gap-2"><span class="inline-block size-3 rounded-full" style="background:#9ca3af"></span> Belum Dikerjakan</div>
         </div>
 
-        <div class="relative h-[calc(100dvh-155px)] overflow-hidden rounded-xl border border-zinc-200">
+        {{-- isolate: Leaflet's own controls/panes go up to z-index:1000 internally
+        (see leaflet.css), which without a contained stacking context here
+        would outrank the mobile sidebar drawer (z-20) and paint on top of
+        it whenever the sidebar is opened on a small screen. --}}
+        <div class="relative isolate h-[calc(100dvh-155px)] overflow-hidden rounded-xl border border-zinc-200">
             <div id="peta-rambu" wire:ignore class="size-full"></div>
             <div
                 id="peta-koordinat"

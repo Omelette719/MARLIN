@@ -98,7 +98,10 @@
                 <div class="flex items-center gap-2"><span class="inline-block size-3 rounded-full" style="background:#9ca3af"></span> Belum Dikerjakan</div>
             </div>
 
-            <div class="relative h-96 overflow-hidden rounded-xl border border-zinc-200">
+            {{-- isolate: same fix as pages/peta.blade.php — contains Leaflet's
+            internal z-index (up to 1000 for its controls) so it can't paint
+            over the mobile sidebar drawer (z-20) when opened. --}}
+            <div class="relative isolate h-96 overflow-hidden rounded-xl border border-zinc-200">
                 <div id="dashboard-peta" wire:ignore class="size-full"></div>
             </div>
         </flux:card>
