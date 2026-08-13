@@ -16,10 +16,29 @@
             @endphp
             <flux:card class="flex flex-col gap-4" x-data="{
                 ambilLokasi() {
-                    if (! navigator.geolocation) return
-                    navigator.geolocation.getCurrentPosition((pos) => {
-                        $wire.set('koordinat_gps', pos.coords.latitude.toFixed(6) + ',' + pos.coords.longitude.toFixed(6))
-                    })
+                    if (! navigator.geolocation) {
+                        Flux.toast('Perangkat/browser ini tidak mendukung layanan lokasi.', { variant: 'danger' })
+                        return
+                    }
+                    navigator.geolocation.getCurrentPosition(
+                        (pos) => {
+                            $wire.set('koordinat_gps', pos.coords.latitude.toFixed(6) + ',' + pos.coords.longitude.toFixed(6))
+                            Flux.toast('Lokasi berhasil diambil.', { variant: 'success' })
+                        },
+                        // Without this, a denied/unavailable/timed-out location request fails
+                        // completely silently — the browser only ever shows its permission
+                        // prompt once, so after that the button looks dead on every next
+                        // click with zero feedback on why or what to do about it.
+                        (err) => {
+                            const pesan = {
+                                1: 'Izin lokasi ditolak. Aktifkan izin lokasi untuk situs ini di pengaturan browser, lalu coba lagi.',
+                                2: 'Lokasi tidak tersedia. Pastikan GPS aktif, lalu coba lagi.',
+                                3: 'Waktu pengambilan lokasi habis. Coba lagi.',
+                            }[err.code] ?? 'Gagal mengambil lokasi.'
+                            Flux.toast(pesan, { variant: 'danger' })
+                        },
+                        { enableHighAccuracy: true, timeout: 10000 }
+                    )
                 }
             }">
                 <div>
