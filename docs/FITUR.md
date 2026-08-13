@@ -20,10 +20,10 @@ Ringkasan jumlah SPK aktif, rambu rusak, dan laporan yang menunggu validasi. Tit
 Ada juga widget peta ringkas dengan filter sendiri (jenis rambu, tingkat, rentang tanggal) dan tombol **Unduh PDF** yang menghasilkan laporan sebaran rambu lengkap dengan cuplikan gambar peta (tile + pin) sesuai filter yang lagi aktif, plus tabel analitik dan daftar rambu.
 
 ### Buat Surat (SPK)
-- Dua jenis: **Pemasangan Baru** dan **Perbaikan**.
+- Tiap baris rambu punya jenis pekerjaannya sendiri: **Pemasangan Baru** atau **Perbaikan** — satu surat bisa mencampur keduanya (mis. satu baris pasang baru, baris lain perbaikan rambu yang sudah terdaftar), tidak lagi harus satu jenis untuk seluruh surat.
 - Alamat dipecah jadi field terstruktur: **Jalan**, **RT**, **Kelurahan**. Kolom `wilayah` (teks gabungan seperti "Jl. X RT. Y Kel. Z") disusun otomatis dari ketiganya, dipakai di surat pengantar & tampilan lain tanpa perlu ubah kode di tempat lain. **RT** cuma boleh angka.
 - Banyak baris rambu dalam satu surat sekaligus (tombol **Tambah Rambu** di bagian bawah daftar).
-- Untuk **Perbaikan**: bisa pilih rambu yang sudah terdaftar di sistem (searchable-select) atau catat rambu yang secara fisik sudah ada tapi belum pernah tercatat.
+- Untuk baris berjenis **Perbaikan**: bisa pilih rambu yang sudah terdaftar di sistem (searchable-select) atau catat rambu yang secara fisik sudah ada tapi belum pernah tercatat.
 - Kalau dibuat dari tombol "Buat SPK" di Temuan Lapangan, foto yang sudah dilampirkan petugas saat melapor temuan otomatis dipakai sebagai foto rambu itu (bisa diganti dengan upload baru kalau perlu).
 - **Perihal Permohonan** opsional, kalau kosong dibuat otomatis dari jenis pekerjaan & jenis rambu (mis. "pemasangan cermin tikungan").
 - **Tanggal Survei** opsional, kalau diisi muncul di surat pengantar sebagai "(DISURVEI TGL ...)". Tidak boleh tanggal di masa depan (survei mencatat sesuatu yang sudah terjadi).
@@ -36,8 +36,8 @@ Ada juga widget peta ringkas dengan filter sendiri (jenis rambu, tingkat, rentan
 ### Edit Surat (SPK)
 - Hanya tersedia selama status SPK masih **Aktif** (tidak bisa edit SPK yang sudah Selesai/Dibatalkan).
 - Bisa ubah data header: Jalan/RT/Kelurahan, Perihal, Deadline, Prioritas, Asal Permintaan, Keterangan Asal, Tanggal Survei, Petugas Survei, File Referensi, Catatan, dan data Contact Person.
-- Bisa juga ubah daftar rambunya: edit field rambu yang sudah ada, ganti ke rambu terdaftar lain (khusus Perbaikan), tambah rambu baru ke SPK yang sedang berjalan, **batalkan** satu rambu saja (wajib isi alasan, rambu lain di SPK yang sama tidak terganggu), atau **hapus permanen** satu baris rambu kalau memang murni salah input (status masih Belum/Batal dan belum ada kendala/laporan sama sekali).
-- **Tidak bisa** diubah lewat Edit: jenis SPK (pasang baru vs perbaikan) untuk SPK itu sendiri, ini ditentukan sekali saat SPK dibuat.
+- Bisa juga ubah daftar rambunya: edit field rambu yang sudah ada, ganti ke rambu terdaftar lain (khusus baris Perbaikan), tambah rambu baru ke SPK yang sedang berjalan, **batalkan** satu rambu saja (wajib isi alasan, rambu lain di SPK yang sama tidak terganggu), atau **hapus permanen** satu baris rambu kalau memang murni salah input (status masih Belum/Batal dan belum ada kendala/laporan sama sekali).
+- Jenis pekerjaan tiap baris rambu (Pemasangan Baru/Perbaikan) juga bisa diubah lewat Edit, termasuk untuk baris yang sudah ada sebelumnya — tidak dikunci sejak SPK dibuat.
 - Setiap perubahan tercatat di Audit Log (`spk_diedit`, `rambu_pasang_dibatalkan`, `rambu_pasang_dihapus`).
 
 ### Batalkan SPK
@@ -48,10 +48,11 @@ Ada juga widget peta ringkas dengan filter sendiri (jenis rambu, tingkat, rentan
 - Tercatat di Audit Log (`spk_dibatalkan`).
 
 ### Daftar Surat
-- Pencarian (nomor surat/wilayah), filter jenis pekerjaan.
+- Pencarian (nomor surat/wilayah), filter jenis pekerjaan — cocok kalau SPK itu punya *minimal satu* baris rambu dari jenis yang difilter (SPK campuran bisa muncul di kedua filter).
 - **Hanya menampilkan SPK berstatus Aktif**. Yang Selesai/Dibatalkan pindah ke halaman Riwayat SPK (lihat di bawah), supaya daftar ini tetap fokus ke pekerjaan yang masih berjalan.
 - Kartu SPK menampilkan foto: kalau lebih dari satu rambu dalam SPK itu punya foto, kartunya auto-cycle (crossfade tiap 4 detik) lewat semua foto tersebut (`<x-photo-slideshow>`); satu foto atau tidak ada foto sama sekali cukup ditampilkan statis/placeholder, tanpa timer yang tidak perlu.
 - Kartu juga dapat ring biru + badge **"Tim Terdaftar"**/**"Belum Ada Tim"** tergantung ada tidaknya tim yang sudah gabung, memudahkan admin memantau SPK aktif mana yang belum ada yang mengambil.
+- Badge jenis pekerjaan pada kartu menampilkan jenisnya (Pemasangan Baru/Perbaikan) kalau seluruh baris rambu di SPK itu sejenis, atau **"Campuran"** kalau baris-barisnya berbeda jenis (`Spk::jenisRingkasan()`).
 
 ### Riwayat SPK
 - Arsip SPK yang sudah **Selesai** atau **Dibatalkan**, dipisah dari Daftar Surat supaya tidak bercampur dengan pekerjaan aktif.

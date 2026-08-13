@@ -344,7 +344,7 @@ flowchart TD
 
 | Kode | Nama Proses | Input | Proses | Output | Data Store |
 |---|---|---|---|---|---|
-| 5.1 | Buat SPK | Jenis (pasang baru/perbaikan), alamat, deadline, daftar rambu, file referensi | Simpan SPK + baris rambu_pasang, panggil 5.5 untuk hitung urgensi, kirim notifikasi ke seluruh petugas aktif | SPK tersimpan (status Aktif), notifikasi "SPK Baru Tersedia" | D4, D5, D11, D13 |
+| 5.1 | Buat SPK | Alamat, deadline, daftar rambu (tiap baris pilih jenis pekerjaan sendiri: pasang baru/perbaikan), file referensi | Simpan SPK + baris rambu_pasang (jenis pekerjaan disimpan per baris, satu SPK boleh mencampur keduanya), panggil 5.5 untuk hitung urgensi, kirim notifikasi ke seluruh petugas aktif | SPK tersimpan (status Aktif), notifikasi "SPK Baru Tersedia" | D4, D5, D11, D13 |
 | 5.2 | Edit SPK | Perubahan header/daftar rambu (hanya SPK berstatus Aktif) | Update data, catat ke audit log | SPK/rambu_pasang terupdate | D4, D5, D12 |
 | 5.3 | Batalkan SPK / Batalkan Rambu | Konfirmasi + alasan (untuk pembatalan satu rambu) | Ubah status jadi Dibatalkan/Batal, catat audit log, kirim notifikasi ke tim | Status terupdate, notifikasi pembatalan | D4, D5, D12, D13 |
 | 5.4 | Kelola Tim SPK | Data perwakilan + anggota (daftarkan/tambah/hapus), hanya untuk SPK Aktif | Simpan/hapus baris tim, catat audit log, kirim notifikasi | Tim tersimpan, notifikasi ke anggota terkait | D6, D12, D13 |

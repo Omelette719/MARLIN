@@ -1,13 +1,13 @@
 # Alur Bisnis Sistem MARLIN
 
-Penjelasan detail siklus hidup SPK dan aturan bisnis di baliknya, untuk memahami *kenapa* sistem berperilaku seperti yang dijelaskan di [FITUR.md](FITUR.md). Diverifikasi langsung dari kode per 2026-08-07.
+Penjelasan detail siklus hidup SPK dan aturan bisnis di baliknya, untuk memahami *kenapa* sistem berperilaku seperti yang dijelaskan di [FITUR.md](FITUR.md). Diverifikasi langsung dari kode per 2026-08-14.
 
 ---
 
 ## Siklus Hidup SPK
 
 ```
-Admin buat SPK (pasang baru / perbaikan)
+Admin buat SPK (tiap baris rambu pilih pasang baru / perbaikan sendiri-sendiri)
         │
         ▼
 Petugas (perwakilan) daftarkan tim → gabung SPK
@@ -54,6 +54,14 @@ spk.status = selesai (SPK diarsipkan dari Daftar Surat)
 ```
 
 ## Aturan Kunci
+
+### Jenis Pekerjaan Ditentukan Per Baris Rambu, Bukan Per SPK
+
+SPK sendiri **tidak punya** kolom "jenis pekerjaan" — setiap baris `rambu_pasang` di dalamnya memilih sendiri **Pemasangan Baru** atau **Perbaikan** (`rambu_pasang.jenis_pekerjaan`), independen dari baris lain. Satu SPK boleh mencampur keduanya, mis. satu baris memasang rambu baru dan baris lain memperbaiki rambu yang sudah terdaftar, dalam surat yang sama.
+
+Pilihan ini menentukan alur input tiap baris saat Buat/Edit Surat: baris **Pemasangan Baru** selalu input rambu baru (jenis, lokasi, koordinat manual); baris **Perbaikan** bisa memilih rambu yang sudah terdaftar (searchable-select) atau mencatat rambu yang secara fisik sudah ada tapi belum pernah tercatat. Admin bisa mengubah jenis pekerjaan satu baris kapan saja lewat Edit Surat, termasuk untuk baris yang sudah ada sebelumnya.
+
+Untuk tampilan yang butuh satu nilai ringkas per SPK (badge di kartu daftar surat, dsb.), `Spk::jenisRingkasan()` mengembalikan jenis yang sama kalau seluruh baris sejenis, atau `null` kalau campuran — ditampilkan sebagai badge **"Campuran"**. Wording otomatis di Surat Pengantar PDF (`perihal`) memihak "pemasangan" begitu ada minimal satu baris Pemasangan Baru; cuma SPK yang seluruh barisnya Perbaikan yang wordingnya "perbaikan".
 
 ### Siapa yang boleh mengirim laporan?
 

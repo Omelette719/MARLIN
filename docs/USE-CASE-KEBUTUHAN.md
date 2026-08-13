@@ -30,7 +30,7 @@
 | Peta Digital | Melihat Kartu Info Pin | Sebagai pengguna, saya ingin mengklik pin di peta untuk melihat detail singkat rambu tersebut, sehingga saya tidak perlu berpindah halaman untuk informasi dasar. | Sedang | Admin & Petugas | — |
 | Peta Digital | Mengunduh PDF Sebaran Rambu | Sebagai admin, saya ingin mengunduh cuplikan peta beserta tabel analitiknya sebagai PDF, sehingga saya bisa melaporkannya ke atasan. | Rendah | Admin | Ref: AS-21 |
 | Peta Digital | Melapor Temuan dari Peta | Sebagai petugas, saya ingin melapor rambu rusak langsung dari kartu info pin di peta, sehingga saya tidak perlu berpindah ke halaman lain saat menemukannya di lapangan. | Sedang | Petugas | Jalan pintas dari US-12. Ref: US-17 |
-| Penjadwalan (SPK) | Membuat Surat (SPK) | Sebagai admin, saya ingin membuat Surat Perintah Kerja untuk pemasangan baru atau perbaikan dengan banyak baris rambu sekaligus, sehingga penugasan lapangan tercatat resmi dan terstruktur. | Tinggi | Admin | Urgensi terhitung otomatis. Ref: AS-03 |
+| Penjadwalan (SPK) | Membuat Surat (SPK) | Sebagai admin, saya ingin membuat Surat Perintah Kerja dengan banyak baris rambu sekaligus (tiap baris pemasangan baru atau perbaikan, boleh dicampur), sehingga penugasan lapangan tercatat resmi dan terstruktur. | Tinggi | Admin | Urgensi terhitung otomatis. Ref: AS-03 |
 | Penjadwalan (SPK) | Mengedit Surat (SPK) | Sebagai admin, saya ingin mengubah data SPK yang masih aktif (header maupun daftar rambunya), sehingga saya bisa mengoreksi kesalahan atau menyesuaikan kondisi terbaru tanpa membuat surat baru. | Sedang | Admin | Ref: AS-04 |
 | Penjadwalan (SPK) | Membatalkan SPK | Sebagai admin, saya ingin membatalkan seluruh SPK yang tidak jadi dikerjakan, sehingga statusnya jelas tanpa menghapus riwayatnya. | Sedang | Admin | Tidak pernah hard-delete. Ref: AS-05 |
 | Penjadwalan (SPK) | Membatalkan/Menghapus Satu Rambu | Sebagai admin, saya ingin membatalkan atau menghapus satu baris rambu dalam SPK tanpa mengganggu rambu lain, sehingga koreksi kecil tidak perlu membatalkan seluruh surat. | Rendah | Admin | Ref: AS-06/AS-07 |
@@ -94,7 +94,7 @@
 
 ### 5. Modul Penjadwalan & Penugasan (SPK)
 
-- **FR-5.1** Admin harus dapat membuat SPK dengan dua jenis pekerjaan: **Pemasangan Baru** dan **Perbaikan**, dengan banyak baris rambu dalam satu surat.
+- **FR-5.1** Admin harus dapat membuat SPK dengan banyak baris rambu sekaligus dalam satu surat, di mana tiap baris memilih sendiri jenis pekerjaannya — **Pemasangan Baru** atau **Perbaikan** — sehingga satu SPK boleh mencampur keduanya.
 - **FR-5.2** Sistem harus menghitung **urgensi SPK secara otomatis** berdasarkan sisa hari ke deadline: ditandai Prioritas atau sisa ≤2 hari → Tinggi; sisa ≤7 hari → Sedang; selebihnya → Rendah. Untuk SPK berstatus Aktif, urgensi dihitung ulang secara **live** setiap ditampilkan, bukan hanya dibaca dari kolom tersimpan.
 - **FR-5.3** Sistem harus menolak Deadline SPK yang bukan tanggal **setelah** hari ini (tidak boleh hari ini atau tanggal yang sudah lewat).
 - **FR-5.4** Admin harus dapat mengedit data SPK (header maupun daftar rambu) selama status SPK masih **Aktif**.

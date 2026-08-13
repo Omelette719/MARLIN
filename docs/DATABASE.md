@@ -77,7 +77,6 @@ Surat Perintah Kerja: entitas utama sistem.
 | `prioritas` | boolean, default `false` | Kalau `true`, urgensi otomatis `tinggi` |
 | `urgensi` | string | `rendah`/`sedang`/`tinggi`, enum `Urgensi`, dihitung otomatis dari deadline+prioritas |
 | `status` | string, default `aktif`, indexed | `aktif`/`selesai`/`dibatalkan`, enum `StatusSpk` |
-| `jenis_spk` | string, default `pasang_baru` | `pasang_baru`/`perbaikan`, enum `JenisPekerjaan` |
 | `asal_permintaan` | string | Lihat enum `AsalPermintaan` |
 | `keterangan_asal` | string, nullable | Mis. nama pelapor/instansi |
 | `perihal` | string, nullable | Kalau kosong, dibuat otomatis saat render PDF |
@@ -92,6 +91,8 @@ Surat Perintah Kerja: entitas utama sistem.
 
 **SPK tidak pernah dihapus**, dibatalkan lewat perubahan `status`, bukan `DELETE`.
 
+**Tidak ada kolom "jenis pekerjaan" di level SPK.** Setiap baris `rambu_pasang` punya `jenis_pekerjaan`-nya sendiri (lihat di bawah) — satu SPK boleh mencampur baris Pemasangan Baru dan Perbaikan. `Spk::jenisRingkasan()` mengembalikan jenis yang sama kalau seluruh barisnya sejenis, atau `null` kalau campuran, dipakai display surface (badge "Campuran") yang butuh satu nilai ringkas per SPK.
+
 ## `rambu_pasang`
 
 Baris pekerjaan per rambu, dalam konteks satu SPK. Ini "jembatan" antara `spk` dan `rambu`.
@@ -101,7 +102,7 @@ Baris pekerjaan per rambu, dalam konteks satu SPK. Ini "jembatan" antara `spk` d
 | `rambu_spk_id` | FK &rarr; `spk`, **cascade**, indexed | Ikut terhapus kalau SPK dihapus (walau SPK sendiri tidak pernah dihapus di aplikasi nyata) |
 | `rambu_id` | FK &rarr; `rambu`, **restrict**, indexed | Rambu tidak boleh dihapus selama masih dirujuk |
 | `laporan_kondisi_id` | FK &rarr; `laporan_kondisi`, nullable, **restrict** | Diisi kalau SPK ini berasal dari temuan kondisi |
-| `jenis_pekerjaan` | string | `pasang_baru`/`perbaikan` |
+| `jenis_pekerjaan` | string | `pasang_baru`/`perbaikan`, enum `JenisPekerjaan`. Dipilih independen per baris (satu SPK boleh mencampur keduanya), bukan diwariskan dari kolom apapun di `spk` |
 | `jumlah` | unsigned int, default `1` | |
 | `foto_survei` | string, nullable | |
 | `catatan_instruksi` | string, nullable | |
