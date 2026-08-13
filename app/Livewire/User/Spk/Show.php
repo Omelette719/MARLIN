@@ -203,6 +203,16 @@ class Show extends Component
         Flux::toast(variant: 'success', text: "{$nama} berhasil dihapus dari tim.");
     }
 
+    // Fired instead of a real link when the download button is shown to a
+    // petugas who hasn't joined this SPK's team — this page is deliberately
+    // open to any petugas so they can decide whether to join (see
+    // KEAMANAN.md), but SuratPengantarController would 403 them with a bare
+    // error page if they clicked through to the PDF.
+    public function tautanSuratPengantarDitolak(): void
+    {
+        Flux::toast(variant: 'warning', text: 'Gabung dulu ke tim surat ini sebelum bisa mengunduh surat pengantarnya.');
+    }
+
     // "Ready" means: nothing is still untouched this round (Belum/Urgent), and
     // nothing sent back for rework has been ignored (Revisi) — but rambu that
     // are already Selesai from an earlier accepted validation round DO count

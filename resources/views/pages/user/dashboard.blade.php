@@ -114,7 +114,11 @@
                                 <flux:button size="sm" variant="primary" class="flex-1" :href="route('user.spk.show', $item)" wire:navigate>
                                     Lihat Detail
                                 </flux:button>
-                                <flux:button size="sm" variant="ghost" icon="arrow-down-tray" :href="route('spk.surat-pengantar', $item)" target="_blank" />
+                                @if ($sayaGabung)
+                                    <flux:button size="sm" variant="ghost" icon="arrow-down-tray" :href="route('spk.surat-pengantar', $item)" target="_blank" />
+                                @else
+                                    <flux:button size="sm" variant="ghost" icon="arrow-down-tray" wire:click="tautanSuratPengantarDitolak" />
+                                @endif
                             </div>
                         </div>
                     </div>

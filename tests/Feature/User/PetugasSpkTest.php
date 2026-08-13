@@ -928,4 +928,35 @@ class PetugasSpkTest extends TestCase
         $this->assertSame(0, LaporanPengerjaan::count());
         $this->assertSame(StatusRambuPasang::Belum, $rambuPasang->fresh()->status);
     }
+
+    public function test_unjoined_petugas_sees_disabled_download_link_and_gets_a_toast_instead_of_the_pdf(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $this->actingAs(User::factory()->create());
+
+        $rambuPasang = $this->makeRambuPasang($admin);
+
+        Livewire::test(UserSpkShowComponent::class, ['spk' => $rambuPasang->spk])
+            ->assertDontSeeHtml('href="'.route('spk.surat-pengantar', $rambuPasang->rambu_spk_id).'"')
+            ->call('tautanSuratPengantarDitolak')
+            ->assertDispatched('toast-show');
+    }
+
+    public function test_joined_petugas_sees_a_working_download_link(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $petugas = User::factory()->create();
+        $this->actingAs($petugas);
+
+        $rambuPasang = $this->makeRambuPasang($admin);
+
+        DikerjakanOleh::create([
+            'by_spk_id' => $rambuPasang->rambu_spk_id,
+            'by_user_id' => $petugas->id,
+            'is_perwakilan' => true,
+        ]);
+
+        Livewire::test(UserSpkShowComponent::class, ['spk' => $rambuPasang->spk])
+            ->assertSeeHtml('href="'.route('spk.surat-pengantar', $rambuPasang->rambu_spk_id).'"');
+    }
 }

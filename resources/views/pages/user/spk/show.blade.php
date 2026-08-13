@@ -22,9 +22,15 @@
 
             <div class="flex flex-col items-end gap-1">
                 <div class="flex items-center gap-3">
-                    <flux:button variant="ghost" icon="arrow-down-tray" :href="route('spk.surat-pengantar', $spk)" target="_blank">
-                        Unduh Surat Pengantar
-                    </flux:button>
+                    @if ($this->sudahBergabung)
+                        <flux:button variant="ghost" icon="arrow-down-tray" :href="route('spk.surat-pengantar', $spk)" target="_blank">
+                            Unduh Surat Pengantar
+                        </flux:button>
+                    @else
+                        <flux:button variant="ghost" icon="arrow-down-tray" wire:click="tautanSuratPengantarDitolak">
+                            Unduh Surat Pengantar
+                        </flux:button>
+                    @endif
                     <flux:button variant="ghost" :href="route('dashboard')" wire:navigate>Kembali</flux:button>
                 </div>
                 <flux:text class="text-xs text-zinc-500">Serahkan surat ini ke RT/perwakilan warga untuk diisi dan ditandatangani secara manual.</flux:text>

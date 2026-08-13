@@ -7,6 +7,7 @@ use App\Enums\StatusSpk;
 use App\Models\DikerjakanOleh;
 use App\Models\RambuPasang;
 use App\Models\Spk;
+use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
@@ -24,6 +25,16 @@ class Dashboard extends Component
     public function updatedSearch(): void
     {
         $this->resetPage();
+    }
+
+    // Fired instead of a real link when the download button is shown to a
+    // petugas who hasn't joined this SPK's team — SuratPengantarController
+    // would otherwise 403 them with a bare error page for a case that's
+    // completely expected here (dashboard lists ALL active SPKs, not just
+    // joined ones).
+    public function tautanSuratPengantarDitolak(): void
+    {
+        Flux::toast(variant: 'warning', text: 'Gabung dulu ke tim surat ini sebelum bisa mengunduh surat pengantarnya.');
     }
 
     private const STATUS_PRIORITAS = [
