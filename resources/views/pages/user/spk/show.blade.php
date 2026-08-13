@@ -112,20 +112,26 @@
             <flux:heading size="lg">Tim Bertugas</flux:heading>
 
             @if ($tim->isEmpty())
-                <flux:text class="text-zinc-500">
-                    Surat ini belum didaftarkan timnya. Kalau kamu yang akan mengerjakan, daftarkan dirimu sebagai perwakilan beserta anggota timmu.
-                </flux:text>
+                @if ($this->spkAktif)
+                    <flux:text class="text-zinc-500">
+                        Surat ini belum didaftarkan timnya. Kalau kamu yang akan mengerjakan, daftarkan dirimu sebagai perwakilan beserta anggota timmu.
+                    </flux:text>
 
-                <div class="flex flex-col gap-3 rounded-lg border border-zinc-200 bg-zinc-50 p-4">
-                    <x-searchable-multiselect
-                        wire-model="anggotaIds"
-                        :options="$userOptions"
-                        label="Anggota Tim (opsional, kamu otomatis jadi perwakilan)"
-                    />
-                    <flux:modal.trigger name="daftarkan-tim">
-                        <flux:button type="button" variant="primary" size="sm" class="self-start">Daftarkan Tim</flux:button>
-                    </flux:modal.trigger>
-                </div>
+                    <div class="flex flex-col gap-3 rounded-lg border border-zinc-200 bg-zinc-50 p-4">
+                        <x-searchable-multiselect
+                            wire-model="anggotaIds"
+                            :options="$userOptions"
+                            label="Anggota Tim (opsional, kamu otomatis jadi perwakilan)"
+                        />
+                        <flux:modal.trigger name="daftarkan-tim">
+                            <flux:button type="button" variant="primary" size="sm" class="self-start">Daftarkan Tim</flux:button>
+                        </flux:modal.trigger>
+                    </div>
+                @else
+                    <flux:text class="text-zinc-500">
+                        Surat ini sudah tidak aktif dan tidak pernah didaftarkan timnya.
+                    </flux:text>
+                @endif
             @else
                 <div class="flex flex-col gap-1">
                     @foreach ($tim as $t)
@@ -137,7 +143,7 @@
                                 @endif
                             </flux:text>
 
-                            @if ($this->sayaPerwakilan && ! $t->is_perwakilan)
+                            @if ($this->sayaPerwakilan && ! $t->is_perwakilan && $this->spkAktif)
                                 <flux:modal.trigger name="hapus-anggota-{{ $t->id }}">
                                     <flux:button type="button" size="sm" variant="ghost" icon="x-mark">Hapus</flux:button>
                                 </flux:modal.trigger>
@@ -151,7 +157,7 @@
                 while closed, which would throw off "name ... Hapus button"
                 spacing on that row. --}}
                 @foreach ($tim as $t)
-                    @if ($this->sayaPerwakilan && ! $t->is_perwakilan)
+                    @if ($this->sayaPerwakilan && ! $t->is_perwakilan && $this->spkAktif)
                         <x-confirm-modal
                             wire:key="hapus-anggota-modal-{{ $t->id }}"
                             name="hapus-anggota-{{ $t->id }}"
@@ -164,7 +170,7 @@
                     @endif
                 @endforeach
 
-                @if ($this->sayaPerwakilan)
+                @if ($this->sayaPerwakilan && $this->spkAktif)
                     <div class="flex flex-col gap-3 border-t border-zinc-200 pt-3" x-data="{ tambah: false }">
                         <flux:badge color="blue" size="sm" class="w-fit">Kamu perwakilan untuk surat ini</flux:badge>
 
@@ -179,6 +185,8 @@
                             </flux:modal.trigger>
                         </div>
                     </div>
+                @elseif ($this->sayaPerwakilan)
+                    <flux:badge color="blue" size="sm" class="w-fit">Kamu perwakilan untuk surat ini</flux:badge>
                 @elseif ($this->sudahBergabung)
                     <flux:badge color="zinc" size="sm" class="w-fit">Kamu bagian dari tim ini</flux:badge>
                 @else

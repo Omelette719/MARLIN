@@ -438,6 +438,74 @@ class PetugasSpkTest extends TestCase
             ->assertDispatched('toast-show', fn ($name, $params) => $params['dataset']['variant'] === 'warning');
     }
 
+    public function test_hapus_anggota_blocked_once_spk_is_no_longer_aktif(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $petugas = User::factory()->create();
+        $anggota = User::factory()->create();
+        $this->actingAs($petugas);
+
+        $rambuPasang = $this->makeRambuPasang($admin);
+        $spk = $rambuPasang->spk;
+        $spk->update(['status' => 'selesai']);
+
+        DikerjakanOleh::create(['by_spk_id' => $spk->id, 'by_user_id' => $petugas->id, 'is_perwakilan' => true]);
+        $anggotaRow = DikerjakanOleh::create(['by_spk_id' => $spk->id, 'by_user_id' => $anggota->id, 'is_perwakilan' => false]);
+
+        Livewire::test(UserSpkShowComponent::class, ['spk' => $spk])
+            ->call('hapusAnggota', $anggotaRow->id)
+            ->assertDispatched('toast-show', fn ($name, $params) => $params['dataset']['variant'] === 'danger');
+
+        $this->assertDatabaseHas('dikerjakan_oleh', ['id' => $anggotaRow->id]);
+    }
+
+    public function test_tambah_anggota_blocked_once_spk_is_no_longer_aktif(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $petugas = User::factory()->create();
+        $anggotaBaru = User::factory()->create();
+        $this->actingAs($petugas);
+
+        $rambuPasang = $this->makeRambuPasang($admin);
+        $spk = $rambuPasang->spk;
+        $spk->update(['status' => 'selesai']);
+
+        DikerjakanOleh::create(['by_spk_id' => $spk->id, 'by_user_id' => $petugas->id, 'is_perwakilan' => true]);
+
+        Livewire::test(UserSpkShowComponent::class, ['spk' => $spk])
+            ->set('anggotaIds', [(string) $anggotaBaru->id])
+            ->call('tambahAnggota')
+            ->assertDispatched('toast-show', fn ($name, $params) => $params['dataset']['variant'] === 'danger');
+
+        $this->assertDatabaseMissing('dikerjakan_oleh', [
+            'by_spk_id' => $spk->id,
+            'by_user_id' => $anggotaBaru->id,
+        ]);
+    }
+
+    public function test_daftarkan_tim_blocked_once_spk_is_no_longer_aktif(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $petugas = User::factory()->create();
+        $this->actingAs($petugas);
+
+        // A rambu can be individually batal'd without anyone ever joining
+        // the team, which can leave an SPK Selesai with zero team rows —
+        // "Daftarkan Tim" must not still be usable on it.
+        $rambuPasang = $this->makeRambuPasang($admin);
+        $spk = $rambuPasang->spk;
+        $spk->update(['status' => 'selesai']);
+
+        Livewire::test(UserSpkShowComponent::class, ['spk' => $spk])
+            ->call('daftarkanTim')
+            ->assertDispatched('toast-show', fn ($name, $params) => $params['dataset']['variant'] === 'danger');
+
+        $this->assertDatabaseMissing('dikerjakan_oleh', [
+            'by_spk_id' => $spk->id,
+            'by_user_id' => $petugas->id,
+        ]);
+    }
+
     // daftarkanTim()/tambahAnggota() only check for an existing team-member
     // row in PHP before inserting, which is a real race between two
     // concurrent requests — the unique(by_spk_id, by_user_id) constraint on

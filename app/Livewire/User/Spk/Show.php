@@ -4,6 +4,7 @@ namespace App\Livewire\User\Spk;
 
 use App\Enums\Role;
 use App\Enums\StatusRambuPasang;
+use App\Enums\StatusSpk;
 use App\Models\AuditLog;
 use App\Models\DikerjakanOleh;
 use App\Models\Notifikasi;
@@ -41,6 +42,15 @@ class Show extends Component
             ->exists();
     }
 
+    // Once an SPK is Selesai/Dibatalkan there's no more work to assign or
+    // hand off, so the roster is frozen — otherwise a perwakilan could keep
+    // adding/removing teammates (or a stray petugas could still "join") on
+    // a surat that's already archived, long after it's done.
+    public function getSpkAktifProperty(): bool
+    {
+        return $this->spk->status === StatusSpk::Aktif;
+    }
+
     private function existingTeamUserIds(): array
     {
         return DikerjakanOleh::where('by_spk_id', $this->spk->id)->pluck('by_user_id')->all();
@@ -51,6 +61,15 @@ class Show extends Component
     // themselves; the perwakilan adds everyone up front (or later).
     public function daftarkanTim(): void
     {
+        // An SPK can reach Selesai with no team ever assigned (every rambu
+        // individually cancelled), leaving "Daftarkan Tim" visible on an
+        // archived surat. Guard here too, not just in the view.
+        if (! $this->spkAktif) {
+            Flux::toast(variant: 'danger', text: 'SPK ini sudah tidak aktif, tidak bisa lagi didaftarkan timnya.');
+
+            return;
+        }
+
         // Normally unreachable — the whole "Daftarkan Tim" section only
         // renders while $tim is empty — but two petugas can both load this
         // page while it's still unclaimed and both submit around the same
@@ -94,6 +113,12 @@ class Show extends Component
     public function tambahAnggota(): void
     {
         if (! $this->sayaPerwakilan) {
+            return;
+        }
+
+        if (! $this->spkAktif) {
+            Flux::toast(variant: 'danger', text: 'SPK ini sudah tidak aktif, susunan tim tidak bisa diubah lagi.');
+
             return;
         }
 
@@ -161,6 +186,12 @@ class Show extends Component
     public function hapusAnggota(int $dikerjakanOlehId): void
     {
         if (! $this->sayaPerwakilan) {
+            return;
+        }
+
+        if (! $this->spkAktif) {
+            Flux::toast(variant: 'danger', text: 'SPK ini sudah tidak aktif, susunan tim tidak bisa diubah lagi.');
+
             return;
         }
 
