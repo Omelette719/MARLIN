@@ -161,6 +161,79 @@ class ValidasiTest extends TestCase
         $this->assertSame(route('user.spk.show', $spk), Notifikasi::where('user_id', $petugas->id)->first()->url);
     }
 
+    // With two rambu in one SPK, one accepted and one rejected in the same
+    // batch, the notification text used to only say "SPK X diterima" / "SPK
+    // X ditolak" for both — identical wording pointing at the same SPK, with
+    // no way to tell which rambu each one was actually about.
+    public function test_notifications_name_the_specific_rambu_when_one_spk_has_a_mixed_outcome(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $petugas = User::factory()->create();
+        $this->actingAs($admin);
+
+        $jenisRambu = JenisRambu::create(['nama_jenis' => 'Rambu Peringatan']);
+
+        $spk = Spk::create([
+            'nomor_surat' => 'SR-2026/BJM/0099',
+            'dibuat_oleh' => $admin->id,
+            'wilayah' => 'Banjarmasin Tengah',
+            'deadline' => now()->addDays(5),
+            'urgensi' => 'sedang',
+            'status' => 'aktif',
+            'asal_permintaan' => 'internal',
+            'laporan_akhir_diajukan_at' => now(),
+        ]);
+
+        $rambuDiterima = Rambu::create([
+            'jenis_rambu_id' => $jenisRambu->id,
+            'wilayah' => 'Banjarmasin Tengah',
+            'lokasi' => 'Depan pasar lama',
+            'koordinat' => '-3.30,114.59',
+        ]);
+        $rpDiterima = RambuPasang::create([
+            'rambu_spk_id' => $spk->id,
+            'rambu_id' => $rambuDiterima->id,
+            'jenis_pekerjaan' => 'pasang_baru',
+            'jumlah' => 1,
+            'status' => 'menunggu_validasi',
+        ]);
+        LaporanPengerjaan::create(['rambu_pasang_id' => $rpDiterima->id, 'dilaporkan_oleh' => $petugas->id, 'status' => 'diajukan']);
+
+        $rambuDitolak = Rambu::create([
+            'jenis_rambu_id' => $jenisRambu->id,
+            'wilayah' => 'Banjarmasin Selatan',
+            'lokasi' => 'Simpang tiga sekolah',
+            'koordinat' => '-3.34,114.59',
+        ]);
+        $rpDitolak = RambuPasang::create([
+            'rambu_spk_id' => $spk->id,
+            'rambu_id' => $rambuDitolak->id,
+            'jenis_pekerjaan' => 'pasang_baru',
+            'jumlah' => 1,
+            'status' => 'menunggu_validasi',
+        ]);
+        LaporanPengerjaan::create(['rambu_pasang_id' => $rpDitolak->id, 'dilaporkan_oleh' => $petugas->id, 'status' => 'diajukan']);
+
+        Livewire::test(ValidasiShowComponent::class, ['spk' => $spk])
+            ->set("checked.{$rpDiterima->id}", true)
+            ->set("checked.{$rpDitolak->id}", false)
+            ->call('lanjutkan')
+            ->set("catatanPenolakan.{$rpDitolak->id}", 'Posisi rambu terbalik.')
+            ->call('konfirmasiPenolakan')
+            ->assertHasNoErrors();
+
+        $diterimaNotif = Notifikasi::where('judul', 'Laporan Diterima')->first();
+        $ditolakNotif = Notifikasi::where('judul', 'Laporan Ditolak')->first();
+
+        $this->assertNotNull($diterimaNotif);
+        $this->assertNotNull($ditolakNotif);
+        $this->assertStringContainsString('Depan pasar lama', $diterimaNotif->pesan);
+        $this->assertStringContainsString('Simpang tiga sekolah', $ditolakNotif->pesan);
+        // Neither message should be generic enough to be confused for the other.
+        $this->assertStringNotContainsString('Simpang tiga sekolah', $diterimaNotif->pesan);
+        $this->assertStringNotContainsString('Depan pasar lama', $ditolakNotif->pesan);
+    }
+
     public function test_admin_can_extend_deadline_while_rejecting_laporan(): void
     {
         $admin = User::factory()->admin()->create();

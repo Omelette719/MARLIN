@@ -222,7 +222,12 @@ class Show extends Component
                     Notifikasi::create([
                         'user_id' => $pelaporId,
                         'judul' => 'Laporan Diterima',
-                        'pesan' => "Laporan untuk SPK {$this->spk->nomor_surat} telah diterima.",
+                        // Names the specific rambu, not just the SPK — an SPK
+                        // with several rambu can have some accepted and some
+                        // rejected in the same validasi round, and "SPK X
+                        // diterima" alone leaves the petugas no way to tell
+                        // which rambu this notification is even about.
+                        'pesan' => "Laporan untuk rambu di {$rambuPasang->rambu->wilayah}, {$rambuPasang->rambu->lokasi} (SPK {$this->spk->nomor_surat}) telah diterima.",
                         'url' => route('user.spk.show', $this->spk),
                         'foto' => $laporan?->foto_sesudah ?? $rambuPasang->kendala->first()?->foto,
                         'dibaca' => false,
@@ -263,7 +268,7 @@ class Show extends Component
                     Notifikasi::create([
                         'user_id' => $pelaporId,
                         'judul' => 'Laporan Ditolak',
-                        'pesan' => "Laporan untuk SPK {$this->spk->nomor_surat} ditolak: {$catatan}",
+                        'pesan' => "Laporan untuk rambu di {$rambuPasang->rambu->wilayah}, {$rambuPasang->rambu->lokasi} (SPK {$this->spk->nomor_surat}) ditolak: {$catatan}",
                         'url' => route('user.spk.show', $this->spk),
                         'foto' => $laporan?->foto_sesudah ?? $rambuPasang->kendala->first()?->foto,
                         'dibaca' => false,
