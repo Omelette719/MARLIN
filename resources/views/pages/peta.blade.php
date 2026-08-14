@@ -1,10 +1,33 @@
     <div class="flex w-full flex-1 flex-col gap-3">
-        <div class="flex flex-wrap items-center gap-4 text-sm">
-            <div class="flex items-center gap-2"><span class="inline-block size-3 rounded-full" style="background:#ba1a1a"></span> Urgent / Prioritas / Tinggi</div>
-            <div class="flex items-center gap-2"><span class="inline-block size-3 rounded-full" style="background:#eab308"></span> Rusak / Perbaikan Berjalan</div>
-            <div class="flex items-center gap-2"><span class="inline-block size-3 rounded-full" style="background:#22d3ee"></span> Menunggu Validasi</div>
-            <div class="flex items-center gap-2"><span class="inline-block size-3 rounded-full" style="background:#004655"></span> Selesai / Kondisi Baik</div>
-            <div class="flex items-center gap-2"><span class="inline-block size-3 rounded-full" style="background:#9ca3af"></span> Belum Dikerjakan</div>
+        <div class="grid grid-cols-1 gap-2 text-sm sm:grid-cols-2 lg:grid-cols-4">
+            <div class="flex items-start gap-2">
+                <span class="mt-1 inline-block size-3 shrink-0 rounded-full" style="background:#ba1a1a"></span>
+                <div>
+                    <div class="font-medium text-zinc-700">Urgent / Prioritas / Tinggi</div>
+                    <div class="text-xs text-zinc-500">Salah satu dari: rambu ditandai Urgent, SPK-nya ditandai Prioritas, atau sisa hari ke deadline tinggal sedikit.</div>
+                </div>
+            </div>
+            <div class="flex items-start gap-2">
+                <span class="mt-1 inline-block size-3 shrink-0 rounded-full" style="background:#eab308"></span>
+                <div>
+                    <div class="font-medium text-zinc-700">Rusak / Perbaikan Berjalan</div>
+                    <div class="text-xs text-zinc-500">Kondisi rambu tercatat rusak, atau sedang dikerjakan perbaikannya tapi belum selesai.</div>
+                </div>
+            </div>
+            <div class="flex items-start gap-2">
+                <span class="mt-1 inline-block size-3 shrink-0 rounded-full" style="background:#22d3ee"></span>
+                <div>
+                    <div class="font-medium text-zinc-700">Menunggu Validasi</div>
+                    <div class="text-xs text-zinc-500">Petugas sudah mengirim laporan pengerjaan, menunggu admin memeriksa dan menyetujuinya.</div>
+                </div>
+            </div>
+            <div class="flex items-start gap-2">
+                <span class="mt-1 inline-block size-3 shrink-0 rounded-full" style="background:#9ca3af"></span>
+                <div>
+                    <div class="font-medium text-zinc-700">Belum Dikerjakan</div>
+                    <div class="text-xs text-zinc-500">Belum ada laporan pengerjaan masuk untuk rambu ini.</div>
+                </div>
+            </div>
         </div>
 
         {{-- isolate: Leaflet's own controls/panes go up to z-index:1000 internally

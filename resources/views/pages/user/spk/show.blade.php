@@ -16,7 +16,7 @@
                         $jenisRingkasan === JenisPekerjaan::Perbaikan => 'amber',
                         default => 'cyan',
                     }">
-                        {{ $jenisRingkasan?->label() ?? 'Campuran' }}
+                        {{ $jenisRingkasan?->label() ?? 'Pemasangan & Perbaikan' }}
                     </flux:badge>
                     @if ($spk->prioritas)
                         <flux:badge color="red" size="sm">Prioritas</flux:badge>

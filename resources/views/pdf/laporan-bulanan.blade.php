@@ -656,7 +656,7 @@
                     </td>
 
                     <td class="jenis">
-                        {{ $item->jenisRingkasan()?->label() ?? 'Campuran' }}
+                        {{ $item->jenisRingkasan()?->label() ?? 'Pemasangan & Perbaikan' }}
                     </td>
 
                     <td class="jumlah">

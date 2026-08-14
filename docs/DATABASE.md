@@ -91,7 +91,7 @@ Surat Perintah Kerja: entitas utama sistem.
 
 **SPK tidak pernah dihapus**, dibatalkan lewat perubahan `status`, bukan `DELETE`.
 
-**Tidak ada kolom "jenis pekerjaan" di level SPK.** Setiap baris `rambu_pasang` punya `jenis_pekerjaan`-nya sendiri (lihat di bawah) — satu SPK boleh mencampur baris Pemasangan Baru dan Perbaikan. `Spk::jenisRingkasan()` mengembalikan jenis yang sama kalau seluruh barisnya sejenis, atau `null` kalau campuran, dipakai display surface (badge "Campuran") yang butuh satu nilai ringkas per SPK.
+**Tidak ada kolom "jenis pekerjaan" di level SPK.** Setiap baris `rambu_pasang` punya `jenis_pekerjaan`-nya sendiri (lihat di bawah) — satu SPK boleh mencampur baris Pemasangan Baru dan Perbaikan. `Spk::jenisRingkasan()` mengembalikan jenis yang sama kalau seluruh barisnya sejenis, atau `null` kalau campuran, dipakai display surface (badge "Pemasangan & Perbaikan") yang butuh satu nilai ringkas per SPK.
 
 ## `rambu_pasang`
 

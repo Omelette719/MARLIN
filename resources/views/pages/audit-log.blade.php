@@ -10,12 +10,26 @@
             </flux:subheading>
         </div>
 
-        <flux:select wire:model.live="aksi" placeholder="Semua Aksi" class="max-w-xs">
-            <flux:select.option value="">Semua Aksi</flux:select.option>
-            @foreach ($aksiOptions as $opt)
-                <flux:select.option value="{{ $opt }}">{{ $opt }}</flux:select.option>
-            @endforeach
-        </flux:select>
+        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <flux:select wire:model.live="aksi" label="Aksi" placeholder="Semua Aksi">
+                <flux:select.option value="">Semua Aksi</flux:select.option>
+                @foreach ($aksiOptions as $opt)
+                    <flux:select.option value="{{ $opt }}">{{ $opt }}</flux:select.option>
+                @endforeach
+            </flux:select>
+
+            @if (Auth::user()->isAdmin())
+                <flux:select wire:model.live="pengguna" label="Pengguna" placeholder="Semua Pengguna">
+                    <flux:select.option value="">Semua Pengguna</flux:select.option>
+                    @foreach ($penggunaOptions as $opt)
+                        <flux:select.option value="{{ $opt->id }}">{{ $opt->name }}</flux:select.option>
+                    @endforeach
+                </flux:select>
+            @endif
+
+            <flux:input wire:model.live="tanggal_dari" type="date" label="Dari Tanggal" />
+            <flux:input wire:model.live="tanggal_sampai" type="date" label="Sampai Tanggal" />
+        </div>
 
         <flux:card class="flex-1">
             <flux:table>

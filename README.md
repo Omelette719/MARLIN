@@ -192,8 +192,10 @@ php artisan storage:link
 npm run build
 # (atau `npm run dev` untuk mode pengembangan dengan hot-reload)
 
-# 7. Jalankan server
+# 7. Jalankan server (untuk local)
 php artisan serve
+php artisan telegram:poll
+php artisan 
 ```
 
 Buka `http://localhost:8000` (atau domain Herd/Valet kamu kalau pakai itu), lalu login pakai salah satu akun di bawah.

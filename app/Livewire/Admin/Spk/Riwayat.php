@@ -24,6 +24,12 @@ class Riwayat extends Component
     #[Url]
     public string $jenis = '';
 
+    #[Url]
+    public string $tanggal_dari = '';
+
+    #[Url]
+    public string $tanggal_sampai = '';
+
     public function updatedSearch(): void
     {
         $this->resetPage();
@@ -35,6 +41,16 @@ class Riwayat extends Component
     }
 
     public function updatedJenis(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedTanggalDari(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedTanggalSampai(): void
     {
         $this->resetPage();
     }
@@ -52,7 +68,12 @@ class Riwayat extends Component
                 ->where('nomor_surat', 'like', "%{$this->search}%")
                 ->orWhere('wilayah', 'like', "%{$this->search}%")))
             ->when($this->status, fn ($query) => $query->where('status', $this->status))
-            ->when($this->jenis, fn ($query) => $query->whereHas('rambuPasang', fn ($q) => $q->where('jenis_pekerjaan', $this->jenis)))
+            ->when($this->jenis === 'campuran', fn ($query) => $query
+                ->whereHas('rambuPasang', fn ($q) => $q->where('jenis_pekerjaan', 'pasang_baru'))
+                ->whereHas('rambuPasang', fn ($q) => $q->where('jenis_pekerjaan', 'perbaikan')))
+            ->when($this->jenis && $this->jenis !== 'campuran', fn ($query) => $query->whereHas('rambuPasang', fn ($q) => $q->where('jenis_pekerjaan', $this->jenis)))
+            ->when($this->tanggal_dari, fn ($query) => $query->whereDate('updated_at', '>=', $this->tanggal_dari))
+            ->when($this->tanggal_sampai, fn ($query) => $query->whereDate('updated_at', '<=', $this->tanggal_sampai))
             ->withCount(['rambuPasang', 'dikerjakanOleh'])
             ->with(['rambuPasang' => fn ($q) => $q->with('rambu.jenisRambu')])
             ->orderByDesc('updated_at')

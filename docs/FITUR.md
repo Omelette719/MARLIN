@@ -52,7 +52,7 @@ Ada juga widget peta ringkas dengan filter sendiri (jenis rambu, tingkat, rentan
 - **Hanya menampilkan SPK berstatus Aktif**. Yang Selesai/Dibatalkan pindah ke halaman Riwayat SPK (lihat di bawah), supaya daftar ini tetap fokus ke pekerjaan yang masih berjalan.
 - Kartu SPK menampilkan foto: kalau lebih dari satu rambu dalam SPK itu punya foto, kartunya auto-cycle (crossfade tiap 4 detik) lewat semua foto tersebut (`<x-photo-slideshow>`); satu foto atau tidak ada foto sama sekali cukup ditampilkan statis/placeholder, tanpa timer yang tidak perlu.
 - Kartu juga dapat ring biru + badge **"Tim Terdaftar"**/**"Belum Ada Tim"** tergantung ada tidaknya tim yang sudah gabung, memudahkan admin memantau SPK aktif mana yang belum ada yang mengambil.
-- Badge jenis pekerjaan pada kartu menampilkan jenisnya (Pemasangan Baru/Perbaikan) kalau seluruh baris rambu di SPK itu sejenis, atau **"Campuran"** kalau baris-barisnya berbeda jenis (`Spk::jenisRingkasan()`).
+- Badge jenis pekerjaan pada kartu menampilkan jenisnya (Pemasangan Baru/Perbaikan) kalau seluruh baris rambu di SPK itu sejenis, atau **"Pemasangan & Perbaikan"** kalau baris-barisnya berbeda jenis (`Spk::jenisRingkasan()`).
 
 ### Riwayat SPK
 - Arsip SPK yang sudah **Selesai** atau **Dibatalkan**, dipisah dari Daftar Surat supaya tidak bercampur dengan pekerjaan aktif.

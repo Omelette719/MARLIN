@@ -31,7 +31,7 @@
                                     $jenisRingkasan === JenisPekerjaan::Perbaikan => 'amber',
                                     default => 'cyan',
                                 }">
-                                    {{ $jenisRingkasan?->label() ?? 'Campuran' }}
+                                    {{ $jenisRingkasan?->label() ?? 'Pemasangan & Perbaikan' }}
                                 </flux:badge>
                             </div>
 

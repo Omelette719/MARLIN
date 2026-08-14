@@ -61,7 +61,7 @@ SPK sendiri **tidak punya** kolom "jenis pekerjaan" — setiap baris `rambu_pasa
 
 Pilihan ini menentukan alur input tiap baris saat Buat/Edit Surat: baris **Pemasangan Baru** selalu input rambu baru (jenis, lokasi, koordinat manual); baris **Perbaikan** bisa memilih rambu yang sudah terdaftar (searchable-select) atau mencatat rambu yang secara fisik sudah ada tapi belum pernah tercatat. Admin bisa mengubah jenis pekerjaan satu baris kapan saja lewat Edit Surat, termasuk untuk baris yang sudah ada sebelumnya.
 
-Untuk tampilan yang butuh satu nilai ringkas per SPK (badge di kartu daftar surat, dsb.), `Spk::jenisRingkasan()` mengembalikan jenis yang sama kalau seluruh baris sejenis, atau `null` kalau campuran — ditampilkan sebagai badge **"Campuran"**. Wording otomatis di Surat Pengantar PDF (`perihal`) memihak "pemasangan" begitu ada minimal satu baris Pemasangan Baru; cuma SPK yang seluruh barisnya Perbaikan yang wordingnya "perbaikan".
+Untuk tampilan yang butuh satu nilai ringkas per SPK (badge di kartu daftar surat, dsb.), `Spk::jenisRingkasan()` mengembalikan jenis yang sama kalau seluruh baris sejenis, atau `null` kalau campuran — ditampilkan sebagai badge **"Pemasangan & Perbaikan"**. Wording otomatis di Surat Pengantar PDF (`perihal`) memihak "pemasangan" begitu ada minimal satu baris Pemasangan Baru; cuma SPK yang seluruh barisnya Perbaikan yang wordingnya "perbaikan".
 
 ### Siapa yang boleh mengirim laporan?
 

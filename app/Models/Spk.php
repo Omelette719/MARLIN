@@ -131,8 +131,8 @@ class Spk extends Model
     // (an SPK is no longer forced to be entirely Pasang Baru or entirely
     // Perbaikan) — this collapses that back into a single value for display
     // surfaces that show one badge per SPK, returning null when the rows
-    // are genuinely mixed so callers can show a "Campuran" state instead of
-    // picking one type arbitrarily.
+    // are genuinely mixed so callers can show a "Pemasangan & Perbaikan"
+    // state instead of picking one type arbitrarily.
     public function jenisRingkasan(): ?JenisPekerjaan
     {
         $jenisUnik = $this->rambuPasang->pluck('jenis_pekerjaan')->unique();

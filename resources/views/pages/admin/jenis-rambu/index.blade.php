@@ -30,7 +30,7 @@
                         @if ($isAdmin)
                             <div class="absolute top-2 right-2 z-10 flex gap-1 opacity-0 transition group-hover:opacity-100">
                                 <flux:button size="sm" variant="ghost" icon="pencil" class="bg-white/90! shadow" wire:click.stop="edit({{ $jenis->id }})" />
-                                <flux:button size="sm" variant="danger" icon="trash" class="bg-white/90!" wire:click.stop="hapus({{ $jenis->id }})" wire:confirm="Hapus jenis rambu ini?" />
+                                <flux:button size="sm" variant="danger" icon="trash" wire:click.stop="hapus({{ $jenis->id }})" wire:confirm="Hapus jenis rambu ini?" />
                             </div>
                         @endif
 

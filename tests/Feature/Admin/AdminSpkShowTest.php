@@ -310,6 +310,92 @@ class AdminSpkShowTest extends TestCase
             ->assertDontSee('SR-2026/BJM/8016');
     }
 
+    public function test_riwayat_spk_can_filter_by_campuran_jenis(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $this->actingAs($admin);
+        $jenisRambu = JenisRambu::create(['nama_jenis' => 'Rambu Peringatan']);
+
+        $campuran = Spk::create([
+            'nomor_surat' => 'SR-2026/BJM/8017',
+            'dibuat_oleh' => $admin->id,
+            'wilayah' => 'Banjarmasin Tengah',
+            'deadline' => now()->addDays(5),
+            'urgensi' => 'sedang',
+            'status' => 'selesai',
+            'asal_permintaan' => 'internal',
+        ]);
+        RambuPasang::create([
+            'rambu_spk_id' => $campuran->id,
+            'rambu_id' => Rambu::create(['jenis_rambu_id' => $jenisRambu->id, 'wilayah' => 'Banjarmasin Tengah', 'lokasi' => 'A', 'koordinat' => '-3.30,114.59'])->id,
+            'jenis_pekerjaan' => 'pasang_baru',
+            'jumlah' => 1,
+            'status' => 'selesai',
+        ]);
+        RambuPasang::create([
+            'rambu_spk_id' => $campuran->id,
+            'rambu_id' => Rambu::create(['jenis_rambu_id' => $jenisRambu->id, 'wilayah' => 'Banjarmasin Tengah', 'lokasi' => 'B', 'koordinat' => '-3.31,114.59'])->id,
+            'jenis_pekerjaan' => 'perbaikan',
+            'jumlah' => 1,
+            'status' => 'selesai',
+        ]);
+
+        $seragam = Spk::create([
+            'nomor_surat' => 'SR-2026/BJM/8018',
+            'dibuat_oleh' => $admin->id,
+            'wilayah' => 'Banjarmasin Tengah',
+            'deadline' => now()->addDays(5),
+            'urgensi' => 'sedang',
+            'status' => 'selesai',
+            'asal_permintaan' => 'internal',
+        ]);
+        RambuPasang::create([
+            'rambu_spk_id' => $seragam->id,
+            'rambu_id' => Rambu::create(['jenis_rambu_id' => $jenisRambu->id, 'wilayah' => 'Banjarmasin Tengah', 'lokasi' => 'C', 'koordinat' => '-3.32,114.59'])->id,
+            'jenis_pekerjaan' => 'pasang_baru',
+            'jumlah' => 1,
+            'status' => 'selesai',
+        ]);
+
+        Livewire::test(Riwayat::class)
+            ->set('jenis', 'campuran')
+            ->assertSee('SR-2026/BJM/8017')
+            ->assertDontSee('SR-2026/BJM/8018');
+    }
+
+    public function test_riwayat_spk_can_filter_by_date_range(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $this->actingAs($admin);
+
+        $lama = Spk::create([
+            'nomor_surat' => 'SR-2026/BJM/8019',
+            'dibuat_oleh' => $admin->id,
+            'wilayah' => 'Banjarmasin Tengah',
+            'deadline' => now()->addDays(5),
+            'urgensi' => 'sedang',
+            'status' => 'selesai',
+            'asal_permintaan' => 'internal',
+        ]);
+        $lama->updated_at = now()->subDays(20);
+        $lama->save();
+
+        Spk::create([
+            'nomor_surat' => 'SR-2026/BJM/8020',
+            'dibuat_oleh' => $admin->id,
+            'wilayah' => 'Banjarmasin Tengah',
+            'deadline' => now()->addDays(5),
+            'urgensi' => 'sedang',
+            'status' => 'selesai',
+            'asal_permintaan' => 'internal',
+        ]);
+
+        Livewire::test(Riwayat::class)
+            ->set('tanggal_dari', now()->subDays(2)->toDateString())
+            ->assertSee('SR-2026/BJM/8020')
+            ->assertDontSee('SR-2026/BJM/8019');
+    }
+
     public function test_riwayat_spk_card_shows_durasi_and_selisih_deadline_for_selesai(): void
     {
         $admin = User::factory()->admin()->create();

@@ -17,22 +17,26 @@
             </flux:button>
         </div>
 
-        <div class="flex items-center gap-4">
-            <flux:input wire:model.live.debounce.400ms="search" placeholder="Cari nomor surat atau wilayah..." icon="magnifying-glass" class="max-w-sm" />
+        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
+            <flux:input wire:model.live.debounce.400ms="search" placeholder="Cari nomor surat atau wilayah..." icon="magnifying-glass" />
 
-            <flux:select wire:model.live="status" placeholder="Semua Status" class="max-w-xs">
+            <flux:select wire:model.live="status" placeholder="Semua Status">
                 <flux:select.option value="">Semua Status</flux:select.option>
                 @foreach ($statuses as $s)
                     <flux:select.option value="{{ $s->value }}">{{ $s->label() }}</flux:select.option>
                 @endforeach
             </flux:select>
 
-            <flux:select wire:model.live="jenis" placeholder="Semua Jenis" class="max-w-xs">
+            <flux:select wire:model.live="jenis" placeholder="Semua Jenis">
                 <flux:select.option value="">Semua Jenis</flux:select.option>
                 @foreach ($jenisOptions as $j)
                     <flux:select.option value="{{ $j->value }}">{{ $j->label() }}</flux:select.option>
                 @endforeach
+                <flux:select.option value="campuran">Pemasangan & Perbaikan</flux:select.option>
             </flux:select>
+
+            <flux:input wire:model.live="tanggal_dari" type="date" label="Dari Tanggal" description="Berdasarkan tanggal selesai/dibatalkan" />
+            <flux:input wire:model.live="tanggal_sampai" type="date" label="Sampai Tanggal" description="Berdasarkan tanggal selesai/dibatalkan" />
         </div>
 
         @if ($spk->isEmpty())
@@ -56,7 +60,7 @@
                                     $jenisRingkasan === JenisPekerjaan::Perbaikan => 'amber',
                                     default => 'cyan',
                                 }">
-                                    {{ $jenisRingkasan?->label() ?? 'Campuran' }}
+                                    {{ $jenisRingkasan?->label() ?? 'Pemasangan & Perbaikan' }}
                                 </flux:badge>
                             </div>
 

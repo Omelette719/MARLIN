@@ -78,6 +78,12 @@
                 <flux:select id="dashboard-peta-tingkat" label="Tingkat" placeholder="Default (perlu perhatian)" size="sm" onchange="terapkanFilterPetaDashboard()">
                     <flux:select.option value="">Default (perlu perhatian)</flux:select.option>
                     @foreach ($tingkatOptions as $value => $label)
+                        {{-- "Selesai / Kondisi Baik" tidak masuk akal sebagai pilihan
+                        di widget "perlu perhatian" ini — begitu tidak ada tingkat
+                        dipilih, pin tenang macam ini memang sengaja disembunyikan
+                        (hideTenang di script bawah), jadi tidak ada gunanya jadi
+                        pilihan filter eksplisit di sini. --}}
+                        @continue($value === 'selesai')
                         <flux:select.option value="{{ $value }}">{{ $label }}</flux:select.option>
                     @endforeach
                 </flux:select>
@@ -94,7 +100,6 @@
                 <div class="flex items-center gap-2"><span class="inline-block size-3 rounded-full" style="background:#ba1a1a"></span> Urgent / Prioritas / Tinggi</div>
                 <div class="flex items-center gap-2"><span class="inline-block size-3 rounded-full" style="background:#eab308"></span> Rusak / Perbaikan Berjalan</div>
                 <div class="flex items-center gap-2"><span class="inline-block size-3 rounded-full" style="background:#22d3ee"></span> Menunggu Validasi</div>
-                <div class="flex items-center gap-2"><span class="inline-block size-3 rounded-full" style="background:#004655"></span> Selesai / Kondisi Baik</div>
                 <div class="flex items-center gap-2"><span class="inline-block size-3 rounded-full" style="background:#9ca3af"></span> Belum Dikerjakan</div>
             </div>
 
@@ -263,7 +268,7 @@
                                     $jenisRingkasan === JenisPekerjaan::Perbaikan => 'amber',
                                     default => 'cyan',
                                 }">
-                                    {{ $jenisRingkasan?->label() ?? 'Campuran' }}
+                                    {{ $jenisRingkasan?->label() ?? 'Pemasangan & Perbaikan' }}
                                 </flux:badge>
                             </flux:table.cell>
                             <flux:table.cell>{{ $row['spk']->wilayah }}</flux:table.cell>

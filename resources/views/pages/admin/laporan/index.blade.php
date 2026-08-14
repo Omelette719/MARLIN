@@ -120,7 +120,7 @@
                         <flux:table.row>
                             <flux:table.cell variant="strong">{{ $item->nomor_surat }}</flux:table.cell>
                             <flux:table.cell>{{ $item->wilayah }}</flux:table.cell>
-                            <flux:table.cell>{{ $item->jenisRingkasan()?->label() ?? 'Campuran' }}</flux:table.cell>
+                            <flux:table.cell>{{ $item->jenisRingkasan()?->label() ?? 'Pemasangan & Perbaikan' }}</flux:table.cell>
                             <flux:table.cell align="center">{{ $item->rambu_pasang_count }}</flux:table.cell>
                             <flux:table.cell align="center">{{ $item->durasiPengerjaanHari() !== null ? $item->durasiPengerjaanHari().' hari' : '-' }}</flux:table.cell>
                             <flux:table.cell align="center">{{ $item->selisihDeadlineLabel() ?? '-' }}</flux:table.cell>
