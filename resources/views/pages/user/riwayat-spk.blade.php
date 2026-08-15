@@ -5,19 +5,21 @@
     @endphp
 
     <div class="flex w-full flex-1 flex-col gap-6">
-        <div class="flex items-end justify-between">
-            <div>
-                <flux:heading size="xl">Riwayat Pekerjaan Saya</flux:heading>
-                <flux:subheading>Surat yang pernah kamu kerjakan pada {{ $periodeLabel }}, termasuk yang sudah selesai. Bisa jadi bukti kerja kalau ditanya atasan.</flux:subheading>
-            </div>
-
-            <flux:input type="month" wire:model.live="bulan" label="Periode" />
+        <div>
+            <flux:heading size="xl">Riwayat Pekerjaan Saya</flux:heading>
+            <flux:subheading>Surat yang pernah kamu kerjakan, termasuk yang sudah selesai.</flux:subheading>
         </div>
+
+        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <flux:input wire:model.live="tanggal_dari" type="date" label="Dari Tanggal" />
+            <flux:input wire:model.live="tanggal_sampai" type="date" label="Sampai Tanggal" />
+        </div>
+        <flux:text class="-mt-3 text-xs text-zinc-400">Rentang tanggal berdasarkan kapan kamu bergabung ke surat. Kosongkan untuk melihat semua riwayat.</flux:text>
 
         @if ($spk->isEmpty())
             <flux:card class="flex-1">
                 <flux:text class="py-8 text-center text-zinc-500">
-                    Tidak ada surat yang kamu kerjakan pada periode ini.
+                    Tidak ada surat yang kamu kerjakan{{ $tanggal_dari || $tanggal_sampai ? ' pada rentang tanggal ini' : '' }}.
                 </flux:text>
             </flux:card>
         @else

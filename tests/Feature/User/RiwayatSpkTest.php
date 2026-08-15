@@ -65,14 +65,44 @@ class RiwayatSpkTest extends TestCase
             'is_perwakilan' => true,
         ]);
 
-        $response = $this->get(route('user.riwayat-spk', ['bulan' => now()->format('Y-m')]));
+        $response = $this->get(route('user.riwayat-spk'));
 
         $response->assertOk();
         $response->assertSee('SR-2026/BJM/7101');
         $response->assertSee('Selesai');
     }
 
-    public function test_riwayat_only_shows_spk_assigned_in_selected_month(): void
+    public function test_riwayat_shows_full_history_by_default_regardless_of_when_assigned(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $petugas = User::factory()->create();
+        $this->actingAs($petugas);
+
+        $spkBaru = $this->makeSpk($admin, 'SR-2026/BJM/7102');
+        $spkLama = $this->makeSpk($admin, 'SR-2026/BJM/7103');
+
+        DikerjakanOleh::create([
+            'by_spk_id' => $spkBaru->id,
+            'by_user_id' => $petugas->id,
+            'is_perwakilan' => true,
+        ]);
+
+        $assignmentLama = DikerjakanOleh::create([
+            'by_spk_id' => $spkLama->id,
+            'by_user_id' => $petugas->id,
+            'is_perwakilan' => true,
+        ]);
+        $assignmentLama->created_at = now()->subYear();
+        $assignmentLama->save();
+
+        $response = $this->get(route('user.riwayat-spk'));
+
+        $response->assertOk();
+        $response->assertSee('SR-2026/BJM/7102');
+        $response->assertSee('SR-2026/BJM/7103');
+    }
+
+    public function test_riwayat_can_be_filtered_by_tanggal_range(): void
     {
         $admin = User::factory()->admin()->create();
         $petugas = User::factory()->create();
@@ -95,7 +125,10 @@ class RiwayatSpkTest extends TestCase
         $assignmentBulanLalu->created_at = now()->subMonthNoOverflow();
         $assignmentBulanLalu->save();
 
-        $response = $this->get(route('user.riwayat-spk', ['bulan' => now()->format('Y-m')]));
+        $response = $this->get(route('user.riwayat-spk', [
+            'tanggal_dari' => now()->startOfMonth()->toDateString(),
+            'tanggal_sampai' => now()->endOfMonth()->toDateString(),
+        ]));
 
         $response->assertOk();
         $response->assertSee('SR-2026/BJM/7102');

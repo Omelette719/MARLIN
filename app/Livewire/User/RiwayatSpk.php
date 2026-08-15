@@ -4,7 +4,6 @@ namespace App\Livewire\User;
 
 use App\Models\DikerjakanOleh;
 use App\Models\Spk;
-use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
@@ -17,31 +16,31 @@ class RiwayatSpk extends Component
     use WithPagination;
 
     #[Url]
-    public string $bulan = '';
+    public string $tanggal_dari = '';
 
-    public function mount(): void
+    #[Url]
+    public string $tanggal_sampai = '';
+
+    public function updatedTanggalDari(): void
     {
-        if (! $this->bulan) {
-            $this->bulan = now()->format('Y-m');
-        }
+        $this->resetPage();
     }
 
-    public function updatedBulan(): void
+    public function updatedTanggalSampai(): void
     {
         $this->resetPage();
     }
 
     public function with(): array
     {
-        $awal = Carbon::createFromFormat('Y-m', $this->bulan)->startOfMonth();
-        $akhir = $awal->copy()->endOfMonth();
-
         // "Riwayat" is anchored on when the petugas was assigned to the SPK
         // (dikerjakan_oleh.created_at) — that's the most faithful proxy for
-        // "this is the work I was doing during this month," regardless of
-        // whether the SPK itself finished later.
+        // "this is the work I was doing during this period," regardless of
+        // whether the SPK itself finished later. No filter selected means
+        // the full history, not just the current month.
         $spkIds = DikerjakanOleh::where('by_user_id', Auth::id())
-            ->whereBetween('created_at', [$awal, $akhir])
+            ->when($this->tanggal_dari, fn ($query) => $query->whereDate('created_at', '>=', $this->tanggal_dari))
+            ->when($this->tanggal_sampai, fn ($query) => $query->whereDate('created_at', '<=', $this->tanggal_sampai))
             ->pluck('by_spk_id');
 
         $spk = Spk::query()
@@ -60,7 +59,6 @@ class RiwayatSpk extends Component
 
         return [
             'spk' => $spk,
-            'periodeLabel' => $awal->translatedFormat('F Y'),
         ];
     }
 
