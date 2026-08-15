@@ -6,6 +6,7 @@ use App\Enums\StatusRambuPasang;
 use App\Enums\StatusSpk;
 use App\Models\DikerjakanOleh;
 use App\Models\Spk;
+use App\Support\SpkProgressStatus;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -15,15 +16,6 @@ use Livewire\WithPagination;
 class SpkDikerjakan extends Component
 {
     use WithPagination;
-
-    private const STATUS_PRIORITAS = [
-        StatusRambuPasang::Urgent,
-        StatusRambuPasang::Tertunda,
-        StatusRambuPasang::Revisi,
-        StatusRambuPasang::MenungguValidasi,
-        StatusRambuPasang::Belum,
-        StatusRambuPasang::Selesai,
-    ];
 
     public function with(): array
     {
@@ -41,14 +33,10 @@ class SpkDikerjakan extends Component
         $spk->getCollection()->transform(function (Spk $item) {
             $statuses = $item->rambuPasang->pluck('status')->reject(fn ($s) => $s === StatusRambuPasang::Batal);
 
-            $item->progress_status = collect(self::STATUS_PRIORITAS)
-                ->first(fn ($p) => $statuses->contains($p)) ?? StatusRambuPasang::Selesai;
+            $item->progress_status = SpkProgressStatus::hitung($item, $statuses);
+            $item->siap_diajukan = SpkProgressStatus::siapDiajukan($item, $statuses);
 
             $item->cover_photos = $item->rambuPasang->pluck('foto_survei')->filter()->unique()->values();
-
-            $item->siap_diajukan = $item->rambuPasang->isNotEmpty() && $statuses->every(
-                fn ($s) => in_array($s, [StatusRambuPasang::Tertunda, StatusRambuPasang::MenungguValidasi], true)
-            );
 
             return $item;
         });

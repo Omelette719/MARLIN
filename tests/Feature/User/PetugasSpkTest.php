@@ -146,7 +146,52 @@ class PetugasSpkTest extends TestCase
             'rambu_id' => $rambuKedua->id,
             'jenis_pekerjaan' => 'pasang_baru',
             'jumlah' => 1,
-            'status' => 'menunggu_validasi',
+            'status' => 'tertunda',
+        ]);
+
+        $response = $this->get(route('dashboard'));
+
+        $response->assertOk();
+        $response->assertSee('Tertunda');
+    }
+
+    public function test_daftar_surat_aktif_progress_status_does_not_show_menunggu_validasi_before_laporan_akhir_diajukan(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $petugas = User::factory()->create();
+        $this->actingAs($petugas);
+
+        // Satu-satunya rambu sudah dilaporkan, tapi laporan akhir SPK belum
+        // diajukan — badge belum boleh bilang "Menunggu Validasi".
+        $rambuPasang = $this->makeRambuPasang($admin, status: 'menunggu_validasi');
+
+        DikerjakanOleh::create([
+            'by_spk_id' => $rambuPasang->rambu_spk_id,
+            'by_user_id' => $petugas->id,
+            'is_perwakilan' => true,
+        ]);
+
+        $response = $this->get(route('dashboard'));
+
+        $response->assertOk();
+        $response->assertDontSee('Menunggu Validasi');
+        $response->assertSee('Siap Diajukan Laporan Akhir');
+    }
+
+    public function test_daftar_surat_aktif_progress_status_shows_menunggu_validasi_once_laporan_akhir_diajukan(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $petugas = User::factory()->create();
+        $this->actingAs($petugas);
+
+        $rambuPasang = $this->makeRambuPasang($admin, status: 'menunggu_validasi');
+        $spk = $rambuPasang->spk;
+        $spk->update(['laporan_akhir_diajukan_at' => now()]);
+
+        DikerjakanOleh::create([
+            'by_spk_id' => $spk->id,
+            'by_user_id' => $petugas->id,
+            'is_perwakilan' => true,
         ]);
 
         $response = $this->get(route('dashboard'));

@@ -102,6 +102,9 @@
                                     StatusRambuPasang::Tertunda => 'amber',
                                     default => 'zinc',
                                 }">{{ $item->progress_status->label() }}</flux:badge>
+                                @if ($sayaGabung && $item->siap_diajukan)
+                                    <flux:badge color="cyan" size="sm">Siap Diajukan Laporan Akhir</flux:badge>
+                                @endif
                                 @if ($sayaGabung)
                                     <flux:badge color="blue" variant="solid" size="sm">Sudah Bergabung</flux:badge>
                                 @elseif ($adaTim)

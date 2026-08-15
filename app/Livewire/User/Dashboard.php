@@ -7,6 +7,7 @@ use App\Enums\StatusSpk;
 use App\Models\DikerjakanOleh;
 use App\Models\RambuPasang;
 use App\Models\Spk;
+use App\Support\SpkProgressStatus;
 use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Title;
@@ -37,15 +38,6 @@ class Dashboard extends Component
         Flux::toast(variant: 'warning', text: 'Gabung dulu ke tim surat ini sebelum bisa mengunduh surat pengantarnya.');
     }
 
-    private const STATUS_PRIORITAS = [
-        StatusRambuPasang::Urgent,
-        StatusRambuPasang::Tertunda,
-        StatusRambuPasang::Revisi,
-        StatusRambuPasang::MenungguValidasi,
-        StatusRambuPasang::Belum,
-        StatusRambuPasang::Selesai,
-    ];
-
     public function with(): array
     {
         $joinedSpkIds = DikerjakanOleh::where('by_user_id', Auth::id())->pluck('by_spk_id');
@@ -64,8 +56,8 @@ class Dashboard extends Component
         $spk->getCollection()->transform(function (Spk $item) {
             $statuses = $item->rambuPasang->pluck('status')->reject(fn ($s) => $s === StatusRambuPasang::Batal);
 
-            $item->progress_status = collect(self::STATUS_PRIORITAS)
-                ->first(fn ($p) => $statuses->contains($p)) ?? StatusRambuPasang::Selesai;
+            $item->progress_status = SpkProgressStatus::hitung($item, $statuses);
+            $item->siap_diajukan = SpkProgressStatus::siapDiajukan($item, $statuses);
 
             $item->cover_photos = $item->rambuPasang->pluck('foto_survei')->filter()->unique()->values();
 
