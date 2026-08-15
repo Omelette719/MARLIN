@@ -216,13 +216,13 @@ $periodeLabel = ($filters['tanggal_dari'] ? \Carbon\Carbon::parse($filters['tang
 
         table.daftar-rambu th.no,
         table.daftar-rambu td.no {
-            width: 30px;
+            width: 5%;
             text-align: center;
         }
 
         table.daftar-rambu th.jenis,
         table.daftar-rambu td.jenis {
-            width: 19%;
+            width: 17%;
         }
 
         table.daftar-rambu th.lokasi,
@@ -242,7 +242,7 @@ $periodeLabel = ($filters['tanggal_dari'] ? \Carbon\Carbon::parse($filters['tang
 
         table.daftar-rambu th.spk,
         table.daftar-rambu td.spk {
-            width: 23%;
+            width: 20%;
         }
 
         table.daftar-rambu td.no {
