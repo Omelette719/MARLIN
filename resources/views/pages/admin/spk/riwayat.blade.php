@@ -12,22 +12,22 @@
                 <flux:subheading>Arsip SPK yang sudah selesai atau dibatalkan &mdash; yang masih aktif ada di <flux:link :href="route('admin.spk.index')" wire:navigate>Daftar Surat</flux:link>.</flux:subheading>
             </div>
 
-            <flux:button variant="ghost" icon="arrow-left" :href="route('admin.spk.index')" wire:navigate>
+            <x-back-button :fallback="route('admin.spk.index')" icon="arrow-left">
                 Kembali
-            </flux:button>
+            </x-back-button>
         </div>
 
         <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
-            <flux:input wire:model.live.debounce.400ms="search" placeholder="Cari nomor surat atau wilayah..." icon="magnifying-glass" />
+            <flux:input wire:model.live.debounce.400ms="search" label="Cari" placeholder="Nomor surat atau wilayah..." icon="magnifying-glass" />
 
-            <flux:select wire:model.live="status" placeholder="Semua Status">
+            <flux:select wire:model.live="status" label="Status" placeholder="Semua Status">
                 <flux:select.option value="">Semua Status</flux:select.option>
                 @foreach ($statuses as $s)
                     <flux:select.option value="{{ $s->value }}">{{ $s->label() }}</flux:select.option>
                 @endforeach
             </flux:select>
 
-            <flux:select wire:model.live="jenis" placeholder="Semua Jenis">
+            <flux:select wire:model.live="jenis" label="Jenis" placeholder="Semua Jenis">
                 <flux:select.option value="">Semua Jenis</flux:select.option>
                 @foreach ($jenisOptions as $j)
                     <flux:select.option value="{{ $j->value }}">{{ $j->label() }}</flux:select.option>
@@ -35,9 +35,10 @@
                 <flux:select.option value="campuran">Pemasangan & Perbaikan</flux:select.option>
             </flux:select>
 
-            <flux:input wire:model.live="tanggal_dari" type="date" label="Dari Tanggal" description="Berdasarkan tanggal selesai/dibatalkan" />
-            <flux:input wire:model.live="tanggal_sampai" type="date" label="Sampai Tanggal" description="Berdasarkan tanggal selesai/dibatalkan" />
+            <flux:input wire:model.live="tanggal_dari" type="date" label="Dari Tanggal" />
+            <flux:input wire:model.live="tanggal_sampai" type="date" label="Sampai Tanggal" />
         </div>
+        <flux:text class="-mt-3 text-xs text-zinc-400">Rentang tanggal berdasarkan tanggal selesai/dibatalkan.</flux:text>
 
         @if ($spk->isEmpty())
             <flux:card class="flex-1">

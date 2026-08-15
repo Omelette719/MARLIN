@@ -11,7 +11,7 @@
                 <flux:subheading>{{ $spk->nomor_surat }}</flux:subheading>
             </div>
 
-            <flux:button variant="ghost" :href="route('admin.spk.show', $spk)" wire:navigate>Kembali</flux:button>
+            <x-back-button :fallback="route('admin.spk.show', $spk)">Kembali</x-back-button>
         </div>
 
         <form wire:submit="save" class="flex flex-col gap-6">
@@ -25,7 +25,7 @@
                 </div>
 
                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <flux:input wire:model="perihal" label="Perihal Permohonan" placeholder="Mis. pemasangan cermin tikungan" description="Opsional. Kalau kosong, akan dibuat otomatis dari jenis pekerjaan &amp; jenis rambu." />
+                    <flux:input wire:model="perihal" label="Perihal Permohonan" placeholder="Mis. pemasangan cermin tikungan" description:trailing="Opsional. Kalau kosong, akan dibuat otomatis dari jenis pekerjaan & jenis rambu." />
                     <flux:input wire:model.live.debounce.500ms="deadline" type="date" label="Deadline" required />
                 </div>
 
@@ -39,8 +39,8 @@
                 </div>
 
                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <flux:input wire:model.live.debounce.500ms="tanggal_survei" type="date" label="Tanggal Survei" description="Opsional. Kalau diisi, akan muncul di surat pengantar sebagai '(DISURVEI TGL ...)'." />
-                    <flux:input wire:model.live.debounce.500ms="petugas_survei" label="Petugas Survei" placeholder="Nama-nama petugas, pisahkan dengan koma" description="Wajib diisi jika tanggal survei diisi. Tidak muncul di surat pengantar." />
+                    <flux:input wire:model.live.debounce.500ms="tanggal_survei" type="date" label="Tanggal Survei" description:trailing="Opsional. Kalau diisi, akan muncul di surat pengantar sebagai '(DISURVEI TGL ...)'." />
+                    <flux:input wire:model.live.debounce.500ms="petugas_survei" label="Petugas Survei" placeholder="Nama-nama petugas, pisahkan dengan koma" description:trailing="Wajib diisi jika tanggal survei diisi. Tidak muncul di surat pengantar." />
                 </div>
 
                 <flux:checkbox wire:model="prioritas" label="Tandai sebagai prioritas" description="Jika dicentang, urgensi otomatis menjadi Tinggi terlepas dari deadline." />
@@ -134,7 +134,7 @@
                             </div>
                             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                 <flux:input wire:model="rambuItems.{{ $index }}.lokasi" label="Lokasi" placeholder="Mis. perempatan 1, samping masjid" />
-                                <flux:input wire:model.live.debounce.500ms="rambuItems.{{ $index }}.koordinat" label="Koordinat" placeholder="-3.3194,114.5908" description="Format: lintang,bujur" />
+                                <flux:input wire:model.live.debounce.500ms="rambuItems.{{ $index }}.koordinat" label="Koordinat" placeholder="-3.3194,114.5908" description:trailing="Format: lintang,bujur" />
                             </div>
 
                             @if (! empty($koordinatWarnings[$index] ?? null))

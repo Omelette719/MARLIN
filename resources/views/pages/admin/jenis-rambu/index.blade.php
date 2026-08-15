@@ -30,7 +30,9 @@
                         @if ($isAdmin)
                             <div class="absolute top-2 right-2 z-10 flex gap-1 opacity-0 transition group-hover:opacity-100">
                                 <flux:button size="sm" variant="ghost" icon="pencil" class="bg-white/90! shadow" wire:click.stop="edit({{ $jenis->id }})" />
-                                <flux:button size="sm" variant="danger" icon="trash" wire:click.stop="hapus({{ $jenis->id }})" wire:confirm="Hapus jenis rambu ini?" />
+                                <flux:modal.trigger name="hapus-jenis-rambu-{{ $jenis->id }}" x-on:click.stop>
+                                    <flux:button size="sm" variant="danger" icon="trash" />
+                                </flux:modal.trigger>
                             </div>
                         @endif
 
@@ -52,6 +54,25 @@
                     </div>
                 @endforeach
             </div>
+
+            {{-- Modals live outside the grid on purpose: Flux's <ui-modal>
+            wrapper still occupies a grid track even while closed, and
+            sitting inside a `grid-cols-*` container as a sibling of the
+            cards was eating a card-sized slot per jenis rambu, spreading
+            the real cards apart instead of sitting next to each other. --}}
+            @if ($isAdmin)
+                @foreach ($jenisRambu as $jenis)
+                    <x-confirm-modal
+                        wire:key="hapus-jenis-rambu-modal-{{ $jenis->id }}"
+                        name="hapus-jenis-rambu-{{ $jenis->id }}"
+                        heading="Hapus jenis rambu ini?"
+                        text="{{ $jenis->nama_jenis }} akan dihapus permanen. Tindakan ini tidak bisa dibatalkan."
+                        action="hapus({{ $jenis->id }})"
+                        confirm-label="Ya, Hapus"
+                        tone="danger"
+                    />
+                @endforeach
+            @endif
         @endif
     </div>
 
