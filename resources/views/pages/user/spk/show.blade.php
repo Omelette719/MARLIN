@@ -36,7 +36,7 @@
                             Unduh Surat Pengantar
                         </flux:button>
                     @endif
-                    <flux:button variant="ghost" :href="route('dashboard')" wire:navigate>Kembali</flux:button>
+                    <x-back-button :fallback="route('dashboard')">Kembali</x-back-button>
                 </div>
                 <flux:text class="text-xs text-zinc-500">Serahkan surat ini ke RT/perwakilan warga untuk diisi dan ditandatangani secara manual.</flux:text>
             </div>

@@ -292,7 +292,11 @@ class Show extends Component
 
         Flux::toast(variant: 'success', text: 'Validasi berhasil diproses.');
 
-        $this->redirectRoute('admin.validasi.index', navigate: true);
+        // This page is reachable from more than just the validasi queue
+        // (a rambu detail page, or a notification link), so returning to
+        // wherever the admin actually came from beats always landing on
+        // the index — see marlinGoBack() in app.js.
+        $this->dispatch('marlin-go-back', fallback: route('admin.validasi.index'));
     }
 
     public function with(): array

@@ -2,6 +2,43 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import leafletImage from 'leaflet-image';
 
+// --- "Kembali" / go-back helper -----------------------------------------
+// wire:navigate keeps the browser's real History API in sync (pushState on
+// every internal hop), so a "Kembali" button can use history.back() to
+// return to whatever page was actually open before, instead of a hardcoded
+// route that's wrong whenever a page is reachable from more than one place
+// (e.g. a validasi/rambu detail page reached from a list, a notification,
+// or another detail page). `livewire:navigated` fires on every hop
+// (including the very first full page load), so a per-tab counter in
+// sessionStorage tells a real "previous page in this app" apart from a
+// fresh tab/bookmark/deep link, where history.back() would leave the app
+// entirely instead of doing anything useful.
+const NAV_DEPTH_KEY = 'marlin-nav-depth';
+
+document.addEventListener('livewire:navigated', () => {
+    const depth = parseInt(sessionStorage.getItem(NAV_DEPTH_KEY) || '0', 10);
+    sessionStorage.setItem(NAV_DEPTH_KEY, String(depth + 1));
+});
+
+window.marlinGoBack = function (fallbackUrl) {
+    const depth = parseInt(sessionStorage.getItem(NAV_DEPTH_KEY) || '0', 10);
+
+    if (depth > 1) {
+        window.history.back();
+        return;
+    }
+
+    if (window.Livewire) {
+        window.Livewire.navigate(fallbackUrl);
+    } else {
+        window.location.href = fallbackUrl;
+    }
+};
+
+document.addEventListener('livewire:init', () => {
+    window.Livewire.on('marlin-go-back', (event) => window.marlinGoBack(event.fallback));
+});
+
 const STATUS_LABEL = {
     belum: 'Belum Dikerjakan',
     urgent: 'Urgent',

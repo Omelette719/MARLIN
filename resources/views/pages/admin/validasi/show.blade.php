@@ -10,7 +10,7 @@
                 <flux:subheading>{{ $spk->wilayah }}</flux:subheading>
             </div>
 
-            <flux:button variant="ghost" :href="route('admin.validasi.index')" wire:navigate>Kembali</flux:button>
+            <x-back-button :fallback="route('admin.validasi.index')">Kembali</x-back-button>
         </div>
 
         <flux:card class="flex flex-col gap-3">

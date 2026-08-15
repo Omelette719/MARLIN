@@ -9,9 +9,9 @@
                 <flux:subheading>Daftar aset fisik rambu lalu lintas yang tercatat di sistem.</flux:subheading>
             </div>
 
-            <flux:button variant="ghost" icon="arrow-left" :href="$isAdmin ? route('admin.jenis-rambu.index') : route('jenis-rambu.index')" wire:navigate>
+            <x-back-button :fallback="$isAdmin ? route('admin.jenis-rambu.index') : route('jenis-rambu.index')" icon="arrow-left">
                 Kembali ke Jenis Rambu
-            </flux:button>
+            </x-back-button>
         </div>
 
         <div class="flex items-center gap-4">

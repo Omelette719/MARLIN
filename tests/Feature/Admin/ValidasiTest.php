@@ -116,6 +116,26 @@ class ValidasiTest extends TestCase
         $this->assertSame(route('user.spk.show', $spk), Notifikasi::where('user_id', $petugas->id)->first()->url);
     }
 
+    public function test_finalizing_validasi_dispatches_go_back_instead_of_hard_redirect(): void
+    {
+        // This page is reachable from more than the validasi queue (a rambu
+        // detail page, a notification link), so finalize() defers to the
+        // client-side marlinGoBack() helper (which prefers real browser
+        // back-navigation) instead of always redirecting to the index.
+        $admin = User::factory()->admin()->create();
+        $petugas = User::factory()->create();
+        $this->actingAs($admin);
+
+        ['spk' => $spk, 'rambuPasang' => $rambuPasang] =
+            $this->makeSpkWithPendingLaporan($admin, $petugas, 'pasang_baru');
+
+        Livewire::test(ValidasiShowComponent::class, ['spk' => $spk])
+            ->set("checked.{$rambuPasang->id}", true)
+            ->call('lanjutkan')
+            ->assertDispatched('marlin-go-back', fallback: route('admin.validasi.index'))
+            ->assertNoRedirect();
+    }
+
     public function test_admin_can_approve_laporan_perbaikan_and_fixes_kondisi(): void
     {
         $admin = User::factory()->admin()->create();

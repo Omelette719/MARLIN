@@ -39,7 +39,7 @@
                         </flux:button>
                     </flux:modal.trigger>
                 @endif
-                <flux:button variant="ghost" :href="route('admin.spk.index')" wire:navigate>Kembali</flux:button>
+                <x-back-button :fallback="route('admin.spk.index')">Kembali</x-back-button>
             </div>
         </div>
 

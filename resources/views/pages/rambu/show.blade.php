@@ -11,9 +11,9 @@
                 <flux:subheading>{{ $rambu->jenisRambu?->nama_jenis }} &middot; {{ $rambu->wilayah }}</flux:subheading>
             </div>
 
-            <flux:button variant="ghost" icon="arrow-left" :href="$isAdmin ? route('admin.rambu.index') : route('rambu.index')" wire:navigate>
+            <x-back-button :fallback="$isAdmin ? route('admin.rambu.index') : route('rambu.index')" icon="arrow-left">
                 Kembali
-            </flux:button>
+            </x-back-button>
         </div>
 
         <flux:card class="flex flex-col gap-0 overflow-hidden rounded-2xl p-0 shadow-xs">
