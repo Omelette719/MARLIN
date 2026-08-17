@@ -1,244 +1,249 @@
-# Skema Database Sistem MARLIN
+# Skema Basis Data Sistem MARLIN
 
-Referensi lengkap tiap tabel domain: kolom, tipe, default, dan aturan hapus (foreign key). Untuk ringkasan singkat, lihat [README.md](../README.md#struktur-database). Untuk nilai-nilai enum yang dipakai, lihat bagian [Enum](#enum) di bawah.
+## Mengapa Dokumen Ini Penting
 
-Database dev: SQLite (`database/database.sqlite`). Setiap tabel domain punya satu file migrasi sendiri di `database/migrations/`, dengan urutan penomoran mengikuti dependency foreign key (tabel yang dirujuk selalu dibuat lebih dulu).
+Basis data adalah fondasi paling dasar dari sistem mana pun, dan MARLIN tidak terkecuali. Setiap fitur yang dijelaskan pada [FITUR.md](FITUR.md), setiap aturan bisnis yang diuraikan pada [ALUR-BISNIS.md](ALUR-BISNIS.md), pada akhirnya bermuara pada bagaimana data disimpan, dihubungkan, dan dijaga integritasnya di dalam basis data. Dokumen ini menjadi referensi lengkap untuk memahami setiap tabel domain yang ada di dalam sistem: kolom apa saja yang dimilikinya, tipe data yang dipakai, nilai bawaan yang diterapkan, dan yang tidak kalah pentingnya, aturan penghapusan data (foreign key) yang menentukan apa yang terjadi ketika sebuah baris data yang dirujuk oleh baris lain hendak dihapus.
+
+Untuk ringkasan yang lebih singkat, silakan lihat bagian [Rancangan Struktur Basis Data](../README.md#rancangan-struktur-basis-data) pada README.md di direktori akar proyek. Untuk memahami seluruh nilai enum yang dipakai di dalam sistem beserta artinya masing-masing, gulir ke bagian [Enum](#enum) pada dokumen ini.
+
+Lingkungan pengembangan sistem ini menggunakan SQLite sebagai mesin basis datanya (`database/database.sqlite`). Setiap tabel domain memiliki satu berkas migrasi tersendiri di dalam direktori `database/migrations/`, dan urutan penomoran pada nama berkas-berkas tersebut secara sengaja mengikuti urutan dependensi foreign key, artinya tabel yang dirujuk oleh tabel lain selalu dibuat lebih dahulu sebelum tabel yang merujuknya.
 
 ---
 
-## Tabel Bawaan Laravel
+## Tabel-Tabel Bawaan dari Laravel
 
-- `users`: lihat detail di bawah (tabel ini dimodifikasi dari bawaan starter kit, bukan murni bawaan).
-- `sessions`, `cache`, `cache_locks`, `jobs`, `job_batches`, `failed_jobs`: bawaan Laravel standar, tidak dimodifikasi.
+Sebelum masuk ke tabel-tabel domain yang menjadi inti dari sistem ini, perlu disebutkan bahwa ada beberapa tabel yang sudah tersedia secara bawaan dari kerangka kerja Laravel itu sendiri. Tabel `users` termasuk di dalamnya, namun ia sudah dimodifikasi cukup signifikan dari bentuk bawaan starter kit-nya, sehingga penjelasannya akan dibahas secara terperinci di bagian tersendiri di bawah. Selain itu, tabel-tabel seperti `sessions`, `cache`, `cache_locks`, `jobs`, `job_batches`, dan `failed_jobs` adalah tabel bawaan Laravel standar yang tidak mengalami modifikasi apa pun, dan berfungsi sesuai dengan peruntukannya masing-masing dalam kerangka kerja: menyimpan sesi login, cache aplikasi, dan antrean pekerjaan latar belakang (queue jobs).
 
-## `users`
+## Tabel `users`
+
+Tabel ini menyimpan seluruh data akun pengguna, baik admin maupun petugas lapangan, dalam satu tabel yang sama, dibedakan lewat kolom `role`.
 
 | Kolom | Tipe | Keterangan |
 |---|---|---|
-| `name` | string | Nama lengkap |
-| `nama_panggilan` | string, nullable | Nama panggilan (ditampilkan di header, mis. "Halo, Budi") |
-| `nip` | string, unique | Nomor Induk Pegawai, dipakai untuk login |
-| `username` | string, unique, nullable | Belum dipakai untuk fitur apapun saat ini, disiapkan untuk kebutuhan masa depan |
-| `role` | string, default `user` | `admin` atau `user` (petugas), lihat enum `Role` |
+| `name` | string | Nama lengkap pengguna |
+| `nama_panggilan` | string, nullable | Nama panggilan yang ditampilkan di bagian header aplikasi, misalnya "Halo, Budi" |
+| `nip` | string, unique | Nomor Induk Pegawai, dipakai sebagai identitas untuk login, menggantikan alamat surel |
+| `username` | string, unique, nullable | Belum dipakai untuk fitur apa pun saat ini, disiapkan sebagai antisipasi kebutuhan di masa mendatang |
+| `role` | string, default `user` | Bernilai `admin` atau `user` (petugas), mengikuti enum `Role` |
 | `tanggal_lahir` | date, nullable | |
-| `jenis_kelamin` | string(1), nullable | `L` atau `P` |
-| `bidang` | string, nullable | Bidang/divisi di Dishub |
+| `jenis_kelamin` | string(1), nullable | Bernilai `L` atau `P` |
+| `bidang` | string, nullable | Bidang atau divisi tempat pengguna bertugas di lingkungan Dishub |
 | `jabatan` | string, nullable | |
 | `no_telepon` | string(20), nullable | |
-| `aktif` | boolean, default `true` | Nonaktifkan akun tanpa menghapusnya |
-| `telegram_chat_id` | string, unique, nullable | Diisi otomatis setelah akun berhasil dihubungkan ke bot Telegram |
-| `telegram_link_token` | string, unique, nullable | Token sekali pakai buat proses hubungkan Telegram, dikosongkan lagi begitu berhasil atau digenerate ulang |
-| `password` | string | Di-hash otomatis (cast `hashed`) |
-| `two_factor_secret`, `two_factor_recovery_codes`, `two_factor_confirmed_at` | (berbagai tipe) | Dikelola Fortify untuk 2FA |
+| `aktif` | boolean, default `true` | Memungkinkan sebuah akun dinonaktifkan tanpa perlu menghapusnya secara permanen |
+| `telegram_chat_id` | string, unique, nullable | Terisi secara otomatis begitu akun berhasil dihubungkan dengan bot Telegram |
+| `telegram_link_token` | string, unique, nullable | Token sekali pakai untuk proses menghubungkan akun ke Telegram, dikosongkan kembali begitu berhasil dipakai atau digenerate ulang |
+| `password` | string | Otomatis di-hash lewat cast `hashed` pada model, sehingga tidak ada satu pun jalur kode yang menyimpan kata sandi mentah |
+| `two_factor_secret`, `two_factor_recovery_codes`, `two_factor_confirmed_at` | (berbagai tipe) | Dikelola sepenuhnya oleh Laravel Fortify untuk keperluan Autentikasi Dua Faktor |
 
-## `jenis_rambu`
+## Tabel `jenis_rambu`
 
-Master kategori rambu.
+Tabel ini menjadi data master untuk kategori-kategori rambu lalu lintas yang dikenal sistem. Setiap kategori didefinisikan sekali di sini, kemudian dirujuk berulang kali oleh setiap rambu fisik yang termasuk ke dalam kategori tersebut.
 
 | Kolom | Tipe | Keterangan |
 |---|---|---|
 | `nama_jenis` | string | |
 | `spesifikasi_standar` | text, nullable | |
-| `gambar_referensi` | string, nullable | Path file di disk `public` |
-| `bentuk_ikon` | string, default `bulat` | `bulat` atau `kotak`, bentuk ikon pin di peta |
+| `gambar_referensi` | string, nullable | Path berkas gambar yang tersimpan pada disk `public` |
+| `bentuk_ikon` | string, default `bulat` | Bernilai `bulat` atau `kotak`, menentukan bentuk ikon pin yang ditampilkan di peta untuk rambu-rambu dari jenis ini |
 
-**Relasi**: `hasMany` &rarr; `rambu`.
+Relasi yang dimiliki tabel ini adalah `hasMany` menuju tabel `rambu`, artinya satu jenis rambu bisa dimiliki oleh banyak rambu fisik sekaligus.
 
-## `rambu`
+## Tabel `rambu`
 
-Satu baris = satu rambu fisik.
+Setiap baris di dalam tabel ini merepresentasikan satu rambu fisik yang benar-benar ada, atau setidaknya direncanakan untuk ada, di dunia nyata.
 
 | Kolom | Tipe | Keterangan |
 |---|---|---|
-| `jenis_rambu_id` | FK &rarr; `jenis_rambu`, **restrict**, indexed | |
-| `wilayah` | string, indexed | Teks alamat gabungan (disusun otomatis dari `jalan`/`rt`/`kelurahan` lewat trait `ComposesWilayah` kalau kosong) |
+| `jenis_rambu_id` | foreign key ke `jenis_rambu`, **restrict**, terindeks | |
+| `wilayah` | string, terindeks | Teks alamat gabungan, disusun secara otomatis dari `jalan`/`rt`/`kelurahan` lewat trait `ComposesWilayah` apabila memang belum diisi secara manual |
 | `jalan` | string, nullable | |
 | `rt` | string, nullable | |
 | `kelurahan` | string, nullable | |
-| `lokasi` | string | Lokasi spesifik, mis. "perempatan 1" |
-| `koordinat` | string | Format `"lat,lng"` |
-| `kondisi_terkini` | string, default `baik` | `baik` atau `rusak`, enum `KondisiRambu` |
+| `lokasi` | string | Lokasi spesifik, misalnya "perempatan 1" |
+| `koordinat` | string | Disimpan dalam format teks `"lat,lng"` |
+| `kondisi_terkini` | string, default `baik` | Bernilai `baik` atau `rusak`, mengikuti enum `KondisiRambu` |
 | `sudah_terpasang` | boolean, default `false` | |
 
-**Relasi**: `belongsTo` &rarr; `jenis_rambu`; `hasMany` &rarr; `rambu_pasang`, `laporan_kondisi`.
+Relasi yang dimiliki tabel ini adalah `belongsTo` menuju `jenis_rambu`, dan `hasMany` menuju `rambu_pasang` serta `laporan_kondisi`.
 
-## `spk`
+Ada satu prinsip yang perlu ditegaskan dengan jelas tentang tabel ini: `rambu` adalah representasi aset fisik yang **persisten**. Sebuah baris pada tabel ini akan tetap ada selamanya, terlepas dari berapa banyak SPK yang pernah menyentuhnya, apakah SPK-SPK tersebut sukses diselesaikan, direvisi berkali-kali, atau bahkan dibatalkan. Konsep ini penting untuk dibedakan dengan tegas dari tabel `rambu_pasang` yang akan dijelaskan berikutnya, yang justru merepresentasikan sebuah *tugas* atau *pekerjaan* terhadap sebuah rambu, bukan rambunya itu sendiri.
 
-Surat Perintah Kerja: entitas utama sistem.
+## Tabel `spk`
+
+Tabel ini merupakan jantung dari seluruh sistem, merepresentasikan sebuah Surat Perintah Kerja.
 
 | Kolom | Tipe | Keterangan |
 |---|---|---|
-| `nomor_surat` | string, unique | Format `SR-{tahun}/BJM/{urutan 4 digit}` |
-| `dibuat_oleh` | FK &rarr; `users`, **restrict** | Selalu admin |
-| `wilayah` | string | Sama seperti di `rambu`, komposit otomatis |
+| `nomor_surat` | string, unique | Mengikuti format `SR-{tahun}/BJM/{urutan 4 digit}` |
+| `dibuat_oleh` | foreign key ke `users`, **restrict** | Selalu diisi oleh admin yang membuat SPK tersebut |
+| `wilayah` | string | Sama seperti pada tabel `rambu`, disusun secara komposit otomatis |
 | `jalan`, `rt`, `kelurahan` | string, nullable | |
 | `deadline` | date | |
-| `deadline_asli` | date, nullable | Deadline asli sebelum digeser otomatis oleh `App\Support\PenyesuaianDeadlineSpk` saat SPK prioritas lain dibuat |
-| `prioritas` | boolean, default `false` | Kalau `true`, urgensi otomatis `tinggi` |
-| `urgensi` | string | `rendah`/`sedang`/`tinggi`, enum `Urgensi`, dihitung otomatis dari deadline+prioritas |
-| `status` | string, default `aktif`, indexed | `aktif`/`selesai`/`dibatalkan`, enum `StatusSpk` |
-| `asal_permintaan` | string | Lihat enum `AsalPermintaan` |
-| `keterangan_asal` | string, nullable | Mis. nama pelapor/instansi |
-| `perihal` | string, nullable | Kalau kosong, dibuat otomatis saat render PDF |
+| `deadline_asli` | date, nullable | Menyimpan tenggat waktu asli sebelum digeser secara otomatis oleh `App\Support\PenyesuaianDeadlineSpk` saat ada SPK prioritas lain yang dibuat |
+| `prioritas` | boolean, default `false` | Apabila bernilai `true`, urgensi akan otomatis menjadi `tinggi` |
+| `urgensi` | string | Bernilai `rendah`, `sedang`, atau `tinggi`, mengikuti enum `Urgensi`, dihitung otomatis dari kombinasi tenggat waktu dan status prioritas |
+| `status` | string, default `aktif`, terindeks | Bernilai `aktif`, `selesai`, atau `dibatalkan`, mengikuti enum `StatusSpk` |
+| `asal_permintaan` | string | Lihat penjelasan lengkap pada enum `AsalPermintaan` |
+| `keterangan_asal` | string, nullable | Misalnya menyimpan nama pelapor atau instansi yang mengajukan permintaan |
+| `perihal` | string, nullable | Apabila dikosongkan, akan dibuat secara otomatis saat dokumen PDF dirender |
 | `tanggal_survei` | date, nullable | |
-| `petugas_survei` | string, nullable | Nama petugas survei, dicatat manual. Wajib diisi kalau `tanggal_survei` diisi |
-| `file_referensi` | string, nullable | Path scan surat permohonan asli |
+| `petugas_survei` | string, nullable | Nama petugas yang melakukan survei, dicatat secara manual sebagai teks bebas. Wajib diisi apabila `tanggal_survei` diisi |
+| `file_referensi` | string, nullable | Path berkas hasil pindaian (scan) surat permohonan asli |
 | `catatan_pekerja_tambahan` | string, nullable | |
-| `laporan_akhir_diajukan_at` | timestamp, nullable | Gate untuk masuk antrean validasi, lihat [ALUR-BISNIS.md](ALUR-BISNIS.md) |
-| `selesai_pada` | timestamp, nullable | Diisi sekali saat `status` berubah jadi `selesai`. Dipakai untuk menghitung Durasi Pengerjaan & Selisih dari Deadline |
+| `laporan_akhir_diajukan_at` | timestamp, nullable | Berfungsi sebagai gerbang untuk masuk ke antrean validasi, penjelasan lengkap tersedia di [ALUR-BISNIS.md](ALUR-BISNIS.md) |
+| `selesai_pada` | timestamp, nullable | Diisi sekali saja pada saat kolom `status` berubah menjadi `selesai`, dipakai untuk menghitung Durasi Pengerjaan dan Selisih dari Deadline |
 
-**Relasi**: `hasMany` &rarr; `rambu_pasang`, `dikerjakan_oleh`, `rt_perwakilan`, `audit_log`; `belongsToMany` &rarr; `users` lewat `dikerjakan_oleh`.
+Relasi yang dimiliki tabel ini adalah `hasMany` menuju `rambu_pasang`, `dikerjakan_oleh`, `rt_perwakilan`, dan `audit_log`, ditambah relasi `belongsToMany` menuju `users` lewat tabel penghubung `dikerjakan_oleh`.
 
-**SPK tidak pernah dihapus**, dibatalkan lewat perubahan `status`, bukan `DELETE`.
+Dua hal penting perlu ditekankan tentang tabel ini. Pertama, **SPK tidak pernah dihapus secara permanen**. Ketika sebuah pekerjaan dibatalkan, satu-satunya yang berubah adalah kolom `status`-nya menjadi `dibatalkan`, sama sekali bukan perintah `DELETE` terhadap barisnya. Kedua, dan ini merupakan keputusan desain yang cukup mendasar, **tidak ada kolom "jenis pekerjaan" di level SPK ini sama sekali**. Setiap baris `rambu_pasang` yang tercakup di dalam SPK memiliki kolom `jenis_pekerjaan`-nya sendiri-sendiri, sehingga satu SPK bisa mencampur baris berjenis Pemasangan Baru dan baris berjenis Perbaikan sekaligus dalam satu dokumen yang sama. Untuk kebutuhan tampilan yang membutuhkan satu nilai ringkas per SPK, method `Spk::jenisRingkasan()` akan mengembalikan jenis yang sama apabila seluruh baris di dalamnya memang sejenis, atau mengembalikan `null` apabila campuran, yang biasanya ditampilkan sebagai lencana "Pemasangan & Perbaikan" pada berbagai permukaan tampilan yang membutuhkannya.
 
-**Tidak ada kolom "jenis pekerjaan" di level SPK.** Setiap baris `rambu_pasang` punya `jenis_pekerjaan`-nya sendiri (lihat di bawah) — satu SPK boleh mencampur baris Pemasangan Baru dan Perbaikan. `Spk::jenisRingkasan()` mengembalikan jenis yang sama kalau seluruh barisnya sejenis, atau `null` kalau campuran, dipakai display surface (badge "Pemasangan & Perbaikan") yang butuh satu nilai ringkas per SPK.
+## Tabel `rambu_pasang`
 
-## `rambu_pasang`
-
-Baris pekerjaan per rambu, dalam konteks satu SPK. Ini "jembatan" antara `spk` dan `rambu`.
+Tabel ini adalah "jembatan" yang menghubungkan sebuah SPK dengan rambu-rambu yang tercakup di dalamnya. Setiap baris merepresentasikan satu baris pekerjaan terhadap satu rambu, dalam konteks satu SPK tertentu.
 
 | Kolom | Tipe | Keterangan |
 |---|---|---|
-| `rambu_spk_id` | FK &rarr; `spk`, **cascade**, indexed | Ikut terhapus kalau SPK dihapus (walau SPK sendiri tidak pernah dihapus di aplikasi nyata) |
-| `rambu_id` | FK &rarr; `rambu`, **restrict**, indexed | Rambu tidak boleh dihapus selama masih dirujuk |
-| `laporan_kondisi_id` | FK &rarr; `laporan_kondisi`, nullable, **restrict** | Diisi kalau SPK ini berasal dari temuan kondisi |
-| `jenis_pekerjaan` | string | `pasang_baru`/`perbaikan`, enum `JenisPekerjaan`. Dipilih independen per baris (satu SPK boleh mencampur keduanya), bukan diwariskan dari kolom apapun di `spk` |
+| `rambu_spk_id` | foreign key ke `spk`, **cascade**, terindeks | Ikut terhapus apabila SPK-nya dihapus (walaupun dalam praktiknya SPK sendiri tidak pernah benar-benar dihapus lewat aplikasi) |
+| `rambu_id` | foreign key ke `rambu`, **restrict**, terindeks | Rambu tidak boleh dihapus selama masih dirujuk oleh baris ini |
+| `laporan_kondisi_id` | foreign key ke `laporan_kondisi`, nullable, **restrict** | Terisi apabila SPK ini dibuat berdasarkan sebuah temuan kondisi |
+| `jenis_pekerjaan` | string | Bernilai `pasang_baru` atau `perbaikan`, mengikuti enum `JenisPekerjaan`, dipilih secara independen untuk setiap baris, bukan diwariskan dari kolom apa pun pada tabel `spk` |
 | `jumlah` | unsigned int, default `1` | |
 | `foto_survei` | string, nullable | |
 | `catatan_instruksi` | string, nullable | |
-| `catatan_pembatalan` | string, nullable | Alasan pembatalan, diisi kalau admin membatalkan rambu ini secara individual (bukan lewat Batalkan SPK) |
-| `status` | string, default `belum`, indexed | `belum`/`urgent`/`tertunda`/`menunggu_validasi`/`revisi`/`selesai`/`batal`, enum `StatusRambuPasang` |
+| `catatan_pembatalan` | string, nullable | Alasan pembatalan, terisi apabila admin membatalkan rambu ini secara individual, bukan lewat pembatalan seluruh SPK |
+| `status` | string, default `belum`, terindeks | Bernilai `belum`, `urgent`, `tertunda`, `menunggu_validasi`, `revisi`, `selesai`, atau `batal`, mengikuti enum `StatusRambuPasang` |
 
-**Relasi**: `belongsTo` &rarr; `spk`, `rambu`, `laporan_kondisi`; `hasMany` &rarr; `laporan_pengerjaan`, `kendala`.
+Relasi yang dimiliki tabel ini adalah `belongsTo` menuju `spk`, `rambu`, dan `laporan_kondisi`, ditambah `hasMany` menuju `laporan_pengerjaan` dan `kendala`.
 
-## `dikerjakan_oleh`
+Hanya baris `rambu_pasang` yang statusnya masih `belum`, `urgent`, atau `revisi` yang bisa diubah kembali secara bebas lewat halaman Edit Surat, baik itu mengubah jenis pekerjaannya, rambu yang dirujuk, lokasi, koordinat, jumlah, maupun membatalkannya sebagai satu baris tunggal. Begitu statusnya beranjak ke `tertunda` atau `menunggu_validasi`, yang berarti sudah ada kendala atau laporan pengerjaan nyata yang tercatat atasnya, atau bahkan sudah mencapai `selesai`, baris tersebut menjadi terkunci dari perubahan lebih lanjut, baik di sisi tampilan maupun di sisi server yang memeriksa ulang status ini sebelum benar-benar menyimpan perubahan apa pun. Penjelasan lengkap tentang alasan di balik penguncian ini tersedia pada bagian [Jenis Pekerjaan Ditentukan Per Baris Rambu, Bukan Per SPK](ALUR-BISNIS.md#jenis-pekerjaan-ditentukan-per-baris-rambu-bukan-per-spk) di dalam ALUR-BISNIS.md.
 
-Pivot petugas &harr; SPK. Hanya `created_at` (`const UPDATED_AT = null`).
+## Tabel `dikerjakan_oleh`
 
-| Kolom | Tipe | Keterangan |
-|---|---|---|
-| `by_spk_id` | FK &rarr; `spk`, **cascade** | |
-| `by_user_id` | FK &rarr; `users`, **restrict**, indexed | |
-| `is_perwakilan` | boolean, default `false` | Perwakilan yang bisa daftarkan/tambah anggota & ajukan laporan akhir |
-
-**Unique komposit `(by_spk_id, by_user_id)`**: satu petugas cuma bisa punya satu baris per SPK. Ini bukan cuma index, tapi backstop integritas data yang sesungguhnya — `daftarkanTim()`/`tambahAnggota()` cuma mengecek baris yang sudah ada lewat PHP sebelum insert, yang secara teori punya celah race condition antara dua request bersamaan; constraint inilah yang benar-benar mencegah baris duplikat, apapun yang terlewat di pengecekan level aplikasi.
-
-## `laporan_pengerjaan`
-
-Laporan hasil kerja petugas, per `rambu_pasang`.
+Tabel penghubung (pivot) antara petugas dan SPK. Tabel ini hanya memiliki kolom `created_at` (`const UPDATED_AT = null`), karena baris di dalamnya memang tidak pernah diedit setelah dibuat, hanya dibuat atau dihapus.
 
 | Kolom | Tipe | Keterangan |
 |---|---|---|
-| `rambu_pasang_id` | FK &rarr; `rambu_pasang`, **cascade**, indexed | |
-| `dilaporkan_oleh` | FK &rarr; `users`, **restrict** | |
+| `by_spk_id` | foreign key ke `spk`, **cascade** | |
+| `by_user_id` | foreign key ke `users`, **restrict**, terindeks | |
+| `is_perwakilan` | boolean, default `false` | Menandai perwakilan tim, satu-satunya yang berwenang mendaftarkan atau menambah anggota, serta mengajukan Laporan Akhir |
+
+Ada sebuah **kunci unik komposit** pada kombinasi `(by_spk_id, by_user_id)`, yang memastikan satu petugas hanya bisa memiliki satu baris keanggotaan untuk satu SPK tertentu. Kunci unik ini bukan sekadar indeks untuk mempercepat pencarian, melainkan sebuah penjaga integritas data yang sesungguhnya. Method `daftarkanTim()` dan `tambahAnggota()` memang sudah memeriksa terlebih dahulu apakah baris yang ingin ditambahkan sudah ada lewat kode PHP biasa, namun pemeriksaan semacam ini secara teori masih memiliki celah kondisi balapan (*race condition*) apabila dua permintaan datang hampir bersamaan dari dua pengguna berbeda. Kunci unik pada level basis data inilah yang benar-benar mencegah munculnya baris duplikat, terlepas dari apa pun yang mungkin terlewat pada pemeriksaan di level aplikasi.
+
+## Tabel `laporan_pengerjaan`
+
+Tabel ini menyimpan laporan hasil kerja petugas untuk satu baris `rambu_pasang` tertentu.
+
+| Kolom | Tipe | Keterangan |
+|---|---|---|
+| `rambu_pasang_id` | foreign key ke `rambu_pasang`, **cascade**, terindeks | |
+| `dilaporkan_oleh` | foreign key ke `users`, **restrict** | |
 | `foto_sesudah` | string, nullable | |
 | `koordinat_gps` | string, nullable | |
 | `catatan_lapangan` | string, nullable | |
-| `status` | string, default `diajukan` | `diajukan`/`diterima`/`ditolak`, enum `StatusLaporan` |
-| `catatan_penolakan` | string, nullable | Wajib diisi admin kalau menolak |
-| `divalidasi_oleh` | FK &rarr; `users`, nullable, **restrict** | |
+| `status` | string, default `diajukan` | Bernilai `diajukan`, `diterima`, atau `ditolak`, mengikuti enum `StatusLaporan` |
+| `catatan_penolakan` | string, nullable | Wajib diisi admin apabila laporan ini ditolak |
+| `divalidasi_oleh` | foreign key ke `users`, nullable, **restrict** | |
 | `divalidasi_pada` | timestamp, nullable | |
 
-**Relasi**: `belongsTo` &rarr; `rambu_pasang`, `users` (pelapor & validator); `hasMany` &rarr; `barang_bahan`.
+Relasi yang dimiliki tabel ini adalah `belongsTo` menuju `rambu_pasang` dan `users` (sekaligus merujuk ke pelapor maupun validatornya), serta `hasMany` menuju `barang_bahan`.
 
-Satu `rambu_pasang` bisa punya **lebih dari satu** `laporan_pengerjaan` sepanjang waktu (kalau laporan pertama ditolak lalu direvisi dan diajukan ulang). Riwayat penolakan tidak ditimpa, tapi jadi baris baru.
+Satu baris `rambu_pasang` bisa memiliki **lebih dari satu** baris `laporan_pengerjaan` sepanjang waktu, apabila laporan pertama ditolak lalu direvisi dan diajukan kembali oleh petugas. Riwayat penolakan tidak pernah ditimpa oleh laporan baru, melainkan tersimpan sebagai baris tersendiri yang terpisah. Baris `laporan_pengerjaan` yang masih aktif (belum digantikan oleh revisi berikutnya) bisa diedit langsung di tempat, selama SPK yang menaunginya belum mengajukan Laporan Akhir, lewat formulir Laporan Pengerjaan yang sama.
 
-Baris `laporan_pengerjaan` yang masih aktif (belum digantikan revisi) bisa diedit di tempat selama SPK-nya belum mengajukan Laporan Akhir, lewat form Laporan Pengerjaan yang sama.
+## Tabel `barang_bahan`
 
-## `barang_bahan`
-
-Daftar barang/bahan yang dipakai dalam satu laporan pengerjaan. Hanya `created_at`.
+Menyimpan daftar barang atau bahan material yang digunakan dalam satu laporan pengerjaan tertentu. Tabel ini juga hanya memiliki kolom `created_at`.
 
 | Kolom | Tipe |
 |---|---|
-| `laporan_pengerjaan_id` | FK &rarr; `laporan_pengerjaan`, **cascade** |
+| `laporan_pengerjaan_id` | foreign key ke `laporan_pengerjaan`, **cascade** |
 | `nama` | string |
 | `jumlah` | unsigned int |
 | `satuan` | string |
 
-## `kendala`
+## Tabel `kendala`
 
-Laporan kendala lapangan per `rambu_pasang`.
+Menyimpan laporan kendala lapangan untuk satu baris `rambu_pasang` tertentu.
 
 | Kolom | Tipe | Keterangan |
 |---|---|---|
-| `rambu_pasang_id` | FK &rarr; `rambu_pasang`, **cascade**, indexed | |
-| `dilaporkan_oleh` | FK &rarr; `users`, **restrict** | |
+| `rambu_pasang_id` | foreign key ke `rambu_pasang`, **cascade**, terindeks | |
+| `dilaporkan_oleh` | foreign key ke `users`, **restrict** | |
 | `alasan` | string, **wajib diisi** | |
 | `foto` | string, nullable | |
 
-## `laporan_kondisi`
+## Tabel `laporan_kondisi`
 
-Temuan kondisi rambu rusak, independen dari SPK aktif manapun.
+Menyimpan temuan kondisi rambu rusak, sepenuhnya independen dari SPK aktif mana pun yang sedang berjalan.
 
 | Kolom | Tipe | Keterangan |
 |---|---|---|
-| `rambu_id` | FK &rarr; `rambu`, **restrict** | |
-| `dilaporkan_oleh` | FK &rarr; `users`, **restrict** | |
+| `rambu_id` | foreign key ke `rambu`, **restrict** | |
+| `dilaporkan_oleh` | foreign key ke `users`, **restrict** | |
 | `kondisi_dilaporkan` | string | |
 | `foto` | string, nullable | |
 | `catatan` | string, nullable | |
-| `status_tindak_lanjut` | string, default `baru` | `baru`/`sudah_dibuatkan_spk`/`ditolak`, enum `StatusTindakLanjut` |
-| `ditindaklanjuti_oleh` | FK &rarr; `users`, nullable, **restrict** | |
+| `status_tindak_lanjut` | string, default `baru` | Bernilai `baru`, `sudah_dibuatkan_spk`, atau `ditolak`, mengikuti enum `StatusTindakLanjut` |
+| `ditindaklanjuti_oleh` | foreign key ke `users`, nullable, **restrict** | |
 
-## `rt_perwakilan`
+## Tabel `rt_perwakilan`
 
-Kontak RT/perwakilan warga per SPK, untuk tanda tangan manual di kertas. Hanya `created_at`.
+Menyimpan kontak RT atau perwakilan warga per SPK, digunakan untuk keperluan tanda tangan manual di atas kertas. Tabel ini juga hanya memiliki kolom `created_at`.
 
 | Kolom | Tipe |
 |---|---|
 | `nama_lengkap` | string |
 | `no_telepon` | string, nullable |
-| `rtperwakilan_spk_id` | FK &rarr; `spk`, **cascade** |
+| `rtperwakilan_spk_id` | foreign key ke `spk`, **cascade** |
 
-## `audit_log`
+## Tabel `audit_log`
 
-Jejak aksi bisnis kunci. Hanya `created_at`, append-only, tidak ada `updated_at`.
-
-| Kolom | Tipe | Keterangan |
-|---|---|---|
-| `user_id` | FK &rarr; `users`, **restrict** | Siapa yang melakukan aksi |
-| `spk_id` | FK &rarr; `spk`, nullable, **set null**, indexed | Kalau SPK-nya dihapus (skenario non-aplikasi), log tidak ikut hilang, cuma referensinya di-null-kan |
-| `aksi` | string | Mis. `spk_dibuat`, `laporan_dikirim`, `validasi_diterima`, `spk_dibatalkan`, `spk_diedit`, `rambu_pasang_dibatalkan`, `rambu_pasang_dihapus`, `temuan_ditolak`, `deadline_disesuaikan` (otomatis lewat `PenyesuaianDeadlineSpk`), `deadline_diperpanjang` (manual oleh admin saat menolak validasi, lihat [ALUR-BISNIS.md](ALUR-BISNIS.md)) |
-| `tabel_terkait`, `record_id_terkait` | nullable | Belum dipakai secara konsisten di kode saat ini |
-| `keterangan` | string, nullable | Deskripsi singkat aksi |
-
-## `notifikasi`
-
-Notifikasi in-app per user. Hanya `created_at`.
+Menyimpan jejak setiap aksi bisnis penting yang terjadi di dalam sistem. Tabel ini juga hanya memiliki kolom `created_at`, bersifat *append-only*, artinya baris yang sudah tersimpan tidak pernah diubah lagi setelahnya (tidak ada kolom `updated_at` sama sekali).
 
 | Kolom | Tipe | Keterangan |
 |---|---|---|
-| `user_id` | FK &rarr; `users`, **restrict**, indexed | Query paling sering di seluruh sistem (badge notifikasi belum-dibaca di header, tiap halaman) |
+| `user_id` | foreign key ke `users`, **restrict** | Siapa yang melakukan aksi tersebut |
+| `spk_id` | foreign key ke `spk`, nullable, **set null**, terindeks | Apabila SPK yang dirujuk suatu saat dihapus (skenario yang berada di luar penggunaan normal aplikasi), baris log ini tidak ikut hilang, hanya kolom referensinya yang di-null-kan |
+| `aksi` | string | Contohnya `spk_dibuat`, `laporan_dikirim`, `validasi_diterima`, `spk_dibatalkan`, `spk_diedit`, `rambu_pasang_dibatalkan`, `rambu_pasang_dihapus`, `temuan_ditolak`, `deadline_disesuaikan` (dipicu otomatis lewat `PenyesuaianDeadlineSpk`), dan `deadline_diperpanjang` (dipicu manual oleh admin saat menolak validasi, lihat penjelasan lengkap di [ALUR-BISNIS.md](ALUR-BISNIS.md)) |
+| `tabel_terkait`, `record_id_terkait` | nullable | Belum dipakai secara konsisten di dalam kode saat ini |
+| `keterangan` | string, nullable | Deskripsi singkat tentang aksi yang terjadi |
+
+## Tabel `notifikasi`
+
+Menyimpan notifikasi in-app untuk setiap pengguna. Tabel ini juga hanya memiliki kolom `created_at`.
+
+| Kolom | Tipe | Keterangan |
+|---|---|---|
+| `user_id` | foreign key ke `users`, **restrict**, terindeks | Kolom ini menjadi bagian dari kueri yang paling sering dijalankan di seluruh sistem, karena lencana notifikasi yang belum dibaca ditampilkan di hampir setiap halaman |
 | `judul` | string | |
 | `pesan` | string | |
-| `url` | string, nullable | Link tujuan kalau notifikasi ini punya halaman terkait yang relevan (kartu notifikasinya jadi bisa diklik langsung). Sebagian notifikasi (mis. temuan ditolak) sengaja tidak punya `url` kalau memang tidak ada halaman yang pas dituju |
-| `foto` | string, nullable | Path foto yang relevan saat notifikasi ini dibuat (mis. foto sesudah/kendala saat laporan diterima/ditolak, foto temuan), dibekukan sesuai kondisi saat itu. Dipakai buat melampirkan foto di pesan Telegram, bukan ditampilkan di halaman Notifikasi in-app |
+| `url` | string, nullable | Tautan tujuan apabila notifikasi ini memiliki halaman terkait yang relevan, membuat kartu notifikasinya bisa langsung diklik untuk membuka halaman tersebut. Sebagian notifikasi, misalnya penolakan temuan, sengaja tidak memiliki `url` sama sekali apabila memang tidak ada halaman yang cocok untuk dituju |
+| `foto` | string, nullable | Path foto yang relevan pada saat notifikasi ini dibuat, misalnya foto sesudah atau foto kendala saat sebuah laporan diterima atau ditolak, atau foto temuan kondisi. Nilai ini dibekukan sesuai keadaan pada saat itu, dan dipakai untuk melampirkan foto pada pesan Telegram, bukan untuk ditampilkan di halaman Notifikasi in-app |
 | `dibaca` | boolean, default `false` | |
 
-Setiap baris `notifikasi` yang dibuat untuk user yang sudah menghubungkan Telegram-nya otomatis memicu pengiriman pesan yang sama lewat bot (lewat `NotifikasiObserver`), tanpa perlu ubah kode di titik-titik yang membuat notifikasi.
+Setiap baris `notifikasi` yang dibuat untuk seorang pengguna yang sudah menghubungkan akun Telegram-nya akan secara otomatis memicu pengiriman pesan yang sama lewat bot, lewat mekanisme `NotifikasiObserver`, tanpa perlu mengubah kode apa pun di titik-titik yang menciptakan notifikasi tersebut. Ini adalah contoh yang baik dari pemisahan tanggung jawab (*separation of concerns*): kode yang membuat notifikasi tidak perlu tahu atau peduli tentang bagaimana notifikasi itu akhirnya disampaikan ke pengguna.
 
-## `system_error_log`
+## Tabel `system_error_log`
 
-Exception tak terduga yang tertangkap otomatis oleh exception handler global (`bootstrap/app.php`). Hanya `created_at`.
+Menyimpan exception yang tidak terduga, yang tertangkap secara otomatis oleh penangan exception global aplikasi (`bootstrap/app.php`). Tabel ini juga hanya memiliki kolom `created_at`.
 
 | Kolom | Tipe | Keterangan |
 |---|---|---|
-| `level` | string | `info`/`warning`/`error`/`critical`, enum `ErrorLevel` |
+| `level` | string | Bernilai `info`, `warning`, `error`, atau `critical`, mengikuti enum `ErrorLevel` |
 | `pesan` | string | |
-| `detail` | text, nullable | Stack trace lengkap |
-| `endpoint` | string, nullable | URL yang diakses saat error terjadi |
-| `user_id` | FK &rarr; `users`, nullable, **restrict** | |
+| `detail` | text, nullable | Menyimpan stack trace lengkap |
+| `endpoint` | string, nullable | URL yang sedang diakses pada saat error terjadi |
+| `user_id` | foreign key ke `users`, nullable, **restrict** | |
 
-Hanya exception "beneran" yang tercatat: validasi gagal, redirect auth, 404, dan HTTP error di bawah 500 sengaja **tidak** dicatat di sini (bukan bug, memang bukan "error sistem").
+Perlu ditegaskan bahwa hanya exception yang benar-benar merupakan "kesalahan sungguhan" yang tercatat di tabel ini. Kegagalan validasi input, pengalihan (redirect) karena belum login, halaman tidak ditemukan (404), dan berbagai kesalahan HTTP di bawah kode 500 sengaja **tidak** dicatat di sini, bukan karena terlewat atau bug, melainkan karena hal-hal tersebut memang bukan "kesalahan sistem" dalam pengertian teknis yang sesungguhnya.
 
 ---
 
 ## Enum
 
-Semua kolom status/jenis disimpan sebagai string di database, tapi di-cast ke [PHP backed enum](../app/Enums) di level model, jadi di kode selalu berupa objek enum, bukan string mentah.
+Setiap kolom yang menyimpan status atau jenis di seluruh tabel di atas secara fisik disimpan sebagai teks biasa (string) di dalam basis data. Namun, begitu data itu diakses lewat model Eloquent, ia selalu diubah bentuknya (cast) menjadi sebuah [PHP backed enum](../app/Enums). Ini berarti di dalam kode aplikasi, nilai-nilai ini selalu berupa objek enum yang aman secara tipe data, bukan sekadar string mentah yang rawan salah ketik. Berikut adalah daftar lengkap seluruh enum yang dipakai di dalam sistem beserta nilai-nilainya masing-masing.
 
-| Enum | Nilai |
+| Enum | Nilai-Nilai yang Mungkin |
 |---|---|
 | `Role` | `admin`, `user` |
 | `Kelamin` | `L`, `P` |
@@ -255,4 +260,6 @@ Semua kolom status/jenis disimpan sebagai string di database, tapi di-cast ke [P
 
 ## Trait `ComposesWilayah`
 
-Dipakai oleh model `Spk` dan `Rambu` (`app/Concerns/ComposesWilayah.php`). Lewat event `saving`, kalau kolom `wilayah` kosong DAN salah satu dari `jalan`/`rt`/`kelurahan` terisi, `wilayah` otomatis disusun jadi teks seperti `"Jl. {jalan} RT. {rt} Kel. {kelurahan}"`. Ini memungkinkan form Buat/Edit SPK memakai field terstruktur tanpa perlu mengubah ~28 tempat di kode lain yang masih membaca/mencari/`groupBy` kolom `wilayah` sebagai teks polos.
+Trait ini dipakai bersama oleh model `Spk` dan `Rambu` (berkasnya berada di `app/Concerns/ComposesWilayah.php`), dan bekerja lewat event `saving` milik Eloquent. Cara kerjanya sederhana namun cukup elegan: apabila kolom `wilayah` sedang kosong, dan salah satu dari `jalan`, `rt`, atau `kelurahan` sudah terisi, kolom `wilayah` akan otomatis disusun menjadi sebuah teks gabungan seperti `"Jl. {jalan} RT. {rt} Kel. {kelurahan}"`.
+
+Manfaat dari pendekatan ini cukup besar bagi keberlangsungan pengembangan sistem ke depannya. Ia memungkinkan formulir Buat SPK dan Edit SPK memakai field-field yang terstruktur dan lebih mudah divalidasi, tanpa perlu mengubah kode di sekitar dua puluh delapan tempat lain yang sudah terlanjur membaca, mencari, atau mengelompokkan (`groupBy`) data berdasarkan kolom `wilayah` sebagai teks polos. Dengan kata lain, trait ini menjembatani dua kebutuhan yang saling bertentangan, yaitu input data yang terstruktur dan rapi di satu sisi, dengan kompatibilitas terhadap kode lama yang sudah bergantung pada representasi teks di sisi lain, tanpa harus mengorbankan salah satunya.

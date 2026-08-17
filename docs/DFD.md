@@ -1,41 +1,45 @@
 # Data Flow Diagram (DFD) Sistem MARLIN
 
-Rancangan DFD untuk sistem MARLIN (Manajemen Rambu Lalu Lintas), disusun berdasarkan fitur dan alur bisnis yang sudah benar-benar diimplementasikan (lihat [FITUR.md](FITUR.md), [ALUR-BISNIS.md](ALUR-BISNIS.md), [DAFTAR-AKTIVITAS.md](DAFTAR-AKTIVITAS.md), [DATABASE.md](DATABASE.md)), bukan rancangan awal/aspirasional.
+## Pengantar
 
-Notasi yang dipakai (gaya Yourdon/DeMarco):
-- **Entitas Eksternal** — kotak persegi.
-- **Proses** — lingkaran/bubble bernomor.
-- **Data Store** — bentuk silinder, diberi kode `D1`, `D2`, dst., merujuk langsung ke tabel database di [DATABASE.md](DATABASE.md).
-- **Aliran Data** — anak panah berlabel.
+Data Flow Diagram, atau yang biasa disingkat DFD, adalah salah satu alat visualisasi paling klasik dalam dunia rekayasa perangkat lunak untuk menggambarkan bagaimana data mengalir masuk dan keluar dari sebuah sistem. Berbeda dengan diagram alur bisnis pada [ALUR-BISNIS.md](ALUR-BISNIS.md) yang menjelaskan urutan langkah dan percabangan keputusan, DFD lebih berfokus pada pertanyaan "data apa yang berpindah, dari mana ke mana, dan disimpan di mana." Dokumen ini menyusun DFD untuk Sistem MARLIN dalam beberapa tingkat kedalaman, mulai dari gambaran paling sederhana sampai dekomposisi yang cukup terperinci untuk proses-proses bisnis yang paling kompleks.
+
+Satu hal yang perlu ditekankan sejak awal: diagram-diagram di dalam dokumen ini disusun berdasarkan fitur dan alur bisnis yang **sudah benar-benar diimplementasikan** di dalam sistem, bukan berdasarkan rancangan awal atau cita-cita yang belum tentu terwujud. Setiap kode proses, kode data store, dan kode aliran data yang muncul di sini bisa ditelusuri balik ke penjelasan yang lebih rinci pada [FITUR.md](FITUR.md), [ALUR-BISNIS.md](ALUR-BISNIS.md), [DAFTAR-AKTIVITAS.md](DAFTAR-AKTIVITAS.md), dan [DATABASE.md](DATABASE.md).
+
+Notasi yang dipakai di seluruh dokumen ini mengikuti gaya Yourdon/DeMarco, salah satu konvensi notasi DFD yang paling banyak dipakai secara luas. Entitas Eksternal digambarkan sebagai kotak persegi, merepresentasikan pihak-pihak di luar batas sistem yang berinteraksi dengannya. Proses digambarkan sebagai lingkaran atau bubble yang diberi nomor, merepresentasikan sebuah transformasi atau pengolahan terhadap data yang masuk ke dalamnya. Data Store digambarkan sebagai bentuk silinder, diberi kode `D1`, `D2`, dan seterusnya, yang masing-masing merujuk langsung ke sebuah tabel di dalam basis data sebagaimana dijelaskan pada [DATABASE.md](DATABASE.md). Dan Aliran Data digambarkan sebagai anak panah yang diberi label, menunjukkan arah dan jenis data yang berpindah dari satu titik ke titik lainnya.
 
 ---
 
 ## Daftar Isi
 
-- [Entitas Eksternal & Data Store](#entitas-eksternal--data-store)
+- [Entitas Eksternal dan Data Store](#entitas-eksternal-dan-data-store)
 - [DFD Level 0 (Diagram Konteks)](#dfd-level-0-diagram-konteks)
 - [Diagram Berjenjang (Hierarchy Chart)](#diagram-berjenjang-hierarchy-chart)
 - [DFD Level 1](#dfd-level-1)
 - [DFD Level 2](#dfd-level-2)
-  - [Level 2 — Proses 5.0 Penjadwalan & Penugasan (SPK)](#level-2--proses-50-penjadwalan--penugasan-spk)
-  - [Level 2 — Proses 6.0 Eksekusi Lapangan](#level-2--proses-60-eksekusi-lapangan)
-  - [Level 2 — Proses 7.0 Validasi & Persetujuan](#level-2--proses-70-validasi--persetujuan)
+  - [Level 2, Proses 5.0 Penjadwalan dan Penugasan (SPK)](#level-2-proses-50-penjadwalan-dan-penugasan-spk)
+  - [Level 2, Proses 6.0 Eksekusi Lapangan](#level-2-proses-60-eksekusi-lapangan)
+  - [Level 2, Proses 7.0 Validasi dan Persetujuan](#level-2-proses-70-validasi-dan-persetujuan)
 
 ---
 
-## Entitas Eksternal & Data Store
+## Entitas Eksternal dan Data Store
+
+Sebelum masuk ke diagram-diagram itu sendiri, penting untuk terlebih dahulu memahami siapa saja pihak yang berada di luar batas sistem (entitas eksternal), dan tempat penyimpanan data apa saja yang ada di dalam sistem (data store). Kedua daftar ini menjadi kosakata dasar yang dipakai berulang-ulang di seluruh diagram berikutnya.
 
 ### Entitas Eksternal
 
+Ada tiga entitas eksternal yang berinteraksi dengan Sistem MARLIN, dua di antaranya adalah manusia yang menggunakan sistem secara langsung, dan satu lagi adalah sebuah layanan pihak ketiga.
+
 | Kode | Nama | Deskripsi |
 |---|---|---|
-| E1 | Admin | Staf Dishub yang membuat SPK, memvalidasi laporan, mengelola master data & akun. |
-| E2 | Petugas Lapangan | Mengerjakan SPK di lapangan, mengirim laporan/kendala, melapor temuan kondisi. |
-| E3 | Bot Telegram | Layanan eksternal (Telegram Bot API) — menerima pesan notifikasi dari sistem dan mengirim balik perintah `/start` untuk konfirmasi penghubungan akun. |
+| E1 | Admin | Staf Dinas Perhubungan yang membuat SPK, memvalidasi laporan, serta mengelola master data dan akun pengguna |
+| E2 | Petugas Lapangan | Pihak yang mengerjakan SPK secara langsung di lapangan, mengirimkan laporan atau kendala, dan melaporkan temuan kondisi rambu |
+| E3 | Bot Telegram | Sebuah layanan eksternal (Telegram Bot API) yang menerima pesan notifikasi dari sistem, dan mengirimkan kembali perintah `/start` untuk keperluan konfirmasi penghubungan akun |
 
 ### Data Store
 
-Satu data store per tabel domain (tabel bawaan Laravel seperti `sessions`/`cache`/`jobs` tidak dimasukkan karena bukan bagian dari alur bisnis).
+Setiap tabel domain di dalam basis data direpresentasikan sebagai satu data store tersendiri. Tabel-tabel bawaan Laravel seperti `sessions`, `cache`, dan `jobs` sengaja tidak dimasukkan ke dalam daftar ini, karena mereka bukan merupakan bagian dari alur bisnis yang sedang digambarkan, melainkan sekadar infrastruktur teknis pendukung.
 
 | Kode | Nama Data Store | Tabel |
 |---|---|---|
@@ -58,6 +62,8 @@ Satu data store per tabel domain (tabel bawaan Laravel seperti `sessions`/`cache
 
 ## DFD Level 0 (Diagram Konteks)
 
+Diagram Konteks adalah representasi paling sederhana dari sebuah sistem: seluruh proses internal dilebur menjadi satu lingkaran tunggal, dan yang ditampilkan hanya bagaimana sistem itu secara keseluruhan berinteraksi dengan dunia luarnya. Tujuannya adalah memberi gambaran paling tinggi tentang "apa yang masuk dan keluar dari sistem ini," sebelum kita mulai membedah bagian dalamnya lebih jauh pada level-level berikutnya.
+
 ```mermaid
 flowchart LR
     Admin[E1 Admin]
@@ -76,36 +82,42 @@ flowchart LR
     Telegram -- "Perintah /start + Token Link" --> Sistem
 ```
 
-### Rincian Aliran Data — Level 0
+Perhatikan bagaimana admin dan petugas sama-sama mengirim dan menerima aliran data yang cukup banyak dari sistem, mencerminkan bagaimana kedua peran ini sama-sama menjadi pengguna aktif, bukan satu peran yang murni memberi perintah dan satu lagi yang murni menerima. Sementara itu, interaksi dengan Bot Telegram hanya terjadi satu arah saja pada masing-masing sisinya: sistem mengirim pesan notifikasi ke Telegram, dan Telegram hanya mengirim balik satu jenis aliran data, yaitu perintah `/start` beserta token penghubung, mencerminkan peran Telegram yang murni sebagai kanal penyampai pesan, bukan sebagai peserta aktif dalam alur bisnis itu sendiri.
+
+### Rincian Aliran Data pada Level 0
+
+Tabel berikut menjelaskan secara lebih rinci setiap aliran data yang tampak pada diagram di atas, memberi konteks konkret tentang apa isi dari setiap label yang tertera pada panah-panah di dalamnya.
 
 | Kode | Dari | Ke | Nama Aliran Data | Keterangan |
 |---|---|---|---|---|
-| F1 | Admin | Sistem | Data Login | NIP + password, kode 2FA |
-| F2 | Admin | Sistem | Data SPK | Buat/edit/batalkan SPK beserta daftar rambu |
-| F3 | Admin | Sistem | Data Validasi | Keputusan terima/tolak laporan, opsi perpanjangan deadline |
-| F4 | Admin | Sistem | Data Master Rambu | CRUD jenis rambu |
-| F5 | Admin | Sistem | Data Akun Petugas | Tambah/ubah/aktifkan/nonaktifkan akun |
-| F6 | Admin | Sistem | Filter Laporan & Peta | Rentang tanggal, jenis rambu, status |
-| F7 | Admin | Sistem | Keputusan Tindak Lanjut Temuan | Buat SPK perbaikan dari temuan / tolak temuan |
-| F8 | Sistem | Admin | Info Dashboard Admin | Ringkasan SPK aktif, rambu rusak, laporan menunggu validasi |
-| F9 | Sistem | Admin | Data Peta | Pin rambu + kartu info sesuai status |
-| F10 | Sistem | Admin | Notifikasi | Laporan akhir masuk, temuan baru, dll. |
-| F11 | Sistem | Admin | Surat Pengantar & Laporan (PDF) | Surat pengantar, Laporan Bulanan, Laporan Rambu |
-| F12 | Sistem | Admin | Riwayat & Audit Log | Riwayat SPK, jejak aksi bisnis kunci lintas pengguna |
-| F13 | Petugas | Sistem | Data Login | NIP + password |
-| F14 | Petugas | Sistem | Data Tim SPK | Daftarkan diri, tambah/hapus anggota |
-| F15 | Petugas | Sistem | Data Laporan Pengerjaan/Kendala | Foto, koordinat GPS, catatan, alasan, barang/bahan |
-| F16 | Petugas | Sistem | Data Temuan Kondisi | Foto + catatan kerusakan rambu |
-| F17 | Sistem | Petugas | Info Dashboard Petugas | Daftar surat aktif, ringkasan tugas tim |
-| F18 | Sistem | Petugas | Data Peta | Pin rambu + kartu info sesuai status |
-| F19 | Sistem | Petugas | Notifikasi | SPK baru tersedia, hasil validasi, dikeluarkan dari tim, dll. |
-| F20 | Sistem | Petugas | Surat Pengantar (PDF) | Dokumen kerja untuk dibawa ke lapangan |
-| F21 | Sistem | Telegram | Pesan Notifikasi | Teks/foto/tombol tautan, dikirim lewat Bot API |
-| F22 | Telegram | Sistem | Perintah `/start` + Token | Konfirmasi penghubungan akun Telegram pengguna |
+| F1 | Admin | Sistem | Data Login | NIP dan kata sandi, ditambah kode 2FA apabila diaktifkan |
+| F2 | Admin | Sistem | Data SPK | Membuat, mengedit, atau membatalkan SPK beserta daftar rambunya |
+| F3 | Admin | Sistem | Data Validasi | Keputusan terima atau tolak sebuah laporan, beserta opsi perpanjangan tenggat waktu |
+| F4 | Admin | Sistem | Data Master Rambu | Aksi tambah, ubah, atau hapus terhadap jenis rambu |
+| F5 | Admin | Sistem | Data Akun Petugas | Menambah, mengubah, mengaktifkan, atau menonaktifkan akun |
+| F6 | Admin | Sistem | Filter Laporan dan Peta | Rentang tanggal, jenis rambu, dan status |
+| F7 | Admin | Sistem | Keputusan Tindak Lanjut Temuan | Membuat SPK perbaikan dari sebuah temuan, atau menolak temuan tersebut |
+| F8 | Sistem | Admin | Info Dashboard Admin | Ringkasan SPK aktif, rambu rusak, dan laporan yang menunggu validasi |
+| F9 | Sistem | Admin | Data Peta | Pin rambu beserta kartu informasinya sesuai status masing-masing |
+| F10 | Sistem | Admin | Notifikasi | Laporan akhir yang masuk, temuan baru, dan berbagai peristiwa lainnya |
+| F11 | Sistem | Admin | Surat Pengantar dan Laporan (PDF) | Surat Pengantar, Laporan Bulanan, dan Laporan Rambu |
+| F12 | Sistem | Admin | Riwayat dan Audit Log | Riwayat SPK, serta jejak aksi bisnis penting lintas seluruh pengguna |
+| F13 | Petugas | Sistem | Data Login | NIP dan kata sandi |
+| F14 | Petugas | Sistem | Data Tim SPK | Mendaftarkan diri, menambah, atau menghapus anggota tim |
+| F15 | Petugas | Sistem | Data Laporan Pengerjaan/Kendala | Foto, koordinat GPS, catatan, alasan, dan barang atau bahan |
+| F16 | Petugas | Sistem | Data Temuan Kondisi | Foto dan catatan kerusakan rambu |
+| F17 | Sistem | Petugas | Info Dashboard Petugas | Daftar surat aktif dan ringkasan tugas tim |
+| F18 | Sistem | Petugas | Data Peta | Pin rambu beserta kartu informasinya sesuai status masing-masing |
+| F19 | Sistem | Petugas | Notifikasi | SPK baru yang tersedia, hasil validasi, dikeluarkan dari tim, dan lainnya |
+| F20 | Sistem | Petugas | Surat Pengantar (PDF) | Dokumen kerja yang dibawa ke lapangan |
+| F21 | Sistem | Telegram | Pesan Notifikasi | Berupa teks, foto, dan tombol tautan, dikirim lewat Bot API |
+| F22 | Telegram | Sistem | Perintah `/start` beserta Token | Konfirmasi penghubungan akun Telegram milik pengguna |
 
 ---
 
 ## Diagram Berjenjang (Hierarchy Chart)
+
+Sebelum masuk ke DFD Level 1 yang membedah isi dari lingkaran "Sistem MARLIN" pada diagram konteks di atas, ada baiknya kita melihat terlebih dahulu bagaimana keseluruhan proses di dalam sistem ini disusun secara hierarkis. Diagram berjenjang berikut menunjukkan bagaimana sebelas proses utama tingkat pertama dipecah lebih jauh menjadi sub-proses yang lebih rinci, khusus untuk tiga proses yang dianggap paling kompleks percabangan logikanya.
 
 ```mermaid
 graph TD
@@ -140,11 +152,13 @@ graph TD
     P7 --> P74[7.4 Update Status SPK Otomatis]
 ```
 
-> Proses 1.0–4.0 dan 8.0–11.0 tidak dipecah lebih lanjut di diagram ini karena masing-masing sudah cukup atomik untuk kebutuhan rancangan (detail tetap dijabarkan di tabel Level 1 di bawah). Proses 5.0, 6.0, dan 7.0 dipilih untuk didekomposisi ke Level 2 karena memuat logika bisnis bercabang paling banyak (lihat [ALUR-BISNIS.md](ALUR-BISNIS.md)).
+Mengapa Proses 5.0, 6.0, dan 7.0 yang dipilih untuk didekomposisi lebih lanjut, sementara proses-proses lainnya tidak? Alasannya berkaitan langsung dengan kompleksitas percabangan logika bisnis yang mereka miliki. Proses 1.0 sampai 4.0, dan Proses 8.0 sampai 11.0, masing-masing sudah cukup atomik untuk kebutuhan rancangan ini, meskipun detailnya tetap dijabarkan secara lengkap pada tabel Level 1 di bawah. Sebaliknya, Proses 5.0 (Penjadwalan dan Penugasan), 6.0 (Eksekusi Lapangan), dan 7.0 (Validasi dan Persetujuan) memuat logika bisnis bercabang paling banyak di antara seluruh proses yang ada, sebagaimana bisa dirasakan sendiri ketika membaca penjelasan mendalam tentang mereka pada [ALUR-BISNIS.md](ALUR-BISNIS.md). Ketiganya juga saling berhubungan erat satu sama lain, membentuk inti dari siklus hidup SPK yang menjadi jantung seluruh sistem.
 
 ---
 
 ## DFD Level 1
+
+Diagram Level 1 membedah lingkaran tunggal "Sistem MARLIN" pada diagram konteks menjadi sebelas proses tingkat pertama, dan menampilkan bagaimana masing-masing proses tersebut berinteraksi dengan data store yang relevan baginya. Diagram ini jauh lebih padat dibandingkan diagram konteks, namun justru di sinilah mulai terlihat gambaran nyata tentang bagaimana data mengalir melalui berbagai bagian sistem.
 
 ```mermaid
 flowchart TD
@@ -261,27 +275,33 @@ flowchart TD
     P11 <--> D14
 ```
 
-### Rincian Proses — Level 1
+### Rincian Proses pada Level 1
+
+Tabel berikut menjabarkan setiap proses tingkat pertama secara lebih rinci: siapa aktor yang terlibat, data apa saja yang menjadi masukan dan keluarannya, dan data store mana saja yang dilibatkan olehnya.
 
 | Kode | Nama Proses | Aktor | Input | Output | Data Store |
 |---|---|---|---|---|---|
-| 1.0 | Autentikasi & Manajemen Akun | Admin, Petugas | NIP+password, kode 2FA, data akun (admin), data profil sendiri | Sesi login/pesan gagal, data akun tersimpan | D1 |
-| 2.0 | Dashboard | Admin, Petugas | Request buka dashboard, filter widget peta (admin) | Ringkasan angka (SPK aktif/rambu rusak/dst.), widget peta ringkas | D3, D4, D5, D6 |
-| 3.0 | Manajemen Data Rambu | Admin (kelola), Petugas (lihat) | Data jenis rambu (CRUD), request daftar rambu | Master data jenis rambu tersimpan, daftar rambu terfilter | D2, D3 |
-| 4.0 | Peta Digital Interaktif | Admin, Petugas | Filter peta (jenis/tingkat/tanggal), request unduh PDF sebaran | Pin peta + kartu info, file PDF sebaran rambu | D3, D4, D5 |
-| 5.0 | Penjadwalan & Penugasan (SPK) | Admin (buat/edit/batalkan), Petugas (kelola tim) | Data SPK baru/edit, alasan pembatalan, data tim | SPK tersimpan, surat pengantar PDF, notifikasi tim | D4, D5, D6, D11, D12, D13 |
-| 6.0 | Eksekusi Lapangan | Petugas (perwakilan) | Foto+GPS+catatan (laporan), foto+alasan (kendala), request ajukan laporan akhir | Status rambu berubah, SPK masuk antrean validasi | D4, D5, D7, D8, D9, D13 |
-| 7.0 | Validasi & Persetujuan | Admin | Keputusan terima/tolak per rambu, catatan penolakan, opsi perpanjang deadline | Status rambu selesai/revisi, SPK selesai otomatis, notifikasi | D4, D5, D7, D12, D13 |
-| 8.0 | Temuan Kondisi | Petugas (lapor), Admin (tindak lanjut) | Foto+catatan kondisi rusak, keputusan buat SPK/tolak | Kondisi rambu ter-update, SPK perbaikan baru (opsional), notifikasi | D3, D4, D5, D10, D13 |
-| 9.0 | Riwayat & Pelaporan | Admin, Petugas | Filter tanggal/jenis/status | Halaman riwayat, file PDF (Laporan Bulanan/Rambu) | D4, D5, D7 |
-| 10.0 | Notifikasi | Admin, Petugas, Bot Telegram | Event bisnis dari proses lain (trigger internal), token hubungkan Telegram | Notifikasi in-app, pesan Telegram | D1, D13 |
-| 11.0 | Audit Trail & Log Sistem | Admin, Petugas (lihat aktivitas sendiri) | Event aksi bisnis kunci (trigger internal), exception tak tertangani | Halaman Audit Log, halaman System Error Log | D12, D14 |
+| 1.0 | Autentikasi & Manajemen Akun | Admin, Petugas | NIP+kata sandi, kode 2FA, data akun (khusus admin), data profil sendiri | Sesi login atau pesan gagal, data akun yang tersimpan | D1 |
+| 2.0 | Dashboard | Admin, Petugas | Permintaan membuka dashboard, filter widget peta (khusus admin) | Ringkasan angka (SPK aktif, rambu rusak, dan sejenisnya), widget peta ringkas | D3, D4, D5, D6 |
+| 3.0 | Manajemen Data Rambu | Admin (mengelola), Petugas (melihat) | Data jenis rambu (untuk aksi tambah/ubah/hapus), permintaan daftar rambu | Master data jenis rambu yang tersimpan, daftar rambu yang tersaring |D2, D3 |
+| 4.0 | Peta Digital Interaktif | Admin, Petugas | Filter peta (jenis/tingkat/tanggal), permintaan unduh PDF sebaran | Pin peta beserta kartu informasinya, berkas PDF sebaran rambu | D3, D4, D5 |
+| 5.0 | Penjadwalan & Penugasan (SPK) | Admin (membuat/mengedit/membatalkan), Petugas (mengelola tim) | Data SPK baru atau perubahan, alasan pembatalan, data tim | SPK yang tersimpan, PDF surat pengantar, notifikasi tim | D4, D5, D6, D11, D12, D13 |
+| 6.0 | Eksekusi Lapangan | Petugas (perwakilan) | Foto, GPS, catatan (laporan), foto dan alasan (kendala), permintaan ajukan laporan akhir | Status rambu yang berubah, SPK yang masuk antrean validasi | D4, D5, D7, D8, D9, D13 |
+| 7.0 | Validasi & Persetujuan | Admin | Keputusan terima atau tolak per rambu, catatan penolakan, opsi perpanjangan tenggat waktu | Status rambu selesai atau revisi, SPK yang selesai secara otomatis, notifikasi | D4, D5, D7, D12, D13 |
+| 8.0 | Temuan Kondisi | Petugas (melapor), Admin (menindaklanjuti) | Foto dan catatan kondisi rusak, keputusan membuat SPK atau menolak | Kondisi rambu yang diperbarui, SPK perbaikan baru (opsional), notifikasi | D3, D4, D5, D10, D13 |
+| 9.0 | Riwayat & Pelaporan | Admin, Petugas | Filter tanggal, jenis, atau status | Halaman riwayat, berkas PDF (Laporan Bulanan/Rambu) | D4, D5, D7 |
+| 10.0 | Notifikasi | Admin, Petugas, Bot Telegram | Peristiwa bisnis dari proses lain (pemicu internal), token untuk menghubungkan Telegram | Notifikasi in-app, pesan Telegram | D1, D13 |
+| 11.0 | Audit Trail & Log Sistem | Admin, Petugas (melihat aktivitas sendiri) | Peristiwa aksi bisnis penting (pemicu internal), exception yang tidak tertangani | Halaman Audit Log, halaman System Error Log | D12, D14 |
 
 ---
 
 ## DFD Level 2
 
-### Level 2 — Proses 5.0 Penjadwalan & Penugasan (SPK)
+Untuk ketiga proses yang paling kompleks percabangan logikanya, yaitu Proses 5.0, 6.0, dan 7.0, dokumen ini mendekomposisinya lebih jauh lagi ke dalam DFD Level 2. Pada level ini, setiap sub-proses digambarkan sebagai lingkaran tersendiri, menunjukkan bagaimana sebuah proses yang tampak sederhana pada Level 1 sebenarnya terdiri dari beberapa langkah pengolahan data yang saling terhubung.
+
+### Level 2, Proses 5.0 Penjadwalan dan Penugasan (SPK)
+
+Proses ini mencakup segala sesuatu yang berkaitan dengan siklus administratif sebuah SPK, mulai dari dibuat sampai dicetak sebagai dokumen resmi.
 
 ```mermaid
 flowchart TD
@@ -332,8 +352,8 @@ flowchart TD
     P55 --> D13
     P55 -- "Notifikasi Deadline Berubah" --> Admin
 
-    Admin -- "Request unduh" --> P56
-    Petugas -- "Request unduh" --> P56
+    Admin -- "Permintaan unduh" --> P56
+    Petugas -- "Permintaan unduh" --> P56
     P56 --> D4
     P56 --> D5
     P56 --> D6
@@ -342,18 +362,22 @@ flowchart TD
     P56 -- "Surat Pengantar (PDF)" --> Petugas
 ```
 
+Perhatikan bagaimana Proses 5.5 (Hitung Urgensi dan Penyesuaian Deadline) menjadi semacam "sub-rutin" yang dipanggil oleh Proses 5.1, mencerminkan kenyataan bahwa penghitungan urgensi memang bukan sebuah aksi mandiri yang dipicu langsung oleh admin, melainkan sebuah efek samping otomatis yang selalu menyertai proses pembuatan atau pengubahan SPK.
+
 | Kode | Nama Proses | Input | Proses | Output | Data Store |
 |---|---|---|---|---|---|
-| 5.1 | Buat SPK | Alamat, deadline, daftar rambu (tiap baris pilih jenis pekerjaan sendiri: pasang baru/perbaikan), file referensi | Simpan SPK + baris rambu_pasang (jenis pekerjaan disimpan per baris, satu SPK boleh mencampur keduanya), panggil 5.5 untuk hitung urgensi, kirim notifikasi ke seluruh petugas aktif | SPK tersimpan (status Aktif), notifikasi "SPK Baru Tersedia" | D4, D5, D11, D13 |
-| 5.2 | Edit SPK | Perubahan header/daftar rambu (hanya SPK berstatus Aktif) | Update data, catat ke audit log | SPK/rambu_pasang terupdate | D4, D5, D12 |
-| 5.3 | Batalkan SPK / Batalkan Rambu | Konfirmasi + alasan (untuk pembatalan satu rambu) | Ubah status jadi Dibatalkan/Batal, catat audit log, kirim notifikasi ke tim | Status terupdate, notifikasi pembatalan | D4, D5, D12, D13 |
-| 5.4 | Kelola Tim SPK | Data perwakilan + anggota (daftarkan/tambah/hapus), hanya untuk SPK Aktif | Simpan/hapus baris tim, catat audit log, kirim notifikasi | Tim tersimpan, notifikasi ke anggota terkait | D6, D12, D13 |
-| 5.5 | Hitung Urgensi & Penyesuaian Deadline | Deadline + status prioritas SPK | Hitung urgensi (≤2 hari/≤7 hari/selebihnya), kalau SPK baru ditandai Prioritas geser deadline SPK aktif non-prioritas lain (maksimal, tidak akumulatif) | Urgensi SPK, deadline SPK lain ter-update, notifikasi perubahan deadline | D4, D13 |
-| 5.6 | Cetak Surat Pengantar | Request unduh dari Admin atau anggota tim SPK terkait | Susun dokumen dari data SPK, daftar rambu, tim, dan RT/perwakilan | File PDF surat pengantar | D4, D5, D6, D11 |
+| 5.1 | Buat SPK | Alamat, tenggat waktu, daftar rambu (setiap baris memilih jenis pekerjaannya sendiri, pasang baru atau perbaikan), berkas referensi | Menyimpan SPK beserta baris `rambu_pasang` (jenis pekerjaan disimpan per baris, satu SPK boleh mencampur keduanya), memanggil Proses 5.5 untuk menghitung urgensi, mengirim notifikasi ke seluruh petugas aktif | SPK yang tersimpan (berstatus Aktif), notifikasi "SPK Baru Tersedia" | D4, D5, D11, D13 |
+| 5.2 | Edit SPK | Perubahan pada header atau daftar rambu (hanya untuk SPK berstatus Aktif, dan hanya baris rambu yang statusnya masih Belum/Urgent/Revisi yang bisa diubah) | Memperbarui data, mencatat ke audit log | SPK atau rambu_pasang yang terbarui | D4, D5, D12 |
+| 5.3 | Batalkan SPK / Batalkan Rambu | Konfirmasi beserta alasan (untuk pembatalan satu rambu) | Mengubah status menjadi Dibatalkan atau Batal, mencatat audit log, mengirim notifikasi ke tim | Status yang terbarui, notifikasi pembatalan | D4, D5, D12, D13 |
+| 5.4 | Kelola Tim SPK | Data perwakilan dan anggota (untuk aksi daftar/tambah/hapus), hanya untuk SPK yang masih Aktif | Menyimpan atau menghapus baris tim, mencatat audit log, mengirim notifikasi | Tim yang tersimpan, notifikasi kepada anggota terkait | D6, D12, D13 |
+| 5.5 | Hitung Urgensi & Penyesuaian Deadline | Tenggat waktu beserta status prioritas SPK | Menghitung urgensi (dua hari atau kurang, tujuh hari atau kurang, atau selebihnya), dan apabila SPK baru ditandai Prioritas, menggeser tenggat waktu SPK aktif non-prioritas lain (bersifat maksimal, tidak akumulatif) | Urgensi SPK, tenggat waktu SPK lain yang terbarui, notifikasi perubahan tenggat waktu | D4, D13 |
+| 5.6 | Cetak Surat Pengantar | Permintaan unduh dari admin atau anggota tim SPK terkait | Menyusun dokumen dari data SPK, daftar rambu, tim, dan RT/perwakilan | Berkas PDF surat pengantar | D4, D5, D6, D11 |
 
 ---
 
-### Level 2 — Proses 6.0 Eksekusi Lapangan
+### Level 2, Proses 6.0 Eksekusi Lapangan
+
+Proses ini mencakup segala sesuatu yang dilakukan perwakilan tim petugas saat bekerja di lapangan, sampai momen mereka mengajukan Laporan Akhir.
 
 ```mermaid
 flowchart TD
@@ -379,22 +403,26 @@ flowchart TD
     P62 --> D9
     P62 --> D5
 
-    Petugas -- "Request ajukan" --> P63
+    Petugas -- "Permintaan ajukan" --> P63
     P63 --> D5
     P63 --> D4
     P63 --> D13
     P63 -- "Notifikasi Laporan Akhir Masuk" --> Admin[E1 Admin]
 ```
 
+Perlu diperhatikan bahwa Proses 6.1 dan 6.2 sama sekali tidak mengirimkan notifikasi apa pun kepada admin secara langsung, hanya Proses 6.3 yang melakukannya. Ini secara visual mencerminkan prinsip validasi per-batch yang dijelaskan mendalam pada [ALUR-BISNIS.md](ALUR-BISNIS.md): admin baru diberi tahu setelah seluruh rambu tertangani dan Laporan Akhir benar-benar diajukan, bukan setiap kali satu rambu selesai dilaporkan.
+
 | Kode | Nama Proses | Input | Proses | Output | Data Store |
 |---|---|---|---|---|---|
-| 6.1 | Isi Laporan Pengerjaan | Foto sesudah (wajib), koordinat GPS (wajib), catatan lapangan, daftar barang/bahan — hanya oleh perwakilan tim | Tolak jika foto/GPS kosong; simpan laporan; ubah status rambu_pasang jadi Menunggu Validasi | Laporan pengerjaan tersimpan, status rambu berubah | D5, D7, D8 |
-| 6.2 | Isi Kendala | Foto (wajib), alasan (wajib) — hanya oleh perwakilan tim | Simpan kendala; ubah status rambu_pasang jadi Tertunda | Kendala tersimpan, status rambu berubah | D5, D9 |
-| 6.3 | Ajukan Laporan Akhir | Request dari perwakilan tim | Validasi syarat: minimal satu rambu Tertunda/Menunggu Validasi dan tidak ada yang masih Belum/Revisi; set `laporan_akhir_diajukan_at` | SPK masuk antrean Validasi Pengerjaan, notifikasi ke admin pembuat SPK | D4, D5, D13 |
+| 6.1 | Isi Laporan Pengerjaan | Foto sesudah (wajib), koordinat GPS (wajib), catatan lapangan, daftar barang atau bahan, hanya oleh perwakilan tim | Menolak apabila foto atau GPS kosong; menyimpan laporan; mengubah status rambu_pasang menjadi Menunggu Validasi | Laporan pengerjaan yang tersimpan, status rambu yang berubah | D5, D7, D8 |
+| 6.2 | Isi Kendala | Foto (wajib), alasan (wajib), hanya oleh perwakilan tim | Menyimpan kendala; mengubah status rambu_pasang menjadi Tertunda | Kendala yang tersimpan, status rambu yang berubah | D5, D9 |
+| 6.3 | Ajukan Laporan Akhir | Permintaan dari perwakilan tim | Memvalidasi syarat: minimal satu rambu Tertunda/Menunggu Validasi dan tidak ada yang masih Belum/Revisi; mengatur `laporan_akhir_diajukan_at` | SPK masuk antrean Validasi Pengerjaan, notifikasi kepada admin pembuat SPK | D4, D5, D13 |
 
 ---
 
-### Level 2 — Proses 7.0 Validasi & Persetujuan
+### Level 2, Proses 7.0 Validasi dan Persetujuan
+
+Proses ini mencakup segala sesuatu yang dilakukan admin saat meninjau dan mengambil keputusan atas laporan-laporan yang sudah diajukan.
 
 ```mermaid
 flowchart TD
@@ -412,7 +440,7 @@ flowchart TD
     D12[(D12 Audit Log)]
     D13[(D13 Notifikasi)]
 
-    Admin -- "Request buka antrean" --> P71
+    Admin -- "Permintaan buka antrean" --> P71
     P71 --> D4
     P71 -- "Daftar SPK siap validasi" --> Admin
 
@@ -433,17 +461,21 @@ flowchart TD
     P74 --> D4
 ```
 
+Perhatikan bagaimana Proses 7.4 (Update Status SPK Otomatis) tidak menerima aliran data langsung dari aktor mana pun, melainkan hanya dipicu secara internal oleh Proses 7.2. Ini mencerminkan sifatnya yang sepenuhnya otomatis: tidak ada tombol atau aksi eksplisit yang perlu ditekan admin untuk mengubah status SPK menjadi selesai, sistem melakukannya sendiri begitu syaratnya terpenuhi.
+
 | Kode | Nama Proses | Input | Proses | Output | Data Store |
 |---|---|---|---|---|---|
-| 7.1 | Tinjau Antrean Validasi | Request buka daftar (Admin) | Tampilkan SPK yang `laporan_akhir_diajukan_at` sudah terisi, termasuk seluruh rambu (bukan cuma yang baru) | Daftar SPK siap divalidasi | D4 |
-| 7.2 | Proses Validasi per Rambu | Keputusan terima/tolak per rambu, catatan penolakan (wajib untuk yang ditolak) | Rambu berstatus Tertunda (kendala) dipaksa tidak bisa diterima di sisi server; diterima→Selesai (`sudah_terpasang`/`kondisi_terkini` ikut berubah), ditolak→Revisi; reset gate `laporan_akhir_diajukan_at`; catat audit log & notifikasi | Status laporan/rambu terupdate, notifikasi ke petugas | D5, D7, D12, D13 |
-| 7.3 | Perpanjang Deadline saat Menolak | Checkbox "beri kelonggaran" + tanggal baru, satu transaksi dengan 7.2 | Update `deadline` & `deadline_asli`, hitung ulang urgensi, catat audit log, kirim notifikasi ke seluruh tim | Deadline SPK terupdate, notifikasi tim | D4, D12, D13 |
-| 7.4 | Update Status SPK Otomatis | Trigger internal setelah 7.2 selesai | Cek apakah seluruh `rambu_pasang` sudah Selesai/Batal | Status SPK jadi Selesai, `selesai_pada` tercatat | D4 |
+| 7.1 | Tinjau Antrean Validasi | Permintaan buka daftar (dari admin) | Menampilkan SPK yang `laporan_akhir_diajukan_at`-nya sudah terisi, termasuk seluruh rambu di dalamnya (bukan hanya yang baru) | Daftar SPK yang siap divalidasi | D4 |
+| 7.2 | Proses Validasi per Rambu | Keputusan terima atau tolak per rambu, catatan penolakan (wajib untuk yang ditolak) | Rambu yang berstatus Tertunda (karena kendala) dipaksa tidak bisa diterima di sisi server; yang diterima berubah menjadi Selesai (`sudah_terpasang` atau `kondisi_terkini` ikut berubah), yang ditolak berubah menjadi Revisi; gerbang `laporan_akhir_diajukan_at` direset; mencatat audit log dan notifikasi | Status laporan/rambu yang terbarui, notifikasi kepada petugas | D5, D7, D12, D13 |
+| 7.3 | Perpanjang Deadline saat Menolak | Kotak centang "beri kelonggaran" beserta tanggal baru, satu transaksi dengan Proses 7.2 | Memperbarui `deadline` dan `deadline_asli`, menghitung ulang urgensi, mencatat audit log, mengirim notifikasi ke seluruh tim | Tenggat waktu SPK yang terbarui, notifikasi tim | D4, D12, D13 |
+| 7.4 | Update Status SPK Otomatis | Pemicu internal setelah Proses 7.2 selesai | Memeriksa apakah seluruh `rambu_pasang` sudah Selesai atau Batal | Status SPK menjadi Selesai, `selesai_pada` tercatat | D4 |
 
 ---
 
-## Catatan Penggunaan
+## Catatan Penggunaan Dokumen Ini
 
-- Kode data store (`D1`–`D14`) dan kode proses (`1.0`–`11.0`, dan turunannya `X.Y`) dipakai konsisten di seluruh dokumen ini, jadi bisa langsung dirujuk silang dari [DATABASE.md](DATABASE.md) dan [DAFTAR-AKTIVITAS.md](DAFTAR-AKTIVITAS.md) tanpa penomoran ulang.
-- Proses 1.0–4.0, 8.0, 9.0, 10.0, dan 11.0 sengaja tidak diberi diagram Level 2 tersendiri di dokumen ini karena masing-masing sudah cukup sederhana untuk direpresentasikan sebagai satu proses atomik pada Level 1; kalau nanti dibutuhkan, pola dekomposisinya bisa mengikuti pola yang sama seperti Proses 5.0/6.0/7.0 di atas.
-- Diagram dirender pakai sintaks Mermaid, otomatis tampil sebagai gambar di GitHub, VS Code (dengan ekstensi Markdown Preview Mermaid), dan editor Markdown modern lainnya.
+Kode data store (`D1` sampai `D14`) dan kode proses (`1.0` sampai `11.0`, beserta turunannya seperti `X.Y`) dipakai secara konsisten di seluruh dokumen ini, sehingga bisa langsung dirujuk silang dari [DATABASE.md](DATABASE.md) dan [DAFTAR-AKTIVITAS.md](DAFTAR-AKTIVITAS.md) tanpa perlu penomoran ulang.
+
+Proses 1.0 sampai 4.0, 8.0, 9.0, 10.0, dan 11.0 sengaja tidak diberi diagram Level 2 tersendiri di dalam dokumen ini karena masing-masing sudah cukup sederhana untuk direpresentasikan sebagai satu proses atomik pada Level 1. Apabila suatu saat dibutuhkan dekomposisi lebih lanjut untuk salah satu di antaranya, pola yang bisa diikuti sama seperti pola yang sudah diterapkan pada Proses 5.0, 6.0, dan 7.0 di atas.
+
+Seluruh diagram pada dokumen ini disusun menggunakan sintaks Mermaid, yang akan otomatis dirender sebagai gambar visual pada GitHub, pada Visual Studio Code (dengan ekstensi Markdown Preview Mermaid Support terpasang), dan pada berbagai editor Markdown modern lainnya yang mendukung sintaks ini.
