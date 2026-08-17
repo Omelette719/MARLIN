@@ -106,63 +106,81 @@
                             <flux:text class="text-sm text-red-600">Dibatalkan: {{ $item['catatan_pembatalan'] }}</flux:text>
                         @endif
 
-                        <x-photo-upload
-                            model="rambuItems.{{ $index }}.foto_survei"
-                            label="Foto Tempat"
-                            :file="$item['foto_survei']"
-                            :existing-url="$item['existing_foto_survei'] ? Storage::url($item['existing_foto_survei']) : null"
-                            class="max-w-sm"
-                        />
-
-                        <flux:radio.group wire:model.live="rambuItems.{{ $index }}.jenis_pekerjaan" label="Jenis Pekerjaan" variant="segmented">
-                            <flux:radio value="{{ \App\Enums\JenisPekerjaan::PasangBaru->value }}" label="Pemasangan Baru" />
-                            <flux:radio value="{{ \App\Enums\JenisPekerjaan::Perbaikan->value }}" label="Perbaikan" />
-                        </flux:radio.group>
-
-                        @if ($item['jenis_pekerjaan'] === \App\Enums\JenisPekerjaan::Perbaikan->value)
-                            <flux:checkbox wire:model="rambuItems.{{ $index }}.rambu_terdaftar" label="Rambu sudah terdaftar di sistem" description="Matikan untuk mengubah data rambu ini (jenis/lokasi/koordinat) langsung." />
-                        @endif
-
-                        @if ($item['jenis_pekerjaan'] === \App\Enums\JenisPekerjaan::PasangBaru->value || ! $item['rambu_terdaftar'])
-                            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                                <x-searchable-select
-                                    wire-model="rambuItems.{{ $index }}.jenis_rambu_id"
-                                    :options="$jenisRambuSelectOptions"
-                                    label="Jenis Rambu"
-                                    placeholder="Cari jenis rambu"
-                                />
-                            </div>
-                            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                                <flux:input wire:model="rambuItems.{{ $index }}.lokasi" label="Lokasi" placeholder="Mis. perempatan 1, samping masjid" />
-                                <flux:input wire:model.live.debounce.500ms="rambuItems.{{ $index }}.koordinat" label="Koordinat" placeholder="-3.3194,114.5908" description:trailing="Format: lintang,bujur" />
-                            </div>
-
-                            @if (! empty($koordinatWarnings[$index] ?? null))
-                                <flux:callout variant="warning" icon="exclamation-triangle" heading="Ada rambu lain di lokasi yang sama/berdekatan">
-                                    <ul class="list-disc pl-4">
-                                        @foreach ($koordinatWarnings[$index] as $peringatan)
-                                            <li>{{ $peringatan['label'] }} ({{ $peringatan['jarak'] }} m)</li>
-                                        @endforeach
-                                    </ul>
-                                    Periksa dulu supaya rambu ini tidak terdaftar dua kali.
-                                </flux:callout>
-                            @endif
-                        @else
-                            <x-searchable-select
-                                wire-model="rambuItems.{{ $index }}.rambu_id"
-                                :options="$rambuSelectOptions"
-                                label="Pilih Rambu Existing"
-                                placeholder="Cari rambu berdasarkan wilayah/lokasi"
+                        @if ($item['can_edit'])
+                            <x-photo-upload
+                                model="rambuItems.{{ $index }}.foto_survei"
+                                label="Foto Tempat"
+                                :file="$item['foto_survei']"
+                                :existing-url="$item['existing_foto_survei'] ? Storage::url($item['existing_foto_survei']) : null"
+                                class="max-w-sm"
                             />
+
+                            <flux:radio.group wire:model.live="rambuItems.{{ $index }}.jenis_pekerjaan" label="Jenis Pekerjaan" variant="segmented">
+                                <flux:radio value="{{ \App\Enums\JenisPekerjaan::PasangBaru->value }}" label="Pemasangan Baru" />
+                                <flux:radio value="{{ \App\Enums\JenisPekerjaan::Perbaikan->value }}" label="Perbaikan" />
+                            </flux:radio.group>
+
+                            @if ($item['jenis_pekerjaan'] === \App\Enums\JenisPekerjaan::Perbaikan->value)
+                                <flux:checkbox wire:model.live="rambuItems.{{ $index }}.rambu_terdaftar" label="Rambu sudah terdaftar di sistem" description="Matikan untuk mengubah data rambu ini (jenis/lokasi/koordinat) langsung." />
+                            @endif
+
+                            @if ($item['jenis_pekerjaan'] === \App\Enums\JenisPekerjaan::PasangBaru->value || ! $item['rambu_terdaftar'])
+                                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                    <x-searchable-select
+                                        wire-model="rambuItems.{{ $index }}.jenis_rambu_id"
+                                        :options="$jenisRambuSelectOptions"
+                                        label="Jenis Rambu"
+                                        placeholder="Cari jenis rambu"
+                                    />
+                                </div>
+                                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                    <flux:input wire:model="rambuItems.{{ $index }}.lokasi" label="Lokasi" placeholder="Mis. perempatan 1, samping masjid" />
+                                    <flux:input wire:model.live.debounce.500ms="rambuItems.{{ $index }}.koordinat" label="Koordinat" placeholder="-3.3194,114.5908" description:trailing="Format: lintang,bujur" />
+                                </div>
+
+                                @if (! empty($koordinatWarnings[$index] ?? null))
+                                    <flux:callout variant="warning" icon="exclamation-triangle" heading="Ada rambu lain di lokasi yang sama/berdekatan">
+                                        <ul class="list-disc pl-4">
+                                            @foreach ($koordinatWarnings[$index] as $peringatan)
+                                                <li>{{ $peringatan['label'] }} ({{ $peringatan['jarak'] }} m)</li>
+                                            @endforeach
+                                        </ul>
+                                        Periksa dulu supaya rambu ini tidak terdaftar dua kali.
+                                    </flux:callout>
+                                @endif
+                            @else
+                                <x-searchable-select
+                                    wire-model="rambuItems.{{ $index }}.rambu_id"
+                                    :options="$rambuSelectOptions"
+                                    label="Pilih Rambu Existing"
+                                    placeholder="Cari rambu berdasarkan wilayah/lokasi"
+                                />
+                            @endif
+
+                            <flux:input wire:model="rambuItems.{{ $index }}.jumlah" type="number" min="1" label="Jumlah" class="sm:max-w-40" />
+
+                            <flux:textarea wire:model="rambuItems.{{ $index }}.catatan_instruksi" label="Info / Catatan Instruksi" placeholder="Mis. apa yang perlu dibawa petugas" rows="2" />
+                        @else
+                            <flux:callout icon="lock-closed" heading="Rambu ini sudah tidak bisa diedit">
+                                Statusnya sekarang {{ StatusRambuPasang::from($item['status'])->label() }} — untuk menjaga data laporan/validasi tetap konsisten, detailnya cuma bisa diubah lagi kalau statusnya kembali ke Belum atau Revisi.
+                            </flux:callout>
+
+                            <div class="grid grid-cols-1 gap-1 text-sm sm:grid-cols-2">
+                                <flux:text><span class="text-zinc-500">Jenis Pekerjaan:</span> {{ \App\Enums\JenisPekerjaan::from($item['jenis_pekerjaan'])->label() }}</flux:text>
+                                <flux:text><span class="text-zinc-500">Jumlah:</span> {{ $item['jumlah'] }}</flux:text>
+                                <flux:text class="sm:col-span-2"><span class="text-zinc-500">Rambu:</span> {{ $item['rambu_label'] }}</flux:text>
+                                @if ($item['koordinat'])
+                                    <flux:text class="font-mono sm:col-span-2"><span class="font-sans text-zinc-500">Koordinat:</span> {{ $item['koordinat'] }}</flux:text>
+                                @endif
+                                @if ($item['catatan_instruksi'])
+                                    <flux:text class="sm:col-span-2"><span class="text-zinc-500">Catatan:</span> {{ $item['catatan_instruksi'] }}</flux:text>
+                                @endif
+                            </div>
                         @endif
-
-                        <flux:input wire:model="rambuItems.{{ $index }}.jumlah" type="number" min="1" label="Jumlah" class="sm:max-w-40" />
-
-                        <flux:textarea wire:model="rambuItems.{{ $index }}.catatan_instruksi" label="Info / Catatan Instruksi" placeholder="Mis. apa yang perlu dibawa petugas" rows="2" />
 
                         @if ($item['id'])
                             <div class="flex justify-end gap-2 border-t border-zinc-200 pt-3">
-                                @if ($item['status'] !== 'batal')
+                                @if ($item['can_edit'])
                                     <flux:button type="button" size="sm" variant="danger" wire:click="bukaBatalkanRambu({{ $index }})">
                                         Batalkan
                                     </flux:button>

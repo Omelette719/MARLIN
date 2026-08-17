@@ -183,13 +183,28 @@ class Show extends Component
 
     private function finalize($approvedIds, array $rejections): void
     {
-        DB::transaction(function () use ($approvedIds, $rejections) {
+        // Rows can go stale between mount() populating $checked and this
+        // running — another admin tab already validated the same SPK, the
+        // whole SPK got cancelled (Admin\Spk\Show::batalkan(), which can
+        // still touch a Tertunda/MenungguValidasi row), or a rambu got
+        // edited/cancelled out from under this page some other way. Only
+        // counting rows that are still genuinely awaiting a decision (not
+        // just "still exist") — and counting real work done instead of
+        // just trusting the request succeeded — is what stops this from
+        // reporting "berhasil" and doing nothing while staying clickable
+        // forever, and from clobbering a status that changed for a reason.
+        $processedCount = 0;
+        $masihPending = fn (?RambuPasang $rp) => $rp && in_array($rp->status, [StatusRambuPasang::Tertunda, StatusRambuPasang::MenungguValidasi], true);
+
+        DB::transaction(function () use ($approvedIds, $rejections, &$processedCount, $masihPending) {
             foreach ($approvedIds as $rambuPasangId) {
                 $rambuPasang = RambuPasang::with(['rambu', 'laporanPengerjaan', 'kendala'])->find($rambuPasangId);
 
-                if (! $rambuPasang) {
+                if (! $masihPending($rambuPasang)) {
                     continue;
                 }
+
+                $processedCount++;
 
                 $laporan = $rambuPasang->laporanPengerjaan->first();
 
@@ -238,9 +253,11 @@ class Show extends Component
             foreach ($rejections as $rambuPasangId => $catatan) {
                 $rambuPasang = RambuPasang::with(['rambu', 'laporanPengerjaan', 'kendala'])->find($rambuPasangId);
 
-                if (! $rambuPasang) {
+                if (! $masihPending($rambuPasang)) {
                     continue;
                 }
+
+                $processedCount++;
 
                 $laporan = $rambuPasang->laporanPengerjaan->first();
 
@@ -276,6 +293,10 @@ class Show extends Component
                 }
             }
 
+            if ($processedCount === 0) {
+                return;
+            }
+
             // Reset the final-report gate — if anything still needs rework, the
             // perwakilan must re-address it and submit a fresh laporan akhir.
             $this->spk->update(['laporan_akhir_diajukan_at' => null]);
@@ -289,6 +310,22 @@ class Show extends Component
                 $this->spk->update(['status' => StatusSpk::Selesai, 'selesai_pada' => now()]);
             }
         });
+
+        if ($processedCount === 0) {
+            // Nothing above actually touched the DB — reload this page's
+            // state from scratch instead of claiming success and leaving
+            // the admin stuck on a stale view with nothing left to confirm.
+            Flux::toast(variant: 'danger', text: 'Rambu yang mau diproses sudah berubah statusnya (mis. sudah divalidasi di sesi lain) — daftar dimuat ulang dengan data terkini.');
+
+            $this->spk->refresh();
+            $this->reset('checked', 'catatanPenolakan', 'showPenolakanForm', 'deadlineBaru', 'ubahDeadline');
+
+            foreach ($this->pendingRambuPasang() as $rp) {
+                $this->checked[$rp->id] = false;
+            }
+
+            return;
+        }
 
         Flux::toast(variant: 'success', text: 'Validasi berhasil diproses.');
 

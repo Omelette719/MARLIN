@@ -136,6 +136,69 @@ class ValidasiTest extends TestCase
             ->assertNoRedirect();
     }
 
+    // If the rambu this page loaded no longer exists by the time the admin
+    // confirms (e.g. another admin tab already validated it, or an edit
+    // elsewhere invalidated it), finalize() used to still say "berhasil"
+    // and redirect even though nothing was actually written — leaving the
+    // admin stuck re-clicking a button that can never do anything. It
+    // should instead say so plainly and reload the real pending state.
+    public function test_finalizing_a_stale_rambu_pasang_reports_failure_instead_of_false_success(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $petugas = User::factory()->create();
+        $this->actingAs($admin);
+
+        ['spk' => $spk, 'rambuPasang' => $rambuPasang] =
+            $this->makeSpkWithPendingLaporan($admin, $petugas, 'pasang_baru');
+        $rambuPasangId = $rambuPasang->id;
+
+        $component = Livewire::test(ValidasiShowComponent::class, ['spk' => $spk])
+            ->set("checked.{$rambuPasangId}", true);
+
+        // The rambu (and, via cascade, its laporan) got removed after the
+        // page loaded but before this request was submitted.
+        $rambuPasang->delete();
+
+        $component->call('lanjutkan')
+            ->assertNotDispatched('marlin-go-back')
+            ->assertNoRedirect();
+
+        // Nothing should have been treated as validated — the SPK's own
+        // validation gate must not have been reset either, since that
+        // would silently kick a genuinely-still-pending SPK out of the
+        // admin queue even though nothing was actually validated.
+        $this->assertNotNull($spk->fresh()->laporan_akhir_diajukan_at);
+        $this->assertSame(0, AuditLog::where('spk_id', $spk->id)->whereIn('aksi', ['validasi_diterima', 'validasi_ditolak'])->count());
+    }
+
+    // Same failure mode, different trigger: the rambu still exists but has
+    // already moved off Tertunda/MenungguValidasi by the time this request
+    // lands (e.g. the whole SPK got cancelled via Admin\Spk\Show::batalkan(),
+    // which can still touch a row mid-validasi). finalize() must not
+    // clobber whatever status it's sitting at now.
+    public function test_finalizing_a_rambu_pasang_no_longer_pending_does_not_overwrite_its_status(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $petugas = User::factory()->create();
+        $this->actingAs($admin);
+
+        ['spk' => $spk, 'rambuPasang' => $rambuPasang] =
+            $this->makeSpkWithPendingLaporan($admin, $petugas, 'pasang_baru');
+
+        $component = Livewire::test(ValidasiShowComponent::class, ['spk' => $spk])
+            ->set("checked.{$rambuPasang->id}", true);
+
+        // The SPK got cancelled from another tab in the meantime.
+        $rambuPasang->update(['status' => StatusRambuPasang::Batal]);
+
+        $component->call('lanjutkan')
+            ->assertNotDispatched('marlin-go-back')
+            ->assertNoRedirect();
+
+        $this->assertSame(StatusRambuPasang::Batal, $rambuPasang->fresh()->status);
+        $this->assertNotNull($spk->fresh()->laporan_akhir_diajukan_at);
+    }
+
     public function test_admin_can_approve_laporan_perbaikan_and_fixes_kondisi(): void
     {
         $admin = User::factory()->admin()->create();

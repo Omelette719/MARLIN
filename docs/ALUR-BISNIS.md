@@ -59,7 +59,7 @@ spk.status = selesai (SPK diarsipkan dari Daftar Surat)
 
 SPK sendiri **tidak punya** kolom "jenis pekerjaan" — setiap baris `rambu_pasang` di dalamnya memilih sendiri **Pemasangan Baru** atau **Perbaikan** (`rambu_pasang.jenis_pekerjaan`), independen dari baris lain. Satu SPK boleh mencampur keduanya, mis. satu baris memasang rambu baru dan baris lain memperbaiki rambu yang sudah terdaftar, dalam surat yang sama.
 
-Pilihan ini menentukan alur input tiap baris saat Buat/Edit Surat: baris **Pemasangan Baru** selalu input rambu baru (jenis, lokasi, koordinat manual); baris **Perbaikan** bisa memilih rambu yang sudah terdaftar (searchable-select) atau mencatat rambu yang secara fisik sudah ada tapi belum pernah tercatat. Admin bisa mengubah jenis pekerjaan satu baris kapan saja lewat Edit Surat, termasuk untuk baris yang sudah ada sebelumnya.
+Pilihan ini menentukan alur input tiap baris saat Buat/Edit Surat: baris **Pemasangan Baru** selalu input rambu baru (jenis, lokasi, koordinat manual); baris **Perbaikan** bisa memilih rambu yang sudah terdaftar (searchable-select) atau mencatat rambu yang secara fisik sudah ada tapi belum pernah tercatat. Admin bisa mengubah jenis pekerjaan satu baris kapan saja lewat Edit Surat, termasuk untuk baris yang sudah ada sebelumnya — **tapi hanya selama baris itu masih berstatus `Belum`/`Urgent`/`Revisi`**. Begitu status baris sudah `Tertunda`/`Menunggu Validasi` (lagi/mau ditinjau admin) atau `Selesai` (sudah divalidasi), Edit Surat menampilkannya sebagai ringkasan baca-saja alih-alih form — mengedit jenis/rambu/lokasi/koordinat/jumlah baris itu di tengah jalan akan membuatnya tidak sinkron dengan `laporan_pengerjaan`/`kendala` yang sudah terlanjur dibuat atasnya.
 
 Untuk tampilan yang butuh satu nilai ringkas per SPK (badge di kartu daftar surat, dsb.), `Spk::jenisRingkasan()` mengembalikan jenis yang sama kalau seluruh baris sejenis, atau `null` kalau campuran — ditampilkan sebagai badge **"Pemasangan & Perbaikan"**. Wording otomatis di Surat Pengantar PDF (`perihal`) memihak "pemasangan" begitu ada minimal satu baris Pemasangan Baru; cuma SPK yang seluruh barisnya Perbaikan yang wordingnya "perbaikan".
 
@@ -182,7 +182,7 @@ Admin bisa membatalkan seluruh SPK yang masih **aktif** (tombol Batalkan SPK di 
 
 ## Pembatalan Satu Rambu (Bukan Seluruh SPK)
 
-Dari halaman Edit Surat, admin juga bisa membatalkan **satu baris rambu saja** tanpa membatalkan seluruh SPK, misalnya kalau lokasinya ternyata sudah ada rambu lain atau tidak jadi dikerjakan. Beda dengan Batalkan SPK:
+Dari halaman Edit Surat, admin juga bisa membatalkan **satu baris rambu saja** tanpa membatalkan seluruh SPK, misalnya kalau lokasinya ternyata sudah ada rambu lain atau tidak jadi dikerjakan — hanya tersedia selama baris itu masih berstatus `Belum`/`Urgent`/`Revisi`, sama seperti syarat edit di atas. Beda dengan Batalkan SPK:
 - Wajib isi `catatan_pembatalan` (alasan) lewat modal konfirmasi, tersimpan di baris `rambu_pasang` itu sendiri.
 - Rambu lain dalam SPK yang sama, dan status SPK-nya sendiri, tidak terpengaruh sama sekali.
 - Alasan pembatalannya ditampilkan di kartu rambu pada Detail Surat, di kolom Info surat pengantar (PDF), dan di kolom Keterangan Laporan Rambu, supaya siapapun yang baca dokumennya tahu kenapa rambu itu tidak jadi dikerjakan.

@@ -37,6 +37,15 @@ class Edit extends Component
 
     public Spk $spk;
 
+    // A rambu row stops being safe to edit once it has left the "not yet
+    // decided" state: Tertunda/MenungguValidasi are actively sitting in (or
+    // waiting to enter) the admin validation queue, and Selesai/Batal are
+    // already final. Editing jenis_pekerjaan/rambu/lokasi/koordinat out from
+    // under a row in any of those states would silently desync it from the
+    // laporan_pengerjaan/kendala already filed against it — see the "still
+    // editable while pending validasi" bug this guard closes.
+    private const EDITABLE_STATUSES = [StatusRambuPasang::Belum, StatusRambuPasang::Urgent, StatusRambuPasang::Revisi];
+
     public string $jalan = '';
 
     public string $rt = '';
@@ -119,7 +128,7 @@ class Edit extends Component
         $this->rt_nama = $rtPerwakilan?->nama_lengkap ?? '';
         $this->rt_telepon = $rtPerwakilan?->no_telepon ?? '';
 
-        $this->rambuItems = $spk->rambuPasang()->with('rambu')->get()->map(fn (RambuPasang $rp) => [
+        $this->rambuItems = $spk->rambuPasang()->with('rambu.jenisRambu')->get()->map(fn (RambuPasang $rp) => [
             'id' => $rp->id,
             'jenis_pekerjaan' => $rp->jenis_pekerjaan->value,
             'rambu_terdaftar' => true,
@@ -136,6 +145,11 @@ class Edit extends Component
             'catatan_pembatalan' => $rp->catatan_pembatalan,
             'can_hapus' => in_array($rp->status, [StatusRambuPasang::Belum, StatusRambuPasang::Batal], true)
                 && ! $rp->kendala()->exists() && ! $rp->laporanPengerjaan()->exists(),
+            'can_edit' => in_array($rp->status, self::EDITABLE_STATUSES, true),
+            // Only used for the read-only summary shown when can_edit is
+            // false — the editable form below builds its own label from
+            // jenisRambuSelectOptions/rambuSelectOptions instead.
+            'rambu_label' => "{$rp->rambu->jenisRambu?->nama_jenis} — {$rp->rambu->wilayah}, {$rp->rambu->lokasi}",
         ])->values()->all();
     }
 
@@ -157,6 +171,7 @@ class Edit extends Component
             'status' => null,
             'catatan_pembatalan' => null,
             'can_hapus' => false,
+            'can_edit' => true,
         ];
     }
 
@@ -247,7 +262,7 @@ class Edit extends Component
 
     public function bukaBatalkanRambu(int $index): void
     {
-        if (empty($this->rambuItems[$index]['id'])) {
+        if (empty($this->rambuItems[$index]['id']) || ! $this->rambuItems[$index]['can_edit']) {
             return;
         }
 
@@ -268,9 +283,22 @@ class Edit extends Component
             return;
         }
 
-        DB::transaction(function () use ($rambuPasangId) {
-            $rp = RambuPasang::with('rambu')->findOrFail($rambuPasangId);
+        // Re-checked fresh from the DB, not the possibly-stale local
+        // rambuItems array — this form can sit open long enough for the
+        // rambu to have moved into/out of validation in the meantime (e.g.
+        // the petugas submitted a laporan, or another admin already
+        // validated it), and the local can_edit flag was only ever
+        // accurate as of when the page loaded.
+        $rp = RambuPasang::with('rambu')->find($rambuPasangId);
 
+        if (! $rp || ! in_array($rp->status, self::EDITABLE_STATUSES, true)) {
+            Flux::modal('batalkan-rambu')->close();
+            Flux::toast(variant: 'danger', text: 'Rambu ini sudah berubah status (mis. sedang divalidasi atau sudah selesai) — muat ulang halaman untuk melihat kondisi terkininya.');
+
+            return;
+        }
+
+        DB::transaction(function () use ($rp) {
             $rp->update([
                 'status' => StatusRambuPasang::Batal,
                 'catatan_pembatalan' => $this->catatan_pembatalan,
@@ -297,6 +325,7 @@ class Edit extends Component
         $this->rambuItems[$index]['status'] = StatusRambuPasang::Batal->value;
         $this->rambuItems[$index]['catatan_pembatalan'] = $this->catatan_pembatalan;
         $this->rambuItems[$index]['can_hapus'] = true;
+        $this->rambuItems[$index]['can_edit'] = false;
 
         Flux::modal('batalkan-rambu')->close();
         $this->batalIndex = null;
@@ -460,6 +489,15 @@ class Edit extends Component
 
                 if ($item['id']) {
                     $rambuPasang = RambuPasang::with('rambu')->findOrFail($item['id']);
+
+                    // Re-checked fresh from the DB rather than trusting the
+                    // request's can_edit flag — the same staleness window as
+                    // konfirmasiBatalkanRambu() above applies here too, and
+                    // this is the mutation that actually corrupts data if it
+                    // ever fires against a row mid-validasi or already done.
+                    if (! in_array($rambuPasang->status, self::EDITABLE_STATUSES, true)) {
+                        continue;
+                    }
 
                     if ($manual) {
                         $rambuPasang->rambu->update([

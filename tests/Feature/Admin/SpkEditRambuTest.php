@@ -129,6 +129,93 @@ class SpkEditRambuTest extends TestCase
         $this->assertSame(1, RambuPasang::count());
     }
 
+    // A rambu mid-validasi (menunggu_validasi/tertunda) or already selesai
+    // must not be mutable from Edit Surat — otherwise a laporan_pengerjaan
+    // or kendala already filed against it desyncs from what the row now
+    // says, which is exactly what surfaced the "validasi says success but
+    // does nothing" bug in Validasi\Show.
+    public function test_admin_cannot_edit_rambu_pasang_pending_validation(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $this->actingAs($admin);
+
+        $spk = $this->makeSpk($admin);
+        $rp = $this->makeRambuPasang($spk);
+        $rp->update(['status' => 'menunggu_validasi']);
+        $lokasiSebelumnya = $rp->rambu->lokasi;
+
+        Livewire::test(SpkEditComponent::class, ['spk' => $spk])
+            ->set('rambuItems.0.lokasi', 'Lokasi baru yang seharusnya tidak tersimpan')
+            ->set('rambuItems.0.jumlah', 99)
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $rp->refresh();
+        $rp->rambu->refresh();
+
+        $this->assertSame($lokasiSebelumnya, $rp->rambu->lokasi);
+        $this->assertNotSame(99, $rp->jumlah);
+    }
+
+    public function test_admin_cannot_edit_rambu_pasang_already_selesai(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $this->actingAs($admin);
+
+        $spk = $this->makeSpk($admin);
+        $rp = $this->makeRambuPasang($spk);
+        $rp->update(['status' => 'selesai']);
+
+        Livewire::test(SpkEditComponent::class, ['spk' => $spk])
+            ->set('rambuItems.0.jumlah', 42)
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $this->assertNotSame(42, $rp->fresh()->jumlah);
+    }
+
+    public function test_admin_cannot_batalkan_rambu_pasang_pending_validation(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $this->actingAs($admin);
+
+        $spk = $this->makeSpk($admin);
+        $rp = $this->makeRambuPasang($spk);
+        $rp->update(['status' => 'menunggu_validasi']);
+
+        Livewire::test(SpkEditComponent::class, ['spk' => $spk])
+            ->call('bukaBatalkanRambu', 0)
+            ->assertSet('batalIndex', null);
+
+        $this->assertSame(StatusRambuPasang::MenungguValidasi, $rp->fresh()->status);
+    }
+
+    // Defense-in-depth: even if the modal is somehow reached (bukaBatalkanRambu
+    // bypassed, or the row changed status after the page loaded but before
+    // this was submitted), konfirmasiBatalkanRambu() re-checks the DB itself
+    // rather than trusting the client's state.
+    public function test_konfirmasi_batalkan_rejects_a_rambu_pasang_that_is_no_longer_editable(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $this->actingAs($admin);
+
+        $spk = $this->makeSpk($admin);
+        $rp = $this->makeRambuPasang($spk);
+
+        $component = Livewire::test(SpkEditComponent::class, ['spk' => $spk])
+            ->set('batalIndex', 0)
+            ->set('catatan_pembatalan', 'Alasan apapun');
+
+        // Simulate the row moving into validasi after the page loaded but
+        // before this request was submitted.
+        $rp->update(['status' => 'menunggu_validasi']);
+
+        $component->call('konfirmasiBatalkanRambu');
+
+        $this->assertSame(StatusRambuPasang::MenungguValidasi, $rp->fresh()->status);
+        $this->assertNull($rp->fresh()->catatan_pembatalan);
+    }
+
     public function test_admin_can_swap_existing_rambu_pasang_to_a_different_registered_rambu(): void
     {
         $admin = User::factory()->admin()->create();
