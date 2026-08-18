@@ -292,8 +292,12 @@ class Create extends Component
     {
         return [
             'jalan' => 'required|string|max:255',
-            'rt' => ['required', 'string', 'max:255', 'regex:/^[0-9]+$/'],
-            'kelurahan' => 'required|string|max:255',
+            // Nullable, not required: not every location sits inside a clear
+            // RT/kelurahan (e.g. a spot along a toll road or highway KM
+            // marker), and ComposesWilayah already composes wilayah from
+            // whichever of jalan/rt/kelurahan are actually filled in.
+            'rt' => ['nullable', 'string', 'max:255', 'regex:/^[0-9]+$/'],
+            'kelurahan' => 'nullable|string|max:255',
             'perihal' => 'nullable|string|max:500',
             'deadline' => 'required|date|after:today',
             'asal_permintaan' => ['required', Rule::enum(AsalPermintaan::class)],

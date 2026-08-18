@@ -13,9 +13,9 @@
                 <flux:heading size="lg">Detail Surat</flux:heading>
 
                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                    <flux:input wire:model="jalan" label="Jalan" placeholder="Mis. Gatot X" required />
-                    <flux:input wire:model.live.debounce.500ms="rt" label="RT" placeholder="Mis. 27" required />
-                    <flux:input wire:model="kelurahan" label="Kelurahan" placeholder="Mis. Pengambangan" required />
+                    <flux:input wire:model="jalan" label="Jalan" placeholder="Mis. Gatot X, atau A. Yani KM 12" required />
+                    <flux:input wire:model.live.debounce.500ms="rt" label="RT" placeholder="Mis. 27" description:trailing="Opsional, kosongkan kalau lokasinya tidak berada di RT tertentu (mis. dekat jalan tol)." />
+                    <flux:input wire:model="kelurahan" label="Kelurahan" placeholder="Mis. Pengambangan" description:trailing="Opsional, kosongkan kalau lokasinya tidak berada di kelurahan tertentu." />
                 </div>
 
                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
