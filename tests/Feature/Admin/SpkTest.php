@@ -249,6 +249,7 @@ class SpkTest extends TestCase
             ->set('rambuItems.0.lokasi', 'Perempatan dekat masjid')
             ->set('rambuItems.0.koordinat', '-3.3194,114.5908')
             ->set('rambuItems.0.jumlah', 2)
+            ->set('rambuItems.0.foto_survei', UploadedFile::fake()->image('rambu.jpg'))
             ->call('save')
             ->assertHasNoErrors()
             ->assertRedirect(route('admin.spk.index'));
@@ -458,6 +459,7 @@ class SpkTest extends TestCase
             ->set('rambuItems.0.lokasi', 'Perempatan 1')
             ->set('rambuItems.0.koordinat', '-3.3194,114.5908')
             ->set('rambuItems.0.jumlah', 1)
+            ->set('rambuItems.0.foto_survei', UploadedFile::fake()->image('rambu.jpg'))
             ->call('save')
             ->assertHasNoErrors()
             ->assertRedirect(route('admin.spk.index'));
@@ -520,6 +522,7 @@ class SpkTest extends TestCase
             ->set('rambuItems.0.lokasi', 'Perempatan dekat masjid')
             ->set('rambuItems.0.koordinat', '-3.3194,114.5908')
             ->set('rambuItems.0.jumlah', 1)
+            ->set('rambuItems.0.foto_survei', UploadedFile::fake()->image('rambu.jpg'))
             ->call('save')
             ->assertHasNoErrors();
 
@@ -548,6 +551,7 @@ class SpkTest extends TestCase
             ->set('rambuItems.0.lokasi', 'Perempatan dekat masjid')
             ->set('rambuItems.0.koordinat', '-3.3194,114.5908')
             ->set('rambuItems.0.jumlah', 1)
+            ->set('rambuItems.0.foto_survei', UploadedFile::fake()->image('rambu.jpg'))
             ->call('save')
             ->assertHasNoErrors();
 
@@ -583,6 +587,7 @@ class SpkTest extends TestCase
             ->set('asal_permintaan', 'laporan_masyarakat')
             ->set('rambuItems.0.rambu_id', (string) $rambu->id)
             ->set('rambuItems.0.jumlah', 1)
+            ->set('rambuItems.0.foto_survei', UploadedFile::fake()->image('rambu.jpg'))
             ->call('save')
             ->assertHasNoErrors()
             ->assertRedirect(route('admin.spk.index'));
@@ -616,6 +621,7 @@ class SpkTest extends TestCase
             ->set('rambuItems.0.lokasi', 'Depan kantor camat')
             ->set('rambuItems.0.koordinat', '-3.35,114.60')
             ->set('rambuItems.0.jumlah', 1)
+            ->set('rambuItems.0.foto_survei', UploadedFile::fake()->image('rambu.jpg'))
             ->call('save')
             ->assertHasNoErrors()
             ->assertRedirect(route('admin.spk.index'));
@@ -661,10 +667,12 @@ class SpkTest extends TestCase
             ->set('rambuItems.0.lokasi', 'Perempatan dekat masjid')
             ->set('rambuItems.0.koordinat', '-3.3194,114.5908')
             ->set('rambuItems.0.jumlah', 1)
+            ->set('rambuItems.0.foto_survei', UploadedFile::fake()->image('rambu-1.jpg'))
             ->call('addRambuItem')
             ->set('rambuItems.1.jenis_pekerjaan', JenisPekerjaan::Perbaikan->value)
             ->set('rambuItems.1.rambu_id', (string) $rambuLama->id)
             ->set('rambuItems.1.jumlah', 1)
+            ->set('rambuItems.1.foto_survei', UploadedFile::fake()->image('rambu-2.jpg'))
             ->call('save')
             ->assertHasNoErrors()
             ->assertRedirect(route('admin.spk.index'));
@@ -804,10 +812,12 @@ class SpkTest extends TestCase
             ->set('asal_permintaan', 'laporan_masyarakat')
             ->set('rambuItems.0.rambu_id', (string) $rambu->id)
             ->set('rambuItems.0.jumlah', 1)
+            ->set('rambuItems.0.foto_survei', UploadedFile::fake()->image('rambu-1.jpg'))
             ->call('addRambuItem')
             ->set('rambuItems.1.jenis_pekerjaan', JenisPekerjaan::Perbaikan->value)
             ->set('rambuItems.1.rambu_id', (string) $rambu->id)
             ->set('rambuItems.1.jumlah', 1)
+            ->set('rambuItems.1.foto_survei', UploadedFile::fake()->image('rambu-2.jpg'))
             ->call('save')
             ->assertHasErrors(['rambuItems']);
 

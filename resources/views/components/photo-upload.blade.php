@@ -36,16 +36,19 @@
     @endif
 
     @if ($model)
-        {{--
-            label/description are deliberately not passed to this inner
-            <flux:input> (the label above is already this component's own),
-            but Flux's error message only renders when one of those is set
-            — so without an explicit <flux:error> here, a failure that gets
-            past the immediate non-image rejection (e.g. a valid image over
-            the 5MB limit) would fail validation with no visible feedback
-            at all, same class of bug as everywhere else fixed this pass.
-        --}}
         <flux:input wire:model="{{ $model }}" type="file" accept="image/*" :required="$required" :description="$description" />
-        <flux:error name="{{ $model }}" />
+
+        {{--
+            Flux's own inline error only renders when label/description is
+            set on the input itself (the visible label above is this
+            component's own, never passed down). So callers that don't pass
+            a $description need this explicit fallback, or a failure (missing
+            file, or a valid image over the 5MB limit) fails validation with
+            no visible feedback. Callers that do pass $description already
+            get Flux's own inline error, so this would just duplicate it.
+        --}}
+        @unless ($description)
+            <flux:error name="{{ $model }}" />
+        @endunless
     @endif
 </div>

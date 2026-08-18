@@ -27,6 +27,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
 use Livewire\Component;
@@ -326,38 +327,51 @@ class Create extends Component
 
     public function save(): void
     {
-        $this->validate($this->headerRules(), $this->headerMessages());
+        try {
+            $this->validate($this->headerRules(), $this->headerMessages());
 
-        if (count($this->rambuItems) < 1) {
-            $this->addError('rambuItems', 'Tambahkan minimal satu rambu.');
+            if (count($this->rambuItems) < 1) {
+                $this->addError('rambuItems', 'Tambahkan minimal satu rambu.');
 
-            return;
-        }
-
-        foreach ($this->rambuItems as $index => $item) {
-            $this->validate([
-                "rambuItems.$index.jenis_pekerjaan" => 'required|in:pasang_baru,perbaikan',
-            ]);
-
-            $isPasangBaruItem = $item['jenis_pekerjaan'] === JenisPekerjaan::PasangBaru->value;
-            $butuhEntriManual = $isPasangBaruItem || ! $item['rambu_terdaftar'];
-
-            if ($butuhEntriManual) {
-                $this->validate([
-                    "rambuItems.$index.jenis_rambu_id" => 'required|exists:jenis_rambu,id',
-                    "rambuItems.$index.lokasi" => 'required|string|max:255',
-                    "rambuItems.$index.koordinat" => ['required', 'string', 'max:255', new Koordinat],
-                ]);
-            } else {
-                $this->validate([
-                    "rambuItems.$index.rambu_id" => 'required|exists:rambu,id',
-                ]);
+                return;
             }
 
-            $this->validate([
-                "rambuItems.$index.jumlah" => 'required|integer|min:1',
-                "rambuItems.$index.foto_survei" => 'nullable|image|max:5120',
-            ]);
+            foreach ($this->rambuItems as $index => $item) {
+                $this->validate([
+                    "rambuItems.$index.jenis_pekerjaan" => 'required|in:pasang_baru,perbaikan',
+                ]);
+
+                $isPasangBaruItem = $item['jenis_pekerjaan'] === JenisPekerjaan::PasangBaru->value;
+                $butuhEntriManual = $isPasangBaruItem || ! $item['rambu_terdaftar'];
+
+                if ($butuhEntriManual) {
+                    $this->validate([
+                        "rambuItems.$index.jenis_rambu_id" => 'required|exists:jenis_rambu,id',
+                        "rambuItems.$index.lokasi" => 'required|string|max:255',
+                        "rambuItems.$index.koordinat" => ['required', 'string', 'max:255', new Koordinat],
+                    ]);
+                } else {
+                    $this->validate([
+                        "rambuItems.$index.rambu_id" => 'required|exists:rambu,id',
+                    ]);
+                }
+
+                $this->validate([
+                    "rambuItems.$index.jumlah" => 'required|integer|min:1',
+                    // Only actually optional when a temuan already supplied a
+                    // photo (foto_survei_existing) — a fresh rambu row still
+                    // needs visual proof of the site before it's assigned out.
+                    "rambuItems.$index.foto_survei" => [
+                        empty($item['foto_survei_existing']) ? 'required' : 'nullable',
+                        'image',
+                        'max:5120',
+                    ],
+                ]);
+            }
+        } catch (ValidationException $e) {
+            Flux::toast(variant: 'danger', text: 'Harap isi field yang diperlukan.');
+
+            throw $e;
         }
 
         $rambuIdDipilihGanda = collect($this->rambuItems)
@@ -367,6 +381,7 @@ class Create extends Component
 
         if ($rambuIdDipilihGanda->isNotEmpty()) {
             $this->addError('rambuItems', 'Ada rambu existing yang sama dipilih lebih dari sekali dalam surat ini.');
+            Flux::toast(variant: 'danger', text: 'Ada rambu existing yang sama dipilih lebih dari sekali dalam surat ini.');
 
             return;
         }

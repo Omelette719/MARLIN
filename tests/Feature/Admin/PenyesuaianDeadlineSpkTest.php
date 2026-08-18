@@ -13,6 +13,7 @@ use App\Models\Spk;
 use App\Models\User;
 use App\Support\PenyesuaianDeadlineSpk;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Livewire\Livewire;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
@@ -57,6 +58,7 @@ class PenyesuaianDeadlineSpkTest extends TestCase
             ->set('rambuItems.0.lokasi', 'Perempatan dekat masjid')
             ->set('rambuItems.0.koordinat', '-3.3194,114.5908')
             ->set('rambuItems.0.jumlah', 1)
+            ->set('rambuItems.0.foto_survei', UploadedFile::fake()->image('rambu.jpg'))
             ->call('save')
             ->assertHasNoErrors();
 
@@ -80,6 +82,7 @@ class PenyesuaianDeadlineSpkTest extends TestCase
             ->set('rambuItems.0.lokasi', 'Perempatan dekat masjid')
             ->set('rambuItems.0.koordinat', '-3.3194,114.5908')
             ->set('rambuItems.0.jumlah', 1)
+            ->set('rambuItems.0.foto_survei', UploadedFile::fake()->image('rambu.jpg'))
             ->call('save')
             ->assertHasNoErrors();
 

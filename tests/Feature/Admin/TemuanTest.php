@@ -42,6 +42,7 @@ class TemuanTest extends TestCase
             'dilaporkan_oleh' => $petugas->id,
             'kondisi_dilaporkan' => 'rusak',
             'catatan' => 'Tiang bengkok.',
+            'foto' => 'laporan-kondisi/contoh-temuan.jpg',
         ]);
     }
 
