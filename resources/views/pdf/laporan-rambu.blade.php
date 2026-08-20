@@ -184,9 +184,13 @@ $periodeLabel = ($filters['tanggal_dari'] ? \Carbon\Carbon::parse($filters['tang
            KOLOM TABEL
            ========================================================= */
 
+        {{-- All columns below are widthed in %, never mixed with px — dompdf's
+        fixed table layout doesn't reconcile absolute-pixel columns against
+        percentage ones reliably, which is exactly why the old 28px "No"
+        column was overflowing into the border of the column next to it. --}}
         table.data th.no,
         table.data td.no {
-            width: 28px;
+            width: 4%;
             text-align: center;
         }
 
@@ -219,7 +223,7 @@ $periodeLabel = ($filters['tanggal_dari'] ? \Carbon\Carbon::parse($filters['tang
 
         table.data th.keterangan,
         table.data td.keterangan {
-            width: 18%;
+            width: 14%;
         }
 
         /* =========================================================

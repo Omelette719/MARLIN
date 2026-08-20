@@ -36,7 +36,14 @@
                             </div>
                         @endif
 
-                        <div class="aspect-square w-full bg-zinc-100">
+                        {{-- min-h-0 + overflow-hidden: without them, a flex item
+                        with aspect-square only holds that ratio as long as its
+                        content doesn't need more — a child <img> whose own
+                        intrinsic aspect ratio differs a lot from 1:1 (e.g. a
+                        tall/narrow sign photo) pushes the flex item's default
+                        min-height:auto taller than the square, breaking every
+                        card in the grid out of alignment with its siblings. --}}
+                        <div class="aspect-square w-full min-h-0 overflow-hidden bg-zinc-100">
                             @if ($jenis->gambar_referensi)
                                 <img src="{{ Storage::url($jenis->gambar_referensi) }}" class="size-full object-contain p-6" />
                             @else
