@@ -8,6 +8,7 @@ use App\Livewire\Admin\Users\Edit as UsersEditComponent;
 use App\Livewire\Admin\Users\Index as UsersIndexComponent;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -213,5 +214,47 @@ class UserManagementTest extends TestCase
         Livewire::test(UsersIndexComponent::class)->call('toggleAktif', $admin->id);
 
         $this->assertTrue($admin->fresh()->aktif);
+    }
+
+    public function test_deactivating_a_user_immediately_deletes_their_active_sessions(): void
+    {
+        $this->actingAs(User::factory()->admin()->create());
+
+        $user = User::factory()->create(['aktif' => true]);
+
+        DB::table('sessions')->insert([
+            'id' => 'test-session-id',
+            'user_id' => $user->id,
+            'ip_address' => '127.0.0.1',
+            'user_agent' => 'PHPUnit',
+            'payload' => base64_encode('payload'),
+            'last_activity' => time(),
+        ]);
+
+        Livewire::test(UsersIndexComponent::class)->call('toggleAktif', $user->id);
+
+        $this->assertSame(0, DB::table('sessions')->where('user_id', $user->id)->count());
+    }
+
+    public function test_deactivating_a_user_rotates_their_remember_token(): void
+    {
+        $this->actingAs(User::factory()->admin()->create());
+
+        $user = User::factory()->create(['aktif' => true, 'remember_token' => 'original-token']);
+
+        Livewire::test(UsersIndexComponent::class)->call('toggleAktif', $user->id);
+
+        $this->assertNotSame('original-token', $user->fresh()->remember_token);
+    }
+
+    public function test_reactivating_a_user_resets_failed_login_attempts(): void
+    {
+        $this->actingAs(User::factory()->admin()->create());
+
+        $user = User::factory()->create(['aktif' => false, 'failed_login_attempts' => 6]);
+
+        Livewire::test(UsersIndexComponent::class)->call('toggleAktif', $user->id);
+
+        $this->assertSame(0, $user->fresh()->failed_login_attempts);
     }
 }

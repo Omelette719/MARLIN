@@ -150,7 +150,7 @@ class Edit extends Component
             // Only used for the read-only summary shown when can_edit is
             // false — the editable form below builds its own label from
             // jenisRambuSelectOptions/rambuSelectOptions instead.
-            'rambu_label' => "{$rp->rambu->jenisRambu?->nama_jenis} — {$rp->rambu->wilayah}, {$rp->rambu->lokasi}",
+            'rambu_label' => "{$rp->rambu->jenisRambu?->nama_jenis}: {$rp->rambu->wilayah}, {$rp->rambu->lokasi}",
         ])->values()->all();
     }
 
@@ -230,7 +230,7 @@ class Edit extends Component
 
         $peringatan = Rambu::terdekat($koordinat, kecualikanId: $kecualikanId)
             ->map(fn (Rambu $r) => [
-                'label' => "{$r->jenisRambu?->nama_jenis} — {$r->wilayah}, {$r->lokasi}",
+                'label' => "{$r->jenisRambu?->nama_jenis}: {$r->wilayah}, {$r->lokasi}",
                 'jarak' => round($r->jarak_meter),
             ])->all();
 
@@ -294,7 +294,7 @@ class Edit extends Component
 
         if (! $rp || ! in_array($rp->status, self::EDITABLE_STATUSES, true)) {
             Flux::modal('batalkan-rambu')->close();
-            Flux::toast(variant: 'danger', text: 'Rambu ini sudah berubah status (mis. sedang divalidasi atau sudah selesai) — muat ulang halaman untuk melihat kondisi terkininya.');
+            Flux::toast(variant: 'danger', text: 'Rambu ini sudah berubah status (mis. sedang divalidasi atau sudah selesai), muat ulang halaman untuk melihat kondisi terkininya.');
 
             return;
         }
@@ -352,7 +352,7 @@ class Edit extends Component
             && ! $rp->kendala()->exists() && ! $rp->laporanPengerjaan()->exists();
 
         if (! $eligible) {
-            Flux::toast(variant: 'danger', text: 'Rambu ini sudah punya progres (kendala/laporan) — batalkan saja, tidak bisa dihapus.');
+            Flux::toast(variant: 'danger', text: 'Rambu ini sudah punya progres (kendala/laporan), batalkan saja, tidak bisa dihapus.');
 
             return;
         }

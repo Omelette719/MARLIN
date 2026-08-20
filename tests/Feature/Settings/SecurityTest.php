@@ -34,8 +34,8 @@ class SecurityTest extends TestCase
             ->withSession(['auth.password_confirmed_at' => time()])
             ->get(route('security.edit'))
             ->assertOk()
-            ->assertSee('Two-factor authentication')
-            ->assertSee('Enable 2FA');
+            ->assertSee('Autentikasi Dua Faktor')
+            ->assertSee('Aktifkan 2FA');
     }
 
     public function test_security_settings_page_requires_password_confirmation_when_enabled(): void
@@ -58,8 +58,8 @@ class SecurityTest extends TestCase
             ->withSession(['auth.password_confirmed_at' => time()])
             ->get(route('security.edit'))
             ->assertOk()
-            ->assertSee('Update password')
-            ->assertDontSee('Two-factor authentication');
+            ->assertSee('Ubah Kata Sandi')
+            ->assertDontSee('Autentikasi Dua Faktor');
     }
 
     public function test_two_factor_authentication_disabled_when_confirmation_abandoned_between_requests(): void
@@ -102,6 +102,53 @@ class SecurityTest extends TestCase
         $response->assertHasNoErrors();
 
         $this->assertTrue(Hash::check('new-password', $user->refresh()->password));
+    }
+
+    public function test_password_cannot_be_updated_to_the_same_current_password(): void
+    {
+        $user = User::factory()->create([
+            'password' => Hash::make('password'),
+        ]);
+
+        $this->actingAs($user);
+
+        $response = Livewire::test(SecurityComponent::class)
+            ->set('current_password', 'password')
+            ->set('password', 'password')
+            ->set('password_confirmation', 'password')
+            ->call('updatePassword');
+
+        $response->assertHasErrors(['password']);
+
+        $this->assertTrue(Hash::check('password', $user->fresh()->password));
+    }
+
+    public function test_password_can_be_changed_back_to_an_older_password(): void
+    {
+        $user = User::factory()->create([
+            'password' => Hash::make('password-one'),
+        ]);
+
+        $this->actingAs($user);
+
+        Livewire::test(SecurityComponent::class)
+            ->set('current_password', 'password-one')
+            ->set('password', 'password-two')
+            ->set('password_confirmation', 'password-two')
+            ->call('updatePassword')
+            ->assertHasNoErrors();
+
+        $this->assertTrue(Hash::check('password-two', $user->fresh()->password));
+
+        $response = Livewire::test(SecurityComponent::class)
+            ->set('current_password', 'password-two')
+            ->set('password', 'password-one')
+            ->set('password_confirmation', 'password-one')
+            ->call('updatePassword');
+
+        $response->assertHasNoErrors();
+
+        $this->assertTrue(Hash::check('password-one', $user->fresh()->password));
     }
 
     public function test_correct_password_must_be_provided_to_update_password(): void

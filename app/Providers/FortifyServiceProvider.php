@@ -45,7 +45,27 @@ class FortifyServiceProvider extends ServiceProvider
         Fortify::authenticateUsing(function (Request $request) {
             $user = User::where(Fortify::username(), $request->input(Fortify::username()))->first();
 
-            if (! $user || ! Hash::check((string) $request->password, $user->password)) {
+            if (! $user) {
+                return null;
+            }
+
+            if (! Hash::check((string) $request->password, $user->password)) {
+                // Only an already-active account can still be locked out by
+                // this — an already-deactivated one has nothing further to
+                // lock, so there's no point spending a write incrementing it
+                // forever on every subsequent guess.
+                if ($user->aktif) {
+                    $user->increment('failed_login_attempts');
+
+                    if ($user->failed_login_attempts >= 6) {
+                        $user->update(['aktif' => false]);
+
+                        throw ValidationException::withMessages([
+                            Fortify::username() => __('Akun dinonaktifkan karena 6 kali percobaan masuk yang gagal secara berturut-turut. Hubungi admin untuk mengaktifkan kembali.'),
+                        ]);
+                    }
+                }
+
                 return null;
             }
 
@@ -53,6 +73,10 @@ class FortifyServiceProvider extends ServiceProvider
                 throw ValidationException::withMessages([
                     Fortify::username() => __('Akun ini telah dinonaktifkan. Hubungi admin untuk informasi lebih lanjut.'),
                 ]);
+            }
+
+            if ($user->failed_login_attempts > 0) {
+                $user->update(['failed_login_attempts' => 0]);
             }
 
             return $user;
@@ -81,7 +105,13 @@ class FortifyServiceProvider extends ServiceProvider
         RateLimiter::for('login', function (Request $request) {
             $throttleKey = Str::transliterate(Str::lower($request->input(Fortify::username())).'|'.$request->ip());
 
-            return Limit::perMinute(5)->by($throttleKey);
+            // Wide enough that the 6-consecutive-failures account lockout in
+            // authenticateUsing() above is always what a user actually sees
+            // first — a tighter per-minute cap here would throw Laravel's
+            // bare 429 page before the friendlier lockout message ever gets
+            // a chance to fire. This is still a real ceiling against
+            // scripted brute-forcing, just not the primary defense anymore.
+            return Limit::perMinute(10)->by($throttleKey);
         });
     }
 }

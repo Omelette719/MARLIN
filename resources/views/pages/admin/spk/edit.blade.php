@@ -65,7 +65,7 @@
             <flux:card class="flex flex-col gap-4">
                 <div>
                     <flux:heading size="lg">Contact Person</flux:heading>
-                    <flux:subheading>Opsional. Kontak warga/perwakilan setempat yang bisa dihubungi petugas di lapangan — bukan identitas resmi RT (nama RT ditulis tangan langsung di surat saat petugas datang meminta izin).</flux:subheading>
+                    <flux:subheading>Opsional. Kontak warga/perwakilan setempat yang bisa dihubungi petugas di lapangan, bukan identitas resmi RT (nama RT ditulis tangan langsung di surat saat petugas datang meminta izin).</flux:subheading>
                 </div>
 
                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -167,7 +167,7 @@
                             <flux:textarea wire:model="rambuItems.{{ $index }}.catatan_instruksi" label="Info / Catatan Instruksi" placeholder="Mis. apa yang perlu dibawa petugas" rows="2" />
                         @else
                             <flux:callout icon="lock-closed" heading="Rambu ini sudah tidak bisa diedit">
-                                Statusnya sekarang {{ StatusRambuPasang::from($item['status'])->label() }} — untuk menjaga data laporan/validasi tetap konsisten, detailnya cuma bisa diubah lagi kalau statusnya kembali ke Belum atau Revisi.
+                                Statusnya sekarang {{ StatusRambuPasang::from($item['status'])->label() }}, untuk menjaga data laporan/validasi tetap konsisten, detailnya cuma bisa diubah lagi kalau statusnya kembali ke Belum atau Revisi.
                             </flux:callout>
 
                             <div class="grid grid-cols-1 gap-1 text-sm sm:grid-cols-2">

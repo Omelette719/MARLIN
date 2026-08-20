@@ -31,13 +31,18 @@
                         <x-auth-session-status class="mb-6 text-center" :status="session('status')" />
 
                         @if ($errors->any())
+                            {{-- $errors->first() rather than a hardcoded string: a wrong
+                            NIP/password, an admin-deactivated account, and the automatic
+                            6-failed-attempts lockout below all throw different messages,
+                            and every one of them deserves to actually reach the user
+                            instead of being flattened into the same generic text. --}}
                             <script>
                                 window.addEventListener('DOMContentLoaded', () => {
                                     setTimeout(() => {
                                         document.dispatchEvent(new CustomEvent('toast-show', {
                                             detail: {
                                                 duration: 5000,
-                                                slots: { text: @json(__('NIP atau kata sandi yang Anda masukkan salah.')) },
+                                                slots: { text: @json($errors->first()) },
                                                 dataset: { variant: 'danger' },
                                             },
                                         }));

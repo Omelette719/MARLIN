@@ -181,7 +181,7 @@ class Create extends Component
 
         $peringatan = Rambu::terdekat($koordinat)
             ->map(fn (Rambu $r) => [
-                'label' => "{$r->jenisRambu?->nama_jenis} — {$r->wilayah}, {$r->lokasi}",
+                'label' => "{$r->jenisRambu?->nama_jenis}: {$r->wilayah}, {$r->lokasi}",
                 'jarak' => round($r->jarak_meter),
             ])->all();
 

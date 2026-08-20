@@ -52,7 +52,7 @@
             <flux:card class="flex flex-col gap-4">
                 <div>
                     <flux:heading size="lg">Contact Person</flux:heading>
-                    <flux:subheading>Opsional. Kontak warga/perwakilan setempat yang bisa dihubungi petugas di lapangan — bukan identitas resmi RT (nama RT ditulis tangan langsung di surat saat petugas datang meminta izin).</flux:subheading>
+                    <flux:subheading>Opsional. Kontak warga/perwakilan setempat yang bisa dihubungi petugas di lapangan, bukan identitas resmi RT (nama RT ditulis tangan langsung di surat saat petugas datang meminta izin).</flux:subheading>
                 </div>
 
                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">

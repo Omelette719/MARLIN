@@ -752,7 +752,7 @@ $wilayahLabel = $filters['kelurahan'] ?? $filters['kecamatan'] ?? 'Semua Kelurah
             Gambar peta di atas adalah cuplikan tampilan peta interaktif
             saat PDF ini diunduh.
         @else
-            Gambar peta tidak berhasil disertakan saat PDF ini dibuat —
+            Gambar peta tidak berhasil disertakan saat PDF ini dibuat,
             data di bawah tetap lengkap sesuai filter yang dipilih.
         @endif
 

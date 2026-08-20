@@ -16,7 +16,7 @@
         <flux:card class="flex flex-col gap-3">
             <div>
                 <flux:heading size="lg">Semua Rambu dalam SPK Ini</flux:heading>
-                <flux:subheading>Termasuk rambu yang sudah divalidasi di putaran sebelumnya — hanya yang berstatus Terkendala/Menunggu Validasi di bawah yang perlu keputusan sekarang.</flux:subheading>
+                <flux:subheading>Termasuk rambu yang sudah divalidasi di putaran sebelumnya, hanya yang berstatus Terkendala/Menunggu Validasi di bawah yang perlu keputusan sekarang.</flux:subheading>
             </div>
 
             <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -43,7 +43,7 @@
             <div class="flex flex-col gap-4">
                 <div>
                     <flux:heading size="lg">Laporan Akhir Masuk</flux:heading>
-                    <flux:subheading>Rambu yang selesai dikerjakan bisa dicentang kalau memang sudah sesuai. Rambu yang terkendala tidak bisa dicentang selesai — otomatis dikembalikan untuk direvisi, karena belum ada pekerjaan yang benar-benar selesai untuk divalidasi.</flux:subheading>
+                    <flux:subheading>Rambu yang selesai dikerjakan bisa dicentang kalau memang sudah sesuai. Rambu yang terkendala tidak bisa dicentang selesai, otomatis dikembalikan untuk direvisi, karena belum ada pekerjaan yang benar-benar selesai untuk divalidasi.</flux:subheading>
                 </div>
 
                 @foreach ($pending as $rp)

@@ -315,7 +315,7 @@ class Show extends Component
             // Nothing above actually touched the DB — reload this page's
             // state from scratch instead of claiming success and leaving
             // the admin stuck on a stale view with nothing left to confirm.
-            Flux::toast(variant: 'danger', text: 'Rambu yang mau diproses sudah berubah statusnya (mis. sudah divalidasi di sesi lain) — daftar dimuat ulang dengan data terkini.');
+            Flux::toast(variant: 'danger', text: 'Rambu yang mau diproses sudah berubah statusnya (mis. sudah divalidasi di sesi lain), daftar dimuat ulang dengan data terkini.');
 
             $this->spk->refresh();
             $this->reset('checked', 'catatanPenolakan', 'showPenolakanForm', 'deadlineBaru', 'ubahDeadline');

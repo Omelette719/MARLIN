@@ -81,6 +81,51 @@ class AuthenticationTest extends TestCase
         $this->assertGuest();
     }
 
+    public function test_account_is_locked_out_after_six_consecutive_failed_attempts(): void
+    {
+        $user = User::factory()->create(['aktif' => true]);
+
+        for ($i = 0; $i < 5; $i++) {
+            $this->post(route('login.store'), [
+                'nip' => $user->nip,
+                'password' => 'wrong-password',
+            ]);
+        }
+
+        $this->assertTrue($user->fresh()->aktif);
+
+        $response = $this->post(route('login.store'), [
+            'nip' => $user->nip,
+            'password' => 'wrong-password',
+        ]);
+
+        $response->assertSessionHasErrors('nip');
+        $this->assertFalse($user->fresh()->aktif);
+        $this->assertSame(6, $user->fresh()->failed_login_attempts);
+    }
+
+    public function test_failed_login_attempts_reset_after_a_successful_login(): void
+    {
+        $user = User::factory()->create(['aktif' => true]);
+
+        for ($i = 0; $i < 3; $i++) {
+            $this->post(route('login.store'), [
+                'nip' => $user->nip,
+                'password' => 'wrong-password',
+            ]);
+        }
+
+        $this->assertSame(3, $user->fresh()->failed_login_attempts);
+
+        $this->post(route('login.store'), [
+            'nip' => $user->nip,
+            'password' => 'password',
+        ]);
+
+        $this->assertAuthenticated();
+        $this->assertSame(0, $user->fresh()->failed_login_attempts);
+    }
+
     public function test_users_can_logout(): void
     {
         /** @var User $user */

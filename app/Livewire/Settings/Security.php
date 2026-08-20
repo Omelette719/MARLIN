@@ -5,6 +5,7 @@ namespace App\Livewire\Settings;
 use App\Concerns\PasswordValidationRules;
 use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use Laravel\Fortify\Actions\DisableTwoFactorAuthentication;
 use Laravel\Fortify\Features;
@@ -13,7 +14,7 @@ use Livewire\Attributes\On;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
-#[Title('Security settings')]
+#[Title('Pengaturan Keamanan')]
 class Security extends Component
 {
     use PasswordValidationRules;
@@ -57,6 +58,15 @@ class Security extends Component
                 'current_password' => $this->currentPasswordRules(),
                 'password' => $this->passwordRules(),
             ]);
+
+            // Only the immediately-preceding password is blocked from reuse
+            // here — nothing older than that is ever retained to check
+            // against, since only the current hash is stored.
+            if (Hash::check($validated['password'], Auth::user()->password)) {
+                throw ValidationException::withMessages([
+                    'password' => __('Kata sandi baru tidak boleh sama dengan kata sandi sebelumnya.'),
+                ]);
+            }
         } catch (ValidationException $e) {
             $this->reset('current_password', 'password', 'password_confirmation');
 
@@ -69,7 +79,7 @@ class Security extends Component
 
         $this->reset('current_password', 'password', 'password_confirmation');
 
-        Flux::toast(variant: 'success', text: __('Password updated.'));
+        Flux::toast(variant: 'success', text: __('Kata sandi berhasil diperbarui.'));
     }
 
     /**

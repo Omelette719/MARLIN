@@ -5,13 +5,13 @@
 <section class="w-full">
     @include('partials.settings-heading')
 
-    <flux:heading class="sr-only">{{ __('Security settings') }}</flux:heading>
+    <flux:heading class="sr-only">{{ __('Pengaturan keamanan') }}</flux:heading>
 
-    <x-pages::settings.layout :heading="__('Update password')" :subheading="__('Ensure your account is using a long, random password to stay secure')">
+    <x-pages::settings.layout :heading="__('Ubah Kata Sandi')" :subheading="__('Pastikan akunmu memakai kata sandi yang panjang dan acak agar tetap aman')">
         <form method="POST" wire:submit="updatePassword" class="mt-6 space-y-6">
             <flux:input
                 wire:model="current_password"
-                :label="__('Current password')"
+                :label="__('Kata Sandi Saat Ini')"
                 type="password"
                 required
                 autocomplete="current-password"
@@ -19,7 +19,7 @@
             />
             <flux:input
                 wire:model="password"
-                :label="__('New password')"
+                :label="__('Kata Sandi Baru')"
                 type="password"
                 required
                 autocomplete="new-password"
@@ -28,7 +28,7 @@
             />
             <flux:input
                 wire:model="password_confirmation"
-                :label="__('Confirm password')"
+                :label="__('Konfirmasi Kata Sandi')"
                 type="password"
                 required
                 autocomplete="new-password"
@@ -38,21 +38,21 @@
 
             <div class="flex items-center gap-4">
                 <flux:button variant="primary" type="submit" data-test="update-password-button">
-                    {{ __('Save') }}
+                    {{ __('Simpan') }}
                 </flux:button>
             </div>
         </form>
 
         @if ($canManageTwoFactor)
             <section class="mt-12">
-                <flux:heading>{{ __('Two-factor authentication') }}</flux:heading>
-                <flux:subheading>{{ __('Manage your two-factor authentication settings') }}</flux:subheading>
+                <flux:heading>{{ __('Autentikasi Dua Faktor') }}</flux:heading>
+                <flux:subheading>{{ __('Kelola pengaturan autentikasi dua faktor akunmu') }}</flux:subheading>
 
                 <div class="flex flex-col w-full mx-auto space-y-6 text-sm" wire:cloak>
                     @if ($twoFactorEnabled)
                         <div class="space-y-4">
                             <flux:text>
-                                {{ __('You will be prompted for a secure, random pin during login, which you can retrieve from the TOTP-supported application on your phone.') }}
+                                {{ __('Kamu akan diminta memasukkan pin acak yang aman saat login, yang bisa didapat dari aplikasi pendukung TOTP di ponselmu.') }}
                             </flux:text>
 
                             <div class="flex justify-start">
@@ -60,7 +60,7 @@
                                     variant="danger"
                                     wire:click="disable"
                                 >
-                                    {{ __('Disable 2FA') }}
+                                    {{ __('Nonaktifkan 2FA') }}
                                 </flux:button>
                             </div>
 
@@ -69,7 +69,7 @@
                     @else
                         <div class="space-y-4">
                             <flux:text variant="subtle">
-                                {{ __('When you enable two-factor authentication, you will be prompted for a secure pin during login. This pin can be retrieved from a TOTP-supported application on your phone.') }}
+                                {{ __('Setelah autentikasi dua faktor diaktifkan, kamu akan diminta memasukkan pin aman saat login. Pin ini bisa didapat dari aplikasi pendukung TOTP di ponselmu.') }}
                             </flux:text>
 
                             <flux:modal.trigger name="two-factor-setup-modal">
@@ -77,7 +77,7 @@
                                     variant="primary"
                                     wire:click="$dispatch('start-two-factor-setup')"
                                 >
-                                    {{ __('Enable 2FA') }}
+                                    {{ __('Aktifkan 2FA') }}
                                 </flux:button>
                             </flux:modal.trigger>
 
