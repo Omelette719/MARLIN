@@ -43,14 +43,18 @@
                 <span class="mt-1 inline-block size-3 shrink-0 rounded-full" style="background:#ba1a1a"></span>
                 <div>
                     <div class="font-medium text-zinc-700">Tinggi / Prioritas</div>
-                    <div class="text-xs text-zinc-500">Rambu ditandai Urgent, SPK-nya ditandai Prioritas, atau urgensi SPK saat ini Tinggi (deadline tinggal sedikit).</div>
+                    <ul class="list-inside list-disc text-xs text-zinc-500">
+                        <li>Tinggi: sisa waktu pengerjaan kurang dari 4 hari.</li>
+                        <li>Prioritas: SPK-nya ditandai sebagai prioritas oleh admin.</li>
+                        <li>Urgent: rambu ditandai berstatus Urgent.</li>
+                    </ul>
                 </div>
             </div>
             <div class="flex items-start gap-2">
                 <span class="mt-1 inline-block size-3 shrink-0 rounded-full" style="background:#eab308"></span>
                 <div>
                     <div class="font-medium text-zinc-700">Sedang</div>
-                    <div class="text-xs text-zinc-500">Urgensi SPK saat ini Sedang.</div>
+                    <div class="text-xs text-zinc-500">Sisa waktu pengerjaan kurang dari 7 hari.</div>
                 </div>
             </div>
             <div class="flex items-start gap-2">
@@ -64,7 +68,7 @@
                 <span class="mt-1 inline-block size-3 shrink-0 rounded-full" style="background:#9ca3af"></span>
                 <div>
                     <div class="font-medium text-zinc-700">Rendah</div>
-                    <div class="text-xs text-zinc-500">Urgensi SPK saat ini Rendah, atau belum ada laporan pengerjaan masuk untuk rambu ini.</div>
+                    <div class="text-xs text-zinc-500">Sisa waktu pengerjaan masih lama atau belum ada laporan pengerjaan masuk untuk rambu ini.</div>
                 </div>
             </div>
         </div>
