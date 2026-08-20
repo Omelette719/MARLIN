@@ -242,7 +242,7 @@ class SpkTest extends TestCase
             ->set('rambuItems.0.jenis_pekerjaan', JenisPekerjaan::PasangBaru->value)
             ->set('jalan', 'Lambung Mangkurat')
             ->set('rt', '5')
-            ->set('kelurahan', 'Kertak Baru')
+            ->set('kelurahan', 'Kertak Baru Ilir')
             ->set('deadline', now()->addDays(5)->toDateString())
             ->set('asal_permintaan', 'internal')
             ->set('rambuItems.0.jenis_rambu_id', (string) $jenisRambu->id)
@@ -257,7 +257,7 @@ class SpkTest extends TestCase
         $spk = Spk::first();
 
         $this->assertNotNull($spk);
-        $this->assertSame('Jl. Lambung Mangkurat RT. 5 Kel. Kertak Baru', $spk->wilayah);
+        $this->assertSame('Jl. Lambung Mangkurat RT. 5 Kel. Kertak Baru Ilir', $spk->wilayah);
         $this->assertSame(Urgensi::Sedang, $spk->urgensi);
         $this->assertSame($admin->id, $spk->dibuat_oleh);
 
@@ -285,7 +285,7 @@ class SpkTest extends TestCase
             ->set('rambuItems.0.jenis_pekerjaan', JenisPekerjaan::PasangBaru->value)
             ->set('jalan', 'Lambung Mangkurat')
             ->set('rt', '5')
-            ->set('kelurahan', 'Kertak Baru')
+            ->set('kelurahan', 'Kertak Baru Ilir')
             ->set('deadline', now()->addDays(5)->toDateString())
             ->set('asal_permintaan', 'internal')
             ->set('rambuItems.0.jenis_rambu_id', (string) $jenisRambu->id)
@@ -314,7 +314,7 @@ class SpkTest extends TestCase
             ->set('rambuItems.0.jenis_pekerjaan', JenisPekerjaan::PasangBaru->value)
             ->set('jalan', 'Lambung Mangkurat')
             ->set('rt', '5A')
-            ->set('kelurahan', 'Kertak Baru')
+            ->set('kelurahan', 'Kertak Baru Ilir')
             ->set('deadline', now()->addDays(5)->toDateString())
             ->set('asal_permintaan', 'internal')
             ->call('save')
@@ -353,7 +353,7 @@ class SpkTest extends TestCase
             ->set('rambuItems.0.jenis_pekerjaan', JenisPekerjaan::PasangBaru->value)
             ->set('jalan', 'Lambung Mangkurat')
             ->set('rt', '5')
-            ->set('kelurahan', 'Kertak Baru')
+            ->set('kelurahan', 'Kertak Baru Ilir')
             ->set('deadline', now()->toDateString())
             ->set('asal_permintaan', 'internal')
             ->call('save')
@@ -370,7 +370,7 @@ class SpkTest extends TestCase
             ->set('rambuItems.0.jenis_pekerjaan', JenisPekerjaan::PasangBaru->value)
             ->set('jalan', 'Lambung Mangkurat')
             ->set('rt', '5')
-            ->set('kelurahan', 'Kertak Baru')
+            ->set('kelurahan', 'Kertak Baru Ilir')
             ->set('deadline', now()->addDays(5)->toDateString())
             ->set('asal_permintaan', 'internal')
             ->set('tanggal_survei', now()->addDay()->toDateString())
@@ -389,7 +389,7 @@ class SpkTest extends TestCase
             ->set('rambuItems.0.jenis_pekerjaan', JenisPekerjaan::PasangBaru->value)
             ->set('jalan', 'Lambung Mangkurat')
             ->set('rt', '5')
-            ->set('kelurahan', 'Kertak Baru')
+            ->set('kelurahan', 'Kertak Baru Ilir')
             ->set('deadline', now()->addDays(5)->toDateString())
             ->set('asal_permintaan', 'internal')
             ->set('tanggal_survei', now()->toDateString())
@@ -408,7 +408,7 @@ class SpkTest extends TestCase
             ->set('rambuItems.0.jenis_pekerjaan', JenisPekerjaan::PasangBaru->value)
             ->set('jalan', 'Lambung Mangkurat')
             ->set('rt', '5')
-            ->set('kelurahan', 'Kertak Baru')
+            ->set('kelurahan', 'Kertak Baru Ilir')
             ->set('deadline', now()->addDays(5)->toDateString())
             ->set('asal_permintaan', 'internal')
             ->set('rt_nama', 'Abdul RT27')
@@ -426,7 +426,7 @@ class SpkTest extends TestCase
             ->set('rambuItems.0.jenis_pekerjaan', JenisPekerjaan::PasangBaru->value)
             ->set('jalan', 'Lambung Mangkurat')
             ->set('rt', '5')
-            ->set('kelurahan', 'Kertak Baru')
+            ->set('kelurahan', 'Kertak Baru Ilir')
             ->set('deadline', now()->addDays(5)->toDateString())
             ->set('asal_permintaan', 'internal')
             ->set('rt_telepon', '0812-345-6789')
@@ -515,7 +515,7 @@ class SpkTest extends TestCase
             ->set('rambuItems.0.jenis_pekerjaan', JenisPekerjaan::PasangBaru->value)
             ->set('jalan', 'Lambung Mangkurat')
             ->set('rt', '5')
-            ->set('kelurahan', 'Kertak Baru')
+            ->set('kelurahan', 'Kertak Baru Ilir')
             ->set('deadline', now()->addDays(5)->toDateString())
             ->set('asal_permintaan', 'internal')
             ->set('rambuItems.0.jenis_rambu_id', (string) $jenisRambu->id)
@@ -544,7 +544,7 @@ class SpkTest extends TestCase
         Livewire::test(SpkCreateComponent::class)
             ->set('jalan', 'Lambung Mangkurat')
             ->set('rt', '5')
-            ->set('kelurahan', 'Kertak Baru')
+            ->set('kelurahan', 'Kertak Baru Ilir')
             ->set('deadline', now()->addDays(5)->toDateString())
             ->set('asal_permintaan', 'internal')
             ->set('rambuItems.0.jenis_rambu_id', (string) $jenisRambu->id)
@@ -628,7 +628,7 @@ class SpkTest extends TestCase
 
         $rambu = Rambu::first();
         $this->assertNotNull($rambu);
-        $this->assertSame('Jl. Veteran RT. 10', $rambu->wilayah);
+        $this->assertSame('Jl. Veteran RT. 10 Kel. Antasan Besar', $rambu->wilayah);
         $this->assertSame('rusak', $rambu->kondisi_terkini->value);
         $this->assertTrue($rambu->sudah_terpasang);
 
@@ -751,7 +751,7 @@ class SpkTest extends TestCase
             ->set('rambuItems.0.jenis_pekerjaan', JenisPekerjaan::PasangBaru->value)
             ->set('jalan', 'Lambung Mangkurat')
             ->set('rt', '5')
-            ->set('kelurahan', 'Kertak Baru')
+            ->set('kelurahan', 'Kertak Baru Ilir')
             ->set('deadline', now()->addDays(5)->toDateString())
             ->set('asal_permintaan', 'internal')
             ->set('rambuItems.0.jenis_rambu_id', (string) $jenisRambu->id)
@@ -775,7 +775,7 @@ class SpkTest extends TestCase
             ->set('rambuItems.0.jenis_pekerjaan', JenisPekerjaan::PasangBaru->value)
             ->set('jalan', 'Lambung Mangkurat')
             ->set('rt', '5')
-            ->set('kelurahan', 'Kertak Baru')
+            ->set('kelurahan', 'Kertak Baru Ilir')
             ->set('deadline', now()->addDays(5)->toDateString())
             ->set('asal_permintaan', 'internal')
             ->set('rambuItems.0.jenis_rambu_id', (string) $jenisRambu->id)
@@ -862,7 +862,7 @@ class SpkTest extends TestCase
             ->set('rambuItems.0.jenis_pekerjaan', JenisPekerjaan::PasangBaru->value)
             ->set('jalan', 'Lambung Mangkurat')
             ->set('rt', '5')
-            ->set('kelurahan', 'Kertak Baru')
+            ->set('kelurahan', 'Kertak Baru Ilir')
             ->set('deadline', now()->addDays(5)->toDateString())
             ->set('asal_permintaan', 'internal')
             ->set('rt_nama', 'Abdul')
@@ -888,7 +888,7 @@ class SpkTest extends TestCase
             ->set('rambuItems.0.jenis_pekerjaan', JenisPekerjaan::PasangBaru->value)
             ->set('jalan', 'Lambung Mangkurat')
             ->set('rt', '5')
-            ->set('kelurahan', 'Kertak Baru')
+            ->set('kelurahan', 'Kertak Baru Ilir')
             ->set('deadline', now()->addDays(5)->toDateString())
             ->set('asal_permintaan', 'bukan_asal_yang_valid')
             ->set('rambuItems.0.jenis_rambu_id', (string) $jenisRambu->id)

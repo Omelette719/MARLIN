@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Admin\Rambu;
 
+use App\Enums\KondisiRambu;
 use App\Models\JenisRambu;
 use App\Models\Rambu;
 use Illuminate\Support\Facades\Auth;
@@ -21,12 +22,28 @@ class Index extends Component
     #[Url]
     public string $search = '';
 
+    #[Url]
+    public string $kondisi = '';
+
+    #[Url]
+    public string $status = '';
+
     public function updatedJenis(): void
     {
         $this->resetPage();
     }
 
     public function updatedSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedKondisi(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedStatus(): void
     {
         $this->resetPage();
     }
@@ -39,10 +56,19 @@ class Index extends Component
                 ->when($this->search, fn ($q) => $q->where(fn ($w) => $w
                     ->where('wilayah', 'like', "%{$this->search}%")
                     ->orWhere('lokasi', 'like', "%{$this->search}%")))
+                // Kondisi only has meaning once a sign is actually installed
+                // (the table shows "N/A" for anything not sudah_terpasang,
+                // even though the column defaults to "baik" in the DB), so
+                // filtering by Baik/Rusak must also require sudah_terpasang
+                // to match what's actually shown.
+                ->when($this->kondisi, fn ($q) => $q->where('sudah_terpasang', true)->where('kondisi_terkini', $this->kondisi))
+                ->when($this->status === 'terpasang', fn ($q) => $q->where('sudah_terpasang', true))
+                ->when($this->status === 'belum_terpasang', fn ($q) => $q->where('sudah_terpasang', false))
                 ->orderBy('wilayah')
                 ->paginate(15),
             'jenisOptions' => JenisRambu::orderBy('nama_jenis')->get(),
             'jenisAktif' => $this->jenis ? JenisRambu::find($this->jenis) : null,
+            'kondisiOptions' => KondisiRambu::cases(),
             'isAdmin' => Auth::user()->isAdmin(),
         ];
     }

@@ -56,12 +56,13 @@ const KONDISI_LABEL = {
 
 const PIN_CARD_WIDTH = 220;
 
-// Colors mirror the priority rules from IMPLEMENTATION_SPEC.md §4, with one
-// deliberate deviation: spec says red (urgent/prioritas/tinggi) overrides
-// every other color, but menunggu_validasi is checked first here instead —
-// once a report is already submitted, the pin should show that progress
-// regardless of the SPK's urgency, rather than staying red the whole wait.
-// computed client-side per spec's non-functional note (§7): never in the DB query.
+// Color is driven by the SPK's own urgensi tier (Tinggi/Sedang/Rendah), with
+// two states that sit outside that tier system checked first: a report
+// already submitted (menunggu_validasi) takes priority over the SPK's
+// urgency, since the pin should show that progress regardless of how urgent
+// the deadline was; and a finished, healthy sign (tenang) shows its own calm
+// color instead, computed client-side per spec's non-functional note (§7):
+// never in the DB query.
 function pinColor(pin) {
     const spk = pin.spk;
 
@@ -73,12 +74,12 @@ function pinColor(pin) {
         return '#ba1a1a';
     }
 
-    if (pin.kondisi_terkini === 'rusak' || (pin.jenis_pekerjaan === 'perbaikan' && pin.status !== 'selesai')) {
-        return '#eab308';
+    if (isPinTenang(pin)) {
+        return '#004655';
     }
 
-    if ((pin.status === 'selesai' || pin.status === null) && pin.kondisi_terkini === 'baik') {
-        return '#004655';
+    if (spk && spk.urgensi === 'sedang') {
+        return '#eab308';
     }
 
     return '#9ca3af';

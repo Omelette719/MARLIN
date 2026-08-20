@@ -121,7 +121,7 @@ class Spk extends Model
         $daysUntilDeadline = now()->startOfDay()->diffInDays($deadline->copy()->startOfDay(), false);
 
         return match (true) {
-            $daysUntilDeadline <= 2 => Urgensi::Tinggi,
+            $daysUntilDeadline <= 4 => Urgensi::Tinggi,
             $daysUntilDeadline <= 7 => Urgensi::Sedang,
             default => Urgensi::Rendah,
         };

@@ -55,6 +55,187 @@
             </flux:card>
         </div>
 
+        <flux:card class="flex flex-col gap-3">
+            <div class="flex items-end justify-between gap-3">
+                <div>
+                    <flux:heading size="lg">Peta Rambu Perlu Perhatian</flux:heading>
+                    <flux:subheading>Default: hanya rambu belum terpasang, rusak, atau menunggu validasi. Filter diterapkan otomatis begitu dipilih.</flux:subheading>
+                </div>
+                <flux:button type="button" id="user-dashboard-peta-unduh-pdf" variant="ghost" icon="arrow-down-tray" onclick="unduhPetaGambarPdf(getPetaFilterQueryUserDashboard(), 'user-dashboard-peta-unduh-pdf')">
+                    Unduh PDF
+                </flux:button>
+            </div>
+
+            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
+                <flux:select id="user-dashboard-peta-jenis" label="Jenis Rambu" placeholder="Semua Jenis" size="sm" onchange="terapkanFilterPetaUserDashboard()">
+                    <flux:select.option value="">Semua Jenis</flux:select.option>
+                    @foreach ($jenisRambuOptions as $j)
+                        <flux:select.option value="{{ $j->id }}">{{ $j->nama_jenis }}</flux:select.option>
+                    @endforeach
+                </flux:select>
+
+                <flux:select id="user-dashboard-peta-tingkat" label="Tingkat" placeholder="Default (perlu perhatian)" size="sm" onchange="terapkanFilterPetaUserDashboard()">
+                    <flux:select.option value="">Default (perlu perhatian)</flux:select.option>
+                    @foreach ($tingkatOptions as $value => $label)
+                        {{-- Same reasoning as the admin widget: "Selesai / Kondisi
+                        Baik" would just duplicate what hideTenang already hides
+                        by default when no tingkat is chosen. --}}
+                        @continue($value === 'selesai')
+                        <flux:select.option value="{{ $value }}">{{ $label }}</flux:select.option>
+                    @endforeach
+                </flux:select>
+
+                <flux:select id="user-dashboard-peta-kecamatan" label="Kecamatan" placeholder="Semua Kecamatan" size="sm" onchange="terapkanFilterPetaUserDashboard()">
+                    <flux:select.option value="">Semua Kecamatan</flux:select.option>
+                    @foreach ($kecamatanOptions as $k)
+                        <flux:select.option value="{{ $k }}">{{ $k }}</flux:select.option>
+                    @endforeach
+                </flux:select>
+
+                <flux:select id="user-dashboard-peta-kelurahan" label="Kelurahan" placeholder="Semua Kelurahan" size="sm" onchange="terapkanFilterPetaUserDashboard()">
+                    <flux:select.option value="">Semua Kelurahan</flux:select.option>
+                    @foreach ($kelurahanOptions as $k)
+                        <flux:select.option value="{{ $k }}">{{ $k }}</flux:select.option>
+                    @endforeach
+                </flux:select>
+
+                <div class="flex items-end">
+                    <flux:button type="button" size="sm" variant="primary" class="w-full" onclick="resetFilterPetaUserDashboard()">Clear All</flux:button>
+                </div>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-4 text-sm">
+                <div class="flex items-center gap-2"><span class="inline-block size-3 rounded-full" style="background:#ba1a1a"></span> Tinggi / Prioritas</div>
+                <div class="flex items-center gap-2"><span class="inline-block size-3 rounded-full" style="background:#eab308"></span> Sedang</div>
+                <div class="flex items-center gap-2"><span class="inline-block size-3 rounded-full" style="background:#22d3ee"></span> Menunggu Validasi</div>
+                <div class="flex items-center gap-2"><span class="inline-block size-3 rounded-full" style="background:#9ca3af"></span> Rendah</div>
+            </div>
+
+            {{-- isolate: same fix as pages/peta.blade.php and the admin dashboard
+            widget — contains Leaflet's internal z-index (up to 1000 for its
+            controls) so it can't paint over the mobile sidebar drawer (z-20). --}}
+            <div class="relative isolate h-96 overflow-hidden rounded-xl border border-zinc-200">
+                <div id="user-dashboard-peta" wire:ignore class="size-full"></div>
+            </div>
+        </flux:card>
+
+        @script
+        <script>
+            // Same isolated-scope caveat as the admin dashboard widget: this
+            // block runs as its own AsyncFunction, so every handler the filter
+            // controls/buttons call by name has to be attached to `window`
+            // explicitly. Named distinctly from the admin widget's
+            // *PetaDashboard functions so the two never collide if both ever
+            // happen to be defined in the same session (e.g. an admin account
+            // that's also flagged as petugas).
+            window.petaFilterQueryUserDashboard = function () {
+                const params = new URLSearchParams();
+                const jenis = document.getElementById('user-dashboard-peta-jenis').value;
+                const tingkat = document.getElementById('user-dashboard-peta-tingkat').value;
+                const kecamatan = document.getElementById('user-dashboard-peta-kecamatan').value;
+                const kelurahan = document.getElementById('user-dashboard-peta-kelurahan').value;
+
+                if (jenis) params.set('jenis_rambu_id', jenis);
+                if (tingkat) params.set('tingkat', tingkat);
+                if (kecamatan) params.set('kecamatan', kecamatan);
+                if (kelurahan) params.set('kelurahan', kelurahan);
+
+                return params.toString();
+            };
+
+            window.getPetaFilterQueryUserDashboard = function () {
+                const query = window.petaFilterQueryUserDashboard();
+
+                return @js(route('peta.export')) + (query ? '?' + query : '');
+            };
+
+            window.terapkanFilterPetaUserDashboard = function () {
+                const query = window.petaFilterQueryUserDashboard();
+
+                const hideTenang = ! document.getElementById('user-dashboard-peta-tingkat').value;
+
+                initPetaRambu(
+                    'user-dashboard-peta',
+                    @js(route('peta.data')) + (query ? '?' + query : ''),
+                    null,
+                    @js(route('rambu.show', ['rambu' => '__ID__'])),
+                    null,
+                    @js(route('user.temuan', ['rambu_id' => '__ID__'])),
+                    hideTenang
+                );
+            };
+
+            window.resetFilterPetaUserDashboard = function () {
+                document.getElementById('user-dashboard-peta-jenis').value = '';
+                document.getElementById('user-dashboard-peta-tingkat').value = '';
+                document.getElementById('user-dashboard-peta-kecamatan').value = '';
+                document.getElementById('user-dashboard-peta-kelurahan').value = '';
+                window.terapkanFilterPetaUserDashboard();
+            };
+
+            window.terapkanFilterPetaUserDashboard();
+        </script>
+        @endscript
+
+        <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <flux:card class="flex flex-col gap-4">
+                <div>
+                    <flux:heading size="lg">SPK Perlu Perhatian</flux:heading>
+                    <flux:subheading>Dari SPK yang timmu ikuti. Prioritas/urgensi tinggi ditampilkan lebih dulu, sisanya diurutkan dari progres paling rendah.</flux:subheading>
+                </div>
+
+                <div class="flex flex-col gap-3">
+                    @forelse ($spkPerluPerhatian as $row)
+                        @php $persen = $row['total'] > 0 ? round(($row['selesai'] / $row['total']) * 100) : 100; @endphp
+                        <div>
+                            <div class="mb-1 flex items-center justify-between text-sm">
+                                <span class="flex items-center gap-2 font-medium text-zinc-700">
+                                    <flux:link :href="route('user.spk.show', $row['spk'])" wire:navigate>{{ $row['spk']->nomor_surat }}</flux:link>
+                                    @if ($row['butuhPerhatian'])
+                                        <flux:badge size="sm" color="red">Prioritas</flux:badge>
+                                    @endif
+                                </span>
+                                <span class="text-zinc-500">{{ $row['selesai'] }}/{{ $row['total'] }} selesai &middot; deadline {{ $row['spk']->deadline->translatedFormat('d M') }}</span>
+                            </div>
+                            <div class="h-2 w-full overflow-hidden rounded-full bg-zinc-100">
+                                <div class="h-full rounded-full {{ $row['butuhPerhatian'] ? 'bg-red-500' : 'bg-[#004655]' }}" style="width: {{ $persen }}%"></div>
+                            </div>
+                        </div>
+                    @empty
+                        <flux:text class="text-zinc-500">Belum ada SPK yang kamu ikuti saat ini.</flux:text>
+                    @endforelse
+                </div>
+            </flux:card>
+
+            <flux:card class="flex flex-col gap-4">
+                <div>
+                    <flux:heading size="lg">Saran SPK untuk Bergabung</flux:heading>
+                    <flux:subheading>SPK yang belum ada tim, diutamakan yang berada di kecamatan sama atau paling dekat dengan pekerjaanmu yang sedang berjalan.</flux:subheading>
+                </div>
+
+                <div class="flex flex-col gap-3">
+                    @forelse ($saranSpk as $row)
+                        <div class="flex items-center justify-between gap-2 text-sm">
+                            <div>
+                                <div class="flex items-center gap-2 font-medium text-zinc-700">
+                                    <flux:link :href="route('user.spk.show', $row['spk'])" wire:navigate>{{ $row['spk']->nomor_surat }}</flux:link>
+                                    @if ($row['samaKecamatan'])
+                                        <flux:badge size="sm" color="blue">Kecamatan Sama</flux:badge>
+                                    @elseif ($row['jarakMeter'] !== null)
+                                        <flux:badge size="sm" color="zinc">{{ number_format($row['jarakMeter'] / 1000, 1) }} km</flux:badge>
+                                    @endif
+                                </div>
+                                <div class="text-zinc-500">{{ $row['spk']->wilayah }}</div>
+                            </div>
+                            <span class="shrink-0 text-zinc-500">deadline {{ $row['spk']->deadline->translatedFormat('d M') }}</span>
+                        </div>
+                    @empty
+                        <flux:text class="text-zinc-500">Tidak ada saran SPK yang bisa ditampilkan saat ini.</flux:text>
+                    @endforelse
+                </div>
+            </flux:card>
+        </div>
+
         <flux:input wire:model.live.debounce.400ms="search" placeholder="Cari nomor surat atau wilayah..." icon="magnifying-glass" class="max-w-sm" />
 
         @if ($spk->isEmpty())

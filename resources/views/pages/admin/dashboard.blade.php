@@ -88,8 +88,19 @@
                     @endforeach
                 </flux:select>
 
-                <flux:input id="dashboard-peta-tanggal-dari" type="date" label="Tugas Dari Tanggal" size="sm" onchange="terapkanFilterPetaDashboard()" />
-                <flux:input id="dashboard-peta-tanggal-sampai" type="date" label="Tugas Sampai Tanggal" size="sm" onchange="terapkanFilterPetaDashboard()" />
+                <flux:select id="dashboard-peta-kecamatan" label="Kecamatan" placeholder="Semua Kecamatan" size="sm" onchange="terapkanFilterPetaDashboard()">
+                    <flux:select.option value="">Semua Kecamatan</flux:select.option>
+                    @foreach ($kecamatanOptions as $k)
+                        <flux:select.option value="{{ $k }}">{{ $k }}</flux:select.option>
+                    @endforeach
+                </flux:select>
+
+                <flux:select id="dashboard-peta-kelurahan" label="Kelurahan" placeholder="Semua Kelurahan" size="sm" onchange="terapkanFilterPetaDashboard()">
+                    <flux:select.option value="">Semua Kelurahan</flux:select.option>
+                    @foreach ($kelurahanOptions as $k)
+                        <flux:select.option value="{{ $k }}">{{ $k }}</flux:select.option>
+                    @endforeach
+                </flux:select>
 
                 <div class="flex items-end">
                     <flux:button type="button" size="sm" variant="primary" class="w-full" onclick="resetFilterPetaDashboard()">Clear All</flux:button>
@@ -97,10 +108,10 @@
             </div>
 
             <div class="flex flex-wrap items-center gap-4 text-sm">
-                <div class="flex items-center gap-2"><span class="inline-block size-3 rounded-full" style="background:#ba1a1a"></span> Urgent / Prioritas / Tinggi</div>
-                <div class="flex items-center gap-2"><span class="inline-block size-3 rounded-full" style="background:#eab308"></span> Rusak / Perbaikan Berjalan</div>
+                <div class="flex items-center gap-2"><span class="inline-block size-3 rounded-full" style="background:#ba1a1a"></span> Tinggi / Prioritas</div>
+                <div class="flex items-center gap-2"><span class="inline-block size-3 rounded-full" style="background:#eab308"></span> Sedang</div>
                 <div class="flex items-center gap-2"><span class="inline-block size-3 rounded-full" style="background:#22d3ee"></span> Menunggu Validasi</div>
-                <div class="flex items-center gap-2"><span class="inline-block size-3 rounded-full" style="background:#9ca3af"></span> Belum Dikerjakan</div>
+                <div class="flex items-center gap-2"><span class="inline-block size-3 rounded-full" style="background:#9ca3af"></span> Rendah</div>
             </div>
 
             {{-- isolate: same fix as pages/peta.blade.php — contains Leaflet's
@@ -125,13 +136,13 @@
                 const params = new URLSearchParams();
                 const jenis = document.getElementById('dashboard-peta-jenis').value;
                 const tingkat = document.getElementById('dashboard-peta-tingkat').value;
-                const dari = document.getElementById('dashboard-peta-tanggal-dari').value;
-                const sampai = document.getElementById('dashboard-peta-tanggal-sampai').value;
+                const kecamatan = document.getElementById('dashboard-peta-kecamatan').value;
+                const kelurahan = document.getElementById('dashboard-peta-kelurahan').value;
 
                 if (jenis) params.set('jenis_rambu_id', jenis);
                 if (tingkat) params.set('tingkat', tingkat);
-                if (dari) params.set('tanggal_dari', dari);
-                if (sampai) params.set('tanggal_sampai', sampai);
+                if (kecamatan) params.set('kecamatan', kecamatan);
+                if (kelurahan) params.set('kelurahan', kelurahan);
 
                 return params.toString();
             };
@@ -165,8 +176,8 @@
             window.resetFilterPetaDashboard = function () {
                 document.getElementById('dashboard-peta-jenis').value = '';
                 document.getElementById('dashboard-peta-tingkat').value = '';
-                document.getElementById('dashboard-peta-tanggal-dari').value = '';
-                document.getElementById('dashboard-peta-tanggal-sampai').value = '';
+                document.getElementById('dashboard-peta-kecamatan').value = '';
+                document.getElementById('dashboard-peta-kelurahan').value = '';
                 window.terapkanFilterPetaDashboard();
             };
 
@@ -221,7 +232,7 @@
                         <div>
                             <div class="mb-1 flex items-center justify-between text-sm">
                                 <span class="flex items-center gap-2 font-medium text-zinc-700">
-                                    {{ $row['spk']->nomor_surat }}
+                                    <flux:link :href="route('admin.spk.show', $row['spk'])" wire:navigate>{{ $row['spk']->nomor_surat }}</flux:link>
                                     @if ($row['butuhPerhatian'])
                                         <flux:badge size="sm" color="red">Prioritas</flux:badge>
                                     @endif
@@ -260,7 +271,9 @@
                 <flux:table.rows>
                     @forelse ($spkTerbaru as $row)
                         <flux:table.row>
-                            <flux:table.cell variant="strong">{{ $row['spk']->nomor_surat }}</flux:table.cell>
+                            <flux:table.cell variant="strong">
+                                <flux:link :href="route('admin.spk.show', $row['spk'])" wire:navigate>{{ $row['spk']->nomor_surat }}</flux:link>
+                            </flux:table.cell>
                             <flux:table.cell>
                                 @php $jenisRingkasan = $row['spk']->jenisRingkasan(); @endphp
                                 <flux:badge size="sm" :color="match (true) {

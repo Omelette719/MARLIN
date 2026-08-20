@@ -23,6 +23,19 @@
                     <flux:select.option value="{{ $j->id }}">{{ $j->nama_jenis }}</flux:select.option>
                 @endforeach
             </flux:select>
+
+            <flux:select wire:model.live="kondisi" placeholder="Semua Kondisi" class="max-w-xs">
+                <flux:select.option value="">Semua Kondisi</flux:select.option>
+                @foreach ($kondisiOptions as $k)
+                    <flux:select.option value="{{ $k->value }}">{{ $k->label() }}</flux:select.option>
+                @endforeach
+            </flux:select>
+
+            <flux:select wire:model.live="status" placeholder="Semua Status" class="max-w-xs">
+                <flux:select.option value="">Semua Status</flux:select.option>
+                <flux:select.option value="terpasang">Terpasang</flux:select.option>
+                <flux:select.option value="belum_terpasang">Belum Terpasang</flux:select.option>
+            </flux:select>
         </div>
 
         <flux:card class="flex-1">

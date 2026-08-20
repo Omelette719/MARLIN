@@ -1,17 +1,56 @@
     <div class="flex w-full flex-1 flex-col gap-3">
+        <div class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+            <div class="grid flex-1 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                <flux:select id="peta-filter-jenis" label="Jenis Rambu" placeholder="Semua Jenis" size="sm" onchange="terapkanFilterPetaUtama()">
+                    <flux:select.option value="">Semua Jenis</flux:select.option>
+                    @foreach ($jenisRambuOptions as $j)
+                        <flux:select.option value="{{ $j->id }}">{{ $j->nama_jenis }}</flux:select.option>
+                    @endforeach
+                </flux:select>
+
+                <flux:select id="peta-filter-tingkat" label="Tingkat" placeholder="Semua Tingkat" size="sm" onchange="terapkanFilterPetaUtama()">
+                    <flux:select.option value="">Semua Tingkat</flux:select.option>
+                    @foreach ($tingkatOptions as $value => $label)
+                        <flux:select.option value="{{ $value }}">{{ $label }}</flux:select.option>
+                    @endforeach
+                </flux:select>
+
+                <flux:select id="peta-filter-kecamatan" label="Kecamatan" placeholder="Semua Kecamatan" size="sm" onchange="terapkanFilterPetaUtama()">
+                    <flux:select.option value="">Semua Kecamatan</flux:select.option>
+                    @foreach ($kecamatanOptions as $k)
+                        <flux:select.option value="{{ $k }}">{{ $k }}</flux:select.option>
+                    @endforeach
+                </flux:select>
+
+                <flux:select id="peta-filter-kelurahan" label="Kelurahan" placeholder="Semua Kelurahan" size="sm" onchange="terapkanFilterPetaUtama()">
+                    <flux:select.option value="">Semua Kelurahan</flux:select.option>
+                    @foreach ($kelurahanOptions as $k)
+                        <flux:select.option value="{{ $k }}">{{ $k }}</flux:select.option>
+                    @endforeach
+                </flux:select>
+            </div>
+
+            <div class="flex gap-2">
+                <flux:button type="button" size="sm" onclick="resetFilterPetaUtama()">Clear All</flux:button>
+                <flux:button type="button" id="peta-unduh-pdf" size="sm" variant="primary" icon="arrow-down-tray" onclick="unduhPetaGambarPdf(getPetaFilterQueryUtama(), 'peta-unduh-pdf')">
+                    Unduh PDF
+                </flux:button>
+            </div>
+        </div>
+
         <div class="grid grid-cols-1 gap-2 text-sm sm:grid-cols-2 lg:grid-cols-4">
             <div class="flex items-start gap-2">
                 <span class="mt-1 inline-block size-3 shrink-0 rounded-full" style="background:#ba1a1a"></span>
                 <div>
-                    <div class="font-medium text-zinc-700">Urgent / Prioritas / Tinggi</div>
-                    <div class="text-xs text-zinc-500">Salah satu dari: rambu ditandai Urgent, SPK-nya ditandai Prioritas, atau sisa hari ke deadline tinggal sedikit.</div>
+                    <div class="font-medium text-zinc-700">Tinggi / Prioritas</div>
+                    <div class="text-xs text-zinc-500">Rambu ditandai Urgent, SPK-nya ditandai Prioritas, atau urgensi SPK saat ini Tinggi (deadline tinggal sedikit).</div>
                 </div>
             </div>
             <div class="flex items-start gap-2">
                 <span class="mt-1 inline-block size-3 shrink-0 rounded-full" style="background:#eab308"></span>
                 <div>
-                    <div class="font-medium text-zinc-700">Rusak / Perbaikan Berjalan</div>
-                    <div class="text-xs text-zinc-500">Kondisi rambu tercatat rusak, atau sedang dikerjakan perbaikannya tapi belum selesai.</div>
+                    <div class="font-medium text-zinc-700">Sedang</div>
+                    <div class="text-xs text-zinc-500">Urgensi SPK saat ini Sedang.</div>
                 </div>
             </div>
             <div class="flex items-start gap-2">
@@ -24,8 +63,8 @@
             <div class="flex items-start gap-2">
                 <span class="mt-1 inline-block size-3 shrink-0 rounded-full" style="background:#9ca3af"></span>
                 <div>
-                    <div class="font-medium text-zinc-700">Belum Dikerjakan</div>
-                    <div class="text-xs text-zinc-500">Belum ada laporan pengerjaan masuk untuk rambu ini.</div>
+                    <div class="font-medium text-zinc-700">Rendah</div>
+                    <div class="text-xs text-zinc-500">Urgensi SPK saat ini Rendah, atau belum ada laporan pengerjaan masuk untuk rambu ini.</div>
                 </div>
             </div>
         </div>
@@ -47,13 +86,56 @@
 
     @script
     <script>
-        initPetaRambu(
-            'peta-rambu',
-            @js(route('peta.data')),
-            'peta-koordinat',
-            @js(route('rambu.show', ['rambu' => '__ID__'])),
-            @js($focus),
-            @js($isAdmin ? null : route('user.temuan', ['rambu_id' => '__ID__']))
-        );
+        // Same isolated-scope caveat as the dashboard widgets: this block runs
+        // as its own AsyncFunction, so every handler the filter controls/
+        // buttons call by name has to be attached to `window` explicitly.
+        // Named distinctly (*PetaUtama) so this never collides with the
+        // dashboard widgets' own *PetaDashboard/*PetaUserDashboard functions.
+        window.petaFilterQueryUtama = function () {
+            const params = new URLSearchParams();
+            const jenis = document.getElementById('peta-filter-jenis').value;
+            const tingkat = document.getElementById('peta-filter-tingkat').value;
+            const kecamatan = document.getElementById('peta-filter-kecamatan').value;
+            const kelurahan = document.getElementById('peta-filter-kelurahan').value;
+
+            if (jenis) params.set('jenis_rambu_id', jenis);
+            if (tingkat) params.set('tingkat', tingkat);
+            if (kecamatan) params.set('kecamatan', kecamatan);
+            if (kelurahan) params.set('kelurahan', kelurahan);
+
+            return params.toString();
+        };
+
+        window.getPetaFilterQueryUtama = function () {
+            const query = window.petaFilterQueryUtama();
+
+            return @js(route('peta.export')) + (query ? '?' + query : '');
+        };
+
+        // focus only matters on the very first render (zooming/opening a pin
+        // someone navigated here to look at) — re-applying a filter afterward
+        // never needs to re-focus anything.
+        window.terapkanFilterPetaUtama = function (focus = null) {
+            const query = window.petaFilterQueryUtama();
+
+            initPetaRambu(
+                'peta-rambu',
+                @js(route('peta.data')) + (query ? '?' + query : ''),
+                'peta-koordinat',
+                @js(route('rambu.show', ['rambu' => '__ID__'])),
+                focus,
+                @js($isAdmin ? null : route('user.temuan', ['rambu_id' => '__ID__']))
+            );
+        };
+
+        window.resetFilterPetaUtama = function () {
+            document.getElementById('peta-filter-jenis').value = '';
+            document.getElementById('peta-filter-tingkat').value = '';
+            document.getElementById('peta-filter-kecamatan').value = '';
+            document.getElementById('peta-filter-kelurahan').value = '';
+            window.terapkanFilterPetaUtama();
+        };
+
+        window.terapkanFilterPetaUtama(@js($focus));
     </script>
     @endscript

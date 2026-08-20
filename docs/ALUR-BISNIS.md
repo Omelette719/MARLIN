@@ -168,27 +168,27 @@ Kolom `urgensi` pada sebuah SPK **selalu dihitung secara otomatis** oleh sistem,
 | Kondisi | Urgensi yang Dihasilkan |
 |---|---|
 | Ditandai sebagai **Prioritas** | Tinggi, terlepas dari berapa lama sisa waktunya |
-| Sisa waktu 2 hari atau kurang | Tinggi |
+| Sisa waktu 4 hari atau kurang | Tinggi |
 | Sisa waktu 7 hari atau kurang | Sedang |
 | Selebihnya | Rendah |
 
-Yang menarik untuk dipahami adalah bahwa kolom `urgensi` yang tersimpan di dalam basis data itu sendiri hanya diisi ulang pada momen-momen tertentu saja, yaitu ketika SPK pertama kali dibuat, ketika ia diedit, atau ketika tenggat waktunya berubah lewat mekanisme perpanjangan manual maupun otomatis dari `PenyesuaianDeadlineSpk`. Ini berarti nilainya bisa menjadi "basi" seiring berjalannya waktu, misalnya sebuah SPK yang tadinya bernilai Sedang semestinya sudah menjadi Tinggi begitu sisa harinya tinggal dua hari, meskipun tidak ada siapa pun yang mengedit apa pun terhadapnya sejak saat itu.
+Yang menarik untuk dipahami adalah bahwa kolom `urgensi` yang tersimpan di dalam basis data itu sendiri hanya diisi ulang pada momen-momen tertentu saja, yaitu ketika SPK pertama kali dibuat, ketika ia diedit, atau ketika tenggat waktunya berubah lewat mekanisme perpanjangan manual maupun otomatis dari `PenyesuaianDeadlineSpk`. Ini berarti nilainya bisa menjadi "basi" seiring berjalannya waktu, misalnya sebuah SPK yang tadinya bernilai Sedang semestinya sudah menjadi Tinggi begitu sisa harinya tinggal empat hari, meskipun tidak ada siapa pun yang mengedit apa pun terhadapnya sejak saat itu.
 
 Untuk mengatasi persoalan ini, seluruh tempat di dalam sistem yang menampilkan urgensi untuk SPK yang masih berstatus **Aktif**, mulai dari lencana pada kartu SPK, pin di peta, sampai pengurutan "butuh perhatian" pada Dashboard Admin, tidak pernah membaca kolom `urgensi` yang tersimpan secara langsung. Sebagai gantinya, mereka semua memanggil method `Spk::urgensiSaatIni()`, yang menghitung ulang nilai urgensi secara langsung (live) dari tenggat waktu dan status prioritas SPK pada saat itu juga. Namun untuk SPK yang sudah berstatus **Selesai** atau **Dibatalkan**, method `urgensiSaatIni()` justru mengembalikan nilai `urgensi` yang tersimpan apa adanya, dibekukan sebagaimana adanya, karena menghitung ulang urgensi untuk pekerjaan yang sudah final sama sekali tidak ada gunanya lagi.
 
 ## Warna Pin di Peta: Urutan Prioritas Penentuannya
 
-Warna sebuah pin di peta dihitung sepenuhnya di sisi klien (JavaScript), **bukan** merupakan kolom yang tersimpan di dalam basis data. Pendekatan ini dipilih supaya tampilan peta selalu mencerminkan keadaan terkini secara real-time, tanpa perlu melakukan kueri tambahan ke server setiap kali warna perlu dihitung ulang. Urutan pengecekan berikut menentukan warna mana yang dipakai, dan aturan yang pertama kali cocok itulah yang dipakai, mengabaikan aturan-aturan setelahnya.
+Warna sebuah pin di peta dihitung sepenuhnya di sisi klien (JavaScript), **bukan** merupakan kolom yang tersimpan di dalam basis data. Pendekatan ini dipilih supaya tampilan peta selalu mencerminkan keadaan terkini secara real-time, tanpa perlu melakukan kueri tambahan ke server setiap kali warna perlu dihitung ulang. Urutan pengecekan berikut menentukan warna mana yang dipakai, dan aturan yang pertama kali cocok itulah yang dipakai, mengabaikan aturan-aturan setelahnya. Sejak warna ini disederhanakan agar mengikuti tingkat urgensi SPK secara langsung, urutannya kini hanya menyisakan dua pengecualian di luar tingkat urgensi itu sendiri: status "menunggu validasi" dan keadaan "tenang" (selesai dengan kondisi baik).
 
 Warna **cyan** dipakai apabila `rambu_pasang.status` bernilai `menunggu_validasi`. Warna ini menang atas segala aturan lainnya, bahkan mengalahkan status prioritas atau urgent sekali pun, karena laporan pengerjaannya sudah dikirim dan kini giliran admin untuk bertindak, sehingga tidak perlu lagi terlihat "darurat" di peta selama menunggu proses itu.
 
-Warna **merah** dipakai apabila statusnya `urgent`, atau apabila SPK yang menaunginya ditandai `prioritas = true`, atau apabila `urgensi` SPK tersebut bernilai tinggi.
+Warna **merah** dipakai apabila statusnya `urgent`, atau apabila SPK yang menaunginya ditandai `prioritas = true`, atau apabila `urgensi` SPK tersebut bernilai Tinggi.
 
-Warna **kuning** dipakai apabila `kondisi_terkini` rambu tersebut bernilai `rusak`, atau apabila rambu itu sedang dalam proses `perbaikan` yang belum mencapai status selesai.
+Warna **biru tua** dipakai apabila statusnya `selesai` (atau tidak ada tugas aktif sama sekali) **dan** kondisi terkininya `baik`. Pin dalam keadaan ini juga satu-satunya yang tidak berkedip, karena sudah dianggap tenang dan tidak lagi membutuhkan perhatian.
 
-Warna **biru tua** dipakai apabila statusnya `selesai` (atau tidak ada tugas aktif sama sekali) **dan** kondisi terkininya `baik`.
+Warna **kuning** dipakai apabila `urgensi` SPK yang menaunginya bernilai Sedang.
 
-Warna **abu-abu** dipakai untuk semua situasi selain yang disebutkan di atas, menandakan rambu yang belum mulai dikerjakan.
+Warna **abu-abu** dipakai untuk semua situasi selain yang disebutkan di atas, termasuk ketika `urgensi` SPK bernilai Rendah maupun ketika rambu tersebut sama sekali belum memiliki tugas aktif untuk dijadikan acuan urgensi, misalnya rambu yang kondisinya sudah tercatat rusak namun belum ada SPK perbaikan yang dibuat untuknya.
 
 Perlu dicatat bahwa urutan prioritas ini **sengaja berbeda** dari draft spesifikasi awal proyek, yang semula menyebutkan bahwa warna merah harus selalu menang atas seluruh warna lainnya tanpa terkecuali. Keputusan mengubahnya diambil lewat diskusi tim, dengan alasan bahwa status "menunggu validasi" harus tetap terlihat perkembangannya di peta, bukan tertutup begitu saja oleh warna merah selama sebuah rambu sedang menunggu giliran ditinjau oleh admin.
 

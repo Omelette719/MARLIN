@@ -5,6 +5,7 @@ namespace Tests\Feature\User;
 use App\Enums\StatusLaporan;
 use App\Enums\StatusRambuPasang;
 use App\Livewire\Admin\Validasi\Show as ValidasiShowComponent;
+use App\Livewire\User\Dashboard as UserDashboardComponent;
 use App\Livewire\User\Kendala as KendalaComponent;
 use App\Livewire\User\Laporan as LaporanComponent;
 use App\Livewire\User\Spk\Show as UserSpkShowComponent;
@@ -171,10 +172,16 @@ class PetugasSpkTest extends TestCase
             'is_perwakilan' => true,
         ]);
 
-        $response = $this->get(route('dashboard'));
+        // Scoped to the SPK card's own badge via viewData rather than a
+        // page-wide assertDontSee('Menunggu Validasi') — the dashboard's peta
+        // widget now also renders that exact string in its Tingkat filter
+        // dropdown and color legend, which are unrelated to this badge.
+        $item = Livewire::test(UserDashboardComponent::class)->viewData('spk')->first();
 
+        $this->assertNotSame(StatusRambuPasang::MenungguValidasi, $item->progress_status);
+
+        $response = $this->get(route('dashboard'));
         $response->assertOk();
-        $response->assertDontSee('Menunggu Validasi');
         $response->assertSee('Siap Diajukan Laporan Akhir');
     }
 

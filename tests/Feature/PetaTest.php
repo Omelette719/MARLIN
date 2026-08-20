@@ -53,6 +53,24 @@ class PetaTest extends TestCase
         $this->get(route('peta'))->assertOk();
     }
 
+    // Unlike the dashboard widgets' Tingkat dropdown (which skips "selesai"
+    // since that's hidden by default there), this page has no such bias, so
+    // "Selesai / Kondisi Baik" has to be a real, selectable option here.
+    public function test_peta_page_shows_full_filter_row_including_selesai_tingkat(): void
+    {
+        $this->actingAs(User::factory()->admin()->create());
+
+        $response = $this->get(route('peta'));
+
+        $response->assertOk();
+        $response->assertSee('id="peta-filter-jenis"', false);
+        $response->assertSee('id="peta-filter-tingkat"', false);
+        $response->assertSee('id="peta-filter-kecamatan"', false);
+        $response->assertSee('id="peta-filter-kelurahan"', false);
+        $response->assertSee('id="peta-unduh-pdf"', false);
+        $response->assertSee('Selesai / Kondisi Baik');
+    }
+
     public function test_pin_with_active_task_includes_raw_status_and_spk_fields(): void
     {
         $admin = User::factory()->admin()->create();
@@ -280,7 +298,7 @@ class PetaTest extends TestCase
         $this->assertFalse($ids->contains($rambuB->id));
     }
 
-    public function test_peta_data_can_be_filtered_by_tingkat_urgent(): void
+    public function test_peta_data_can_be_filtered_by_tingkat_tinggi(): void
     {
         $admin = User::factory()->admin()->create();
         $this->actingAs($admin);
@@ -297,7 +315,7 @@ class PetaTest extends TestCase
 
         $rambuTenang = $this->makeRambu(sudahTerpasang: true, kondisi: 'baik');
 
-        $response = $this->getJson(route('peta.data', ['tingkat' => 'urgent']));
+        $response = $this->getJson(route('peta.data', ['tingkat' => 'tinggi']));
         $ids = collect($response->json())->pluck('id');
 
         $this->assertTrue($ids->contains($rambuUrgent->id));
@@ -325,40 +343,76 @@ class PetaTest extends TestCase
         $this->assertSame('menunggu_validasi', $pin['tingkat']);
     }
 
-    public function test_peta_data_can_be_filtered_by_task_date_range(): void
+    public function test_peta_data_can_be_filtered_by_kelurahan(): void
     {
         $admin = User::factory()->admin()->create();
         $this->actingAs($admin);
 
-        $rambuLama = $this->makeRambu();
-        $spk = $this->makeSpk($admin);
-        $tugasLama = RambuPasang::create([
-            'rambu_spk_id' => $spk->id,
-            'rambu_id' => $rambuLama->id,
-            'jenis_pekerjaan' => 'pasang_baru',
-            'jumlah' => 1,
-            'status' => 'belum',
+        $jenisRambu = JenisRambu::firstOrCreate(['nama_jenis' => 'Rambu Peringatan']);
+        $rambuPengambangan = Rambu::create([
+            'jenis_rambu_id' => $jenisRambu->id,
+            'wilayah' => 'Banjarmasin Timur',
+            'kelurahan' => 'Pengambangan',
+            'lokasi' => 'A',
+            'koordinat' => '-3.30,114.59',
+            'sudah_terpasang' => true,
         ]);
-        $tugasLama->created_at = now()->subYear();
-        $tugasLama->save();
-
-        $rambuBaru = $this->makeRambu();
-        RambuPasang::create([
-            'rambu_spk_id' => $this->makeSpk($admin)->id,
-            'rambu_id' => $rambuBaru->id,
-            'jenis_pekerjaan' => 'pasang_baru',
-            'jumlah' => 1,
-            'status' => 'belum',
+        $rambuTelawang = Rambu::create([
+            'jenis_rambu_id' => $jenisRambu->id,
+            'wilayah' => 'Banjarmasin Barat',
+            'kelurahan' => 'Telawang',
+            'lokasi' => 'B',
+            'koordinat' => '-3.31,114.60',
+            'sudah_terpasang' => true,
         ]);
 
-        $response = $this->getJson(route('peta.data', [
-            'tanggal_dari' => now()->subDay()->toDateString(),
-            'tanggal_sampai' => now()->toDateString(),
-        ]));
+        $response = $this->getJson(route('peta.data', ['kelurahan' => 'Pengambangan']));
         $ids = collect($response->json())->pluck('id');
 
-        $this->assertTrue($ids->contains($rambuBaru->id));
-        $this->assertFalse($ids->contains($rambuLama->id));
+        $this->assertTrue($ids->contains($rambuPengambangan->id));
+        $this->assertFalse($ids->contains($rambuTelawang->id));
+    }
+
+    public function test_peta_data_can_be_filtered_by_kecamatan(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $this->actingAs($admin);
+
+        // Pengambangan and Kuripan are both in Kecamatan Banjarmasin Timur;
+        // Telawang is in Banjarmasin Barat — the kecamatan filter has to
+        // resolve to every kelurahan under it, not just an exact match.
+        $jenisRambu = JenisRambu::firstOrCreate(['nama_jenis' => 'Rambu Peringatan']);
+        $rambuPengambangan = Rambu::create([
+            'jenis_rambu_id' => $jenisRambu->id,
+            'wilayah' => 'Banjarmasin Timur',
+            'kelurahan' => 'Pengambangan',
+            'lokasi' => 'A',
+            'koordinat' => '-3.30,114.59',
+            'sudah_terpasang' => true,
+        ]);
+        $rambuKuripan = Rambu::create([
+            'jenis_rambu_id' => $jenisRambu->id,
+            'wilayah' => 'Banjarmasin Timur',
+            'kelurahan' => 'Kuripan',
+            'lokasi' => 'B',
+            'koordinat' => '-3.31,114.60',
+            'sudah_terpasang' => true,
+        ]);
+        $rambuTelawang = Rambu::create([
+            'jenis_rambu_id' => $jenisRambu->id,
+            'wilayah' => 'Banjarmasin Barat',
+            'kelurahan' => 'Telawang',
+            'lokasi' => 'C',
+            'koordinat' => '-3.32,114.61',
+            'sudah_terpasang' => true,
+        ]);
+
+        $response = $this->getJson(route('peta.data', ['kecamatan' => 'Banjarmasin Timur']));
+        $ids = collect($response->json())->pluck('id');
+
+        $this->assertTrue($ids->contains($rambuPengambangan->id));
+        $this->assertTrue($ids->contains($rambuKuripan->id));
+        $this->assertFalse($ids->contains($rambuTelawang->id));
     }
 
     public function test_admin_can_export_peta_pdf(): void
@@ -411,6 +465,7 @@ class PetaTest extends TestCase
         Rambu::create([
             'jenis_rambu_id' => $jenis->id,
             'wilayah' => 'Banjarmasin Tengah',
+            'kelurahan' => 'Antasan Besar',
             'lokasi' => 'A',
             'koordinat' => '-3.30,114.59',
             'sudah_terpasang' => true,
@@ -420,6 +475,7 @@ class PetaTest extends TestCase
         Rambu::create([
             'jenis_rambu_id' => $jenis->id,
             'wilayah' => 'Banjarmasin Utara',
+            'kelurahan' => 'Sungai Miai',
             'lokasi' => 'B',
             'koordinat' => '-3.31,114.60',
             'sudah_terpasang' => true,
@@ -430,9 +486,68 @@ class PetaTest extends TestCase
 
         $this->assertSame(2, $data['total']);
         $this->assertSame(1, $data['perTingkat']['selesai']);
-        $this->assertSame(1, $data['perTingkat']['rusak']);
-        $this->assertSame(1, $data['perWilayah']['Banjarmasin Tengah']);
-        $this->assertSame(1, $data['perWilayah']['Banjarmasin Utara']);
+        // A rusak sign with no active repair SPK has no urgensi tier to key
+        // off, so it falls to the same "rendah" bucket as any other pin
+        // without an elevated urgency.
+        $this->assertSame(1, $data['perTingkat']['rendah']);
+        $this->assertSame(1, $data['perKecamatan']['Banjarmasin Tengah']);
+        $this->assertSame(1, $data['perKecamatan']['Banjarmasin Utara']);
         $this->assertSame(2, $data['perJenis']['Rambu Peringatan']);
+    }
+
+    public function test_peta_data_per_kecamatan_groups_pins_with_no_kelurahan_as_tidak_diketahui(): void
+    {
+        $jenis = JenisRambu::create(['nama_jenis' => 'Rambu Peringatan']);
+
+        Rambu::create([
+            'jenis_rambu_id' => $jenis->id,
+            'wilayah' => 'Jl. Tanpa Kelurahan',
+            'lokasi' => 'A',
+            'koordinat' => '-3.30,114.59',
+            'sudah_terpasang' => true,
+        ]);
+
+        $data = PetaData::build([]);
+
+        $this->assertSame(1, $data['perKecamatan']['Tidak diketahui']);
+    }
+
+    // Used by the PDF export's "Daftar SPK" table — only the SPK behind a
+    // pin that actually made it through the current filter, and only while
+    // that SPK is still Aktif (a Selesai/Dibatalkan SPK isn't open work, so
+    // it has no place in a report about what's currently on the map).
+    public function test_peta_data_spk_terkait_only_includes_active_spk_behind_filtered_pins(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $this->actingAs($admin);
+
+        $rambuAktif = $this->makeRambu();
+        $spkAktif = $this->makeSpk($admin);
+        RambuPasang::create([
+            'rambu_spk_id' => $spkAktif->id,
+            'rambu_id' => $rambuAktif->id,
+            'jenis_pekerjaan' => 'pasang_baru',
+            'jumlah' => 1,
+            'status' => 'belum',
+        ]);
+
+        $rambuSelesai = $this->makeRambu();
+        $spkSelesai = $this->makeSpk($admin);
+        $spkSelesai->update(['status' => 'selesai']);
+        RambuPasang::create([
+            'rambu_spk_id' => $spkSelesai->id,
+            'rambu_id' => $rambuSelesai->id,
+            'jenis_pekerjaan' => 'pasang_baru',
+            'jumlah' => 1,
+            'status' => 'selesai',
+        ]);
+
+        $rambuTanpaSpk = $this->makeRambu(sudahTerpasang: true, kondisi: 'baik');
+
+        $spkTerkait = PetaData::build([])['spkTerkait'];
+
+        $this->assertTrue($spkTerkait->contains('id', $spkAktif->id));
+        $this->assertFalse($spkTerkait->contains('id', $spkSelesai->id));
+        $this->assertCount(1, $spkTerkait);
     }
 }

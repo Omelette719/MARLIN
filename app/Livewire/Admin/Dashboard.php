@@ -11,6 +11,7 @@ use App\Models\LaporanPengerjaan;
 use App\Models\Rambu;
 use App\Models\Spk;
 use App\Support\PetaData;
+use App\Support\WilayahBanjarmasin;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
@@ -65,6 +66,8 @@ class Dashboard extends Component
             'spkPrioritas' => $this->spkPrioritas(),
             'jenisRambuOptions' => JenisRambu::orderBy('nama_jenis')->get(),
             'tingkatOptions' => PetaData::TINGKAT_LABELS,
+            'kecamatanOptions' => WilayahBanjarmasin::kecamatanOptions(),
+            'kelurahanOptions' => WilayahBanjarmasin::kelurahanOptions(),
             'spkTerbaru' => Spk::withCount('rambuPasang')
                 ->with(['rambuPasang:id,rambu_spk_id,jenis_pekerjaan'])
                 ->latest()

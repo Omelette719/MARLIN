@@ -13,8 +13,8 @@ class PetaController extends Controller
         $data = PetaData::build([
             'jenis_rambu_id' => $request->query('jenis_rambu_id') ?: null,
             'tingkat' => $request->query('tingkat') ?: null,
-            'tanggal_dari' => $request->query('tanggal_dari') ?: null,
-            'tanggal_sampai' => $request->query('tanggal_sampai') ?: null,
+            'kelurahan' => $request->query('kelurahan') ?: null,
+            'kecamatan' => $request->query('kecamatan') ?: null,
         ]);
 
         return response()->json($data['pins']);

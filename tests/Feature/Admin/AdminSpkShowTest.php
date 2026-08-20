@@ -502,7 +502,7 @@ class AdminSpkShowTest extends TestCase
         Livewire::test(SpkEditComponent::class, ['spk' => $spk])
             ->set('jalan', 'Ahmad Yani')
             ->set('rt', '12')
-            ->set('kelurahan', 'Kertak Baru')
+            ->set('kelurahan', 'Kertak Baru Ilir')
             ->set('perihal', 'perbaikan rambu larangan')
             ->set('deadline', now()->addDays(1)->toDateString())
             ->call('save')
@@ -511,7 +511,7 @@ class AdminSpkShowTest extends TestCase
 
         $spk->refresh();
 
-        $this->assertSame('Jl. Ahmad Yani RT. 12 Kel. Kertak Baru', $spk->wilayah);
+        $this->assertSame('Jl. Ahmad Yani RT. 12 Kel. Kertak Baru Ilir', $spk->wilayah);
         $this->assertSame('perbaikan rambu larangan', $spk->perihal);
         $this->assertSame(Urgensi::Tinggi, $spk->urgensi);
     }

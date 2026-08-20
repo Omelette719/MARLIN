@@ -3,17 +3,19 @@
 namespace App\Support;
 
 use App\Enums\StatusRambuPasang;
+use App\Enums\StatusSpk;
 use App\Models\Rambu;
+use App\Models\Spk;
 use Illuminate\Support\Facades\Storage;
 
 class PetaData
 {
     public const TINGKAT_LABELS = [
-        'urgent' => 'Urgent / Prioritas / Tinggi',
-        'rusak' => 'Rusak / Perbaikan Berjalan',
+        'tinggi' => 'Tinggi / Prioritas',
+        'sedang' => 'Sedang',
         'menunggu_validasi' => 'Menunggu Validasi',
         'selesai' => 'Selesai / Kondisi Baik',
-        'belum' => 'Belum Dikerjakan',
+        'rendah' => 'Rendah',
     ];
 
     /**
@@ -21,38 +23,25 @@ class PetaData
      * (PetaExportController) so both always show the same pins for the same
      * filters. Every filter is optional — omitting one means "semua".
      *
-     * @param  array{jenis_rambu_id?: mixed, tingkat?: ?string, tanggal_dari?: ?string, tanggal_sampai?: ?string}  $filters
+     * @param  array{jenis_rambu_id?: mixed, tingkat?: ?string, kelurahan?: ?string, kecamatan?: ?string}  $filters
      */
     public static function build(array $filters): array
     {
         $jenisRambuId = $filters['jenis_rambu_id'] ?? null;
         $tingkat = $filters['tingkat'] ?? null;
-        $tanggalDari = $filters['tanggal_dari'] ?? null;
-        $tanggalSampai = $filters['tanggal_sampai'] ?? null;
+        $kelurahan = $filters['kelurahan'] ?? null;
+        $kecamatan = $filters['kecamatan'] ?? null;
 
         $pins = Rambu::with([
             'jenisRambu',
             'rambuPasang' => fn ($q) => $q->latest()->with(['spk', 'laporanPengerjaan']),
         ])
             ->when($jenisRambuId, fn ($q) => $q->where('jenis_rambu_id', $jenisRambuId))
+            ->when($kelurahan, fn ($q) => $q->where('kelurahan', $kelurahan))
+            ->when($kecamatan, fn ($q) => $q->whereIn('kelurahan', WilayahBanjarmasin::kelurahanByKecamatan($kecamatan)))
             ->get()
             ->map(fn (Rambu $rambu) => self::toPin($rambu))
             ->filter()
-            ->when($tanggalDari || $tanggalSampai, fn ($pins) => $pins->filter(function (array $pin) use ($tanggalDari, $tanggalSampai) {
-                if (! $pin['task_created_at']) {
-                    return false;
-                }
-
-                if ($tanggalDari && $pin['task_created_at'] < $tanggalDari) {
-                    return false;
-                }
-
-                if ($tanggalSampai && $pin['task_created_at'] > $tanggalSampai) {
-                    return false;
-                }
-
-                return true;
-            }))
             ->when($tingkat, fn ($pins) => $pins->where('tingkat', $tingkat))
             ->values();
 
@@ -63,12 +52,22 @@ class PetaData
                 $t => $pins->where('tingkat', $t)->count(),
             ]),
             'perJenis' => $pins->groupBy('jenis_rambu')->map->count(),
-            'perWilayah' => $pins->groupBy('wilayah')->map->count(),
+            'perKecamatan' => $pins
+                ->groupBy(fn (array $p) => WilayahBanjarmasin::kecamatanFromKelurahan($p['kelurahan']) ?? 'Tidak diketahui')
+                ->map->count(),
+            // Only for the PDF export's "Daftar SPK" table — the SPK behind
+            // every filtered pin, restricted to Aktif (a finished/cancelled
+            // SPK isn't work still on the table, so it has no place in a
+            // report about what's currently on the filtered map).
+            'spkTerkait' => Spk::whereIn('id', $pins->pluck('spk.id')->filter()->unique()->values())
+                ->where('status', StatusSpk::Aktif)
+                ->orderBy('deadline')
+                ->get(),
             'filters' => [
                 'jenis_rambu_id' => $jenisRambuId,
                 'tingkat' => $tingkat,
-                'tanggal_dari' => $tanggalDari,
-                'tanggal_sampai' => $tanggalSampai,
+                'kelurahan' => $kelurahan,
+                'kecamatan' => $kecamatan,
             ],
         ];
     }
@@ -96,6 +95,7 @@ class PetaData
             'lat' => $coords[0],
             'lng' => $coords[1],
             'wilayah' => $rambu->wilayah,
+            'kelurahan' => $rambu->kelurahan,
             'lokasi' => $rambu->lokasi,
             'jenis_rambu' => $rambu->jenisRambu?->nama_jenis,
             'ikon' => $rambu->jenisRambu?->gambar_referensi ? Storage::url($rambu->jenisRambu->gambar_referensi) : null,
@@ -105,7 +105,6 @@ class PetaData
             'sudah_terpasang' => $rambu->sudah_terpasang,
             'status' => $task?->status->value,
             'jenis_pekerjaan' => $task?->jenis_pekerjaan->value,
-            'task_created_at' => $task?->created_at?->toDateString(),
             'spk' => $task?->spk ? [
                 'id' => $task->spk->id,
                 'nomor_surat' => $task->spk->nomor_surat,
@@ -134,17 +133,17 @@ class PetaData
         }
 
         if ($pin['status'] === 'urgent' || ($spk && ($spk['prioritas'] || $spk['urgensi'] === 'tinggi'))) {
-            return 'urgent';
-        }
-
-        if ($pin['kondisi_terkini'] === 'rusak' || ($pin['jenis_pekerjaan'] === 'perbaikan' && $pin['status'] !== 'selesai')) {
-            return 'rusak';
+            return 'tinggi';
         }
 
         if (($pin['status'] === 'selesai' || $pin['status'] === null) && $pin['kondisi_terkini'] === 'baik') {
             return 'selesai';
         }
 
-        return 'belum';
+        if ($spk && $spk['urgensi'] === 'sedang') {
+            return 'sedang';
+        }
+
+        return 'rendah';
     }
 }

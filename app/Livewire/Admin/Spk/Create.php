@@ -20,6 +20,7 @@ use App\Models\Spk;
 use App\Models\User;
 use App\Rules\Koordinat;
 use App\Support\PenyesuaianDeadlineSpk;
+use App\Support\WilayahBanjarmasin;
 use Carbon\Carbon;
 use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
@@ -236,6 +237,10 @@ class Create extends Component
                 'value' => (string) $r->id,
                 'label' => "{$r->wilayah}, {$r->lokasi} ({$r->jenisRambu?->nama_jenis})".($r->kondisi_terkini->value === 'rusak' ? ', RUSAK' : ''),
             ])->values(),
+            'kelurahanSelectOptions' => collect(WilayahBanjarmasin::kelurahanOptions())->map(fn ($k) => [
+                'value' => $k,
+                'label' => $k,
+            ])->values(),
         ];
     }
 
@@ -298,7 +303,7 @@ class Create extends Component
             // marker), and ComposesWilayah already composes wilayah from
             // whichever of jalan/rt/kelurahan are actually filled in.
             'rt' => ['nullable', 'string', 'max:255', 'regex:/^[0-9]+$/'],
-            'kelurahan' => 'nullable|string|max:255',
+            'kelurahan' => ['nullable', 'string', Rule::in(WilayahBanjarmasin::kelurahanOptions())],
             'perihal' => 'nullable|string|max:500',
             'deadline' => 'required|date|after:today',
             'asal_permintaan' => ['required', Rule::enum(AsalPermintaan::class)],
@@ -432,6 +437,7 @@ class Create extends Component
                         'jenis_rambu_id' => $item['jenis_rambu_id'],
                         'jalan' => $this->jalan,
                         'rt' => $this->rt,
+                        'kelurahan' => $this->kelurahan,
                         'lokasi' => $item['lokasi'],
                         'koordinat' => $item['koordinat'],
                         'sudah_terpasang' => false,
@@ -444,6 +450,7 @@ class Create extends Component
                         'jenis_rambu_id' => $item['jenis_rambu_id'],
                         'jalan' => $this->jalan,
                         'rt' => $this->rt,
+                        'kelurahan' => $this->kelurahan,
                         'lokasi' => $item['lokasi'],
                         'koordinat' => $item['koordinat'],
                         'kondisi_terkini' => 'rusak',

@@ -3,7 +3,7 @@ use App\Support\PetaData;
 
 $jenisLabel = $filters['jenis_rambu_id'] && isset($jenisRambuNama) ? $jenisRambuNama : 'Semua Jenis';
 $tingkatLabel = $filters['tingkat'] ? PetaData::TINGKAT_LABELS[$filters['tingkat']] ?? $filters['tingkat'] : 'Semua Tingkat';
-$periodeLabel = ($filters['tanggal_dari'] ? \Carbon\Carbon::parse($filters['tanggal_dari'])->translatedFormat('d M Y') : 'Awal') . ' - ' . ($filters['tanggal_sampai'] ? \Carbon\Carbon::parse($filters['tanggal_sampai'])->translatedFormat('d M Y') : 'Sekarang');
+$wilayahLabel = $filters['kelurahan'] ?? $filters['kecamatan'] ?? 'Semua Kelurahan';
 ?>
 <!doctype html>
 <html>
@@ -235,8 +235,8 @@ $periodeLabel = ($filters['tanggal_dari'] ? \Carbon\Carbon::parse($filters['tang
             width: 20%;
         }
 
-        table.daftar-rambu th.tingkat,
-        table.daftar-rambu td.tingkat {
+        table.daftar-rambu th.kondisi,
+        table.daftar-rambu td.kondisi {
             width: 13%;
         }
 
@@ -252,6 +252,41 @@ $periodeLabel = ($filters['tanggal_dari'] ? \Carbon\Carbon::parse($filters['tang
         table.daftar-rambu td.koordinat {
             word-break: break-all;
             overflow-wrap: anywhere;
+        }
+
+        /* =========================================================
+           DAFTAR SPK
+           ========================================================= */
+
+        table.daftar-spk th,
+        table.daftar-spk td {
+            font-size: 10px;
+        }
+
+        table.daftar-spk th.no,
+        table.daftar-spk td.no {
+            width: 6%;
+            text-align: center;
+        }
+
+        table.daftar-spk th.nomor-surat,
+        table.daftar-spk td.nomor-surat {
+            width: 22%;
+        }
+
+        table.daftar-spk th.wilayah,
+        table.daftar-spk td.wilayah {
+            width: 40%;
+        }
+
+        table.daftar-spk th.deadline,
+        table.daftar-spk td.deadline {
+            width: 16%;
+        }
+
+        table.daftar-spk th.tingkat,
+        table.daftar-spk td.tingkat {
+            width: 16%;
         }
 
         /* =========================================================
@@ -348,11 +383,11 @@ $periodeLabel = ($filters['tanggal_dari'] ? \Carbon\Carbon::parse($filters['tang
 
                 <td style="width: 33.33%;">
                     <span class="filter-label">
-                        Periode Tugas
+                        Kelurahan / Kecamatan
                     </span>
 
                     <span class="filter-value">
-                        {{ $periodeLabel }}
+                        {{ $wilayahLabel }}
                     </span>
                 </td>
 
@@ -430,11 +465,11 @@ $periodeLabel = ($filters['tanggal_dari'] ? \Carbon\Carbon::parse($filters['tang
 
 
     {{-- =========================================================
-         SEBARAN PER WILAYAH
+         SEBARAN PER KECAMATAN
          ========================================================= --}}
 
     <div class="section-title">
-        Sebaran per Wilayah
+        Sebaran per Kecamatan
     </div>
 
     <table class="data">
@@ -443,7 +478,7 @@ $periodeLabel = ($filters['tanggal_dari'] ? \Carbon\Carbon::parse($filters['tang
             <tr>
 
                 <th>
-                    Wilayah
+                    Kecamatan
                 </th>
 
                 <th style="width: 80px;">
@@ -455,11 +490,11 @@ $periodeLabel = ($filters['tanggal_dari'] ? \Carbon\Carbon::parse($filters['tang
 
         <tbody>
 
-            @forelse ($perWilayah->sortDesc() as $wilayah => $count)
+            @forelse ($perKecamatan->sortDesc() as $kecamatan => $count)
                 <tr>
 
                     <td>
-                        {{ $wilayah }}
+                        {{ $kecamatan }}
                     </td>
 
                     <td class="jumlah">
@@ -536,6 +571,85 @@ $periodeLabel = ($filters['tanggal_dari'] ? \Carbon\Carbon::parse($filters['tang
 
 
     {{-- =========================================================
+         DAFTAR SPK
+         ========================================================= --}}
+
+    <div class="section-title">
+        Daftar SPK Aktif Terkait ({{ $spkTerkait->count() }})
+    </div>
+
+    <table class="data daftar-spk">
+
+        <thead>
+
+            <tr>
+
+                <th class="no">
+                    No
+                </th>
+
+                <th class="nomor-surat">
+                    Nomor Surat
+                </th>
+
+                <th class="wilayah">
+                    Wilayah
+                </th>
+
+                <th class="deadline">
+                    Deadline
+                </th>
+
+                <th class="tingkat">
+                    Tingkat
+                </th>
+
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+            @forelse ($spkTerkait as $i => $spk)
+                <tr>
+
+                    <td class="no">
+                        {{ $i + 1 }}
+                    </td>
+
+                    <td class="nomor-surat">
+                        {{ $spk->nomor_surat }}
+                    </td>
+
+                    <td class="wilayah">
+                        {{ $spk->wilayah }}
+                    </td>
+
+                    <td class="deadline">
+                        {{ $spk->deadline->translatedFormat('d M Y') }}
+                    </td>
+
+                    <td class="tingkat">
+                        {{ $spk->urgensiSaatIni()->label() }}
+                    </td>
+
+                </tr>
+
+            @empty
+
+                <tr>
+                    <td colspan="5">
+                        Tidak ada SPK aktif untuk filter ini.
+                    </td>
+                </tr>
+            @endforelse
+
+        </tbody>
+
+    </table>
+
+
+    {{-- =========================================================
          DAFTAR RAMBU
          ========================================================= --}}
 
@@ -565,8 +679,8 @@ $periodeLabel = ($filters['tanggal_dari'] ? \Carbon\Carbon::parse($filters['tang
                     Koordinat
                 </th>
 
-                <th class="tingkat">
-                    Tingkat
+                <th class="kondisi">
+                    Kondisi
                 </th>
 
                 <th class="spk">
@@ -600,8 +714,12 @@ $periodeLabel = ($filters['tanggal_dari'] ? \Carbon\Carbon::parse($filters['tang
                         {{ number_format($pin['lng'], 5) }}
                     </td>
 
-                    <td class="tingkat">
-                        {{ PetaData::TINGKAT_LABELS[$pin['tingkat']] ?? $pin['tingkat'] }}
+                    <td class="kondisi">
+                        @if (! $pin['sudah_terpasang'])
+                            N/A
+                        @else
+                            {{ $pin['kondisi_terkini'] === 'rusak' ? 'Rusak' : 'Baik' }}
+                        @endif
                     </td>
 
                     <td class="spk">
