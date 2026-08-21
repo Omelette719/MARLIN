@@ -15,7 +15,7 @@ $perihalText = $spk->perihal ?: "{$aksiKata} {$ringkasanJenisRambu}";
 
 $surveiNote = $spk->tanggal_survei ? ' (DISURVEI TGL ' . mb_strtoupper($spk->tanggal_survei->translatedFormat('d F Y')) . ')' : '';
 
-$rtPertama = $spk->rtPerwakilan->first();
+$contactPersonPertama = $spk->contactPerson->first();
 
 $dikerjakanBarisMinimal = 5;
 $jumlahBarisDikerjakan = max($spk->dikerjakanOleh->count(), $dikerjakanBarisMinimal);
@@ -222,7 +222,7 @@ $jumlahBarisDikerjakan = max($spk->dikerjakanOleh->count(), $dikerjakanBarisMini
            BARIS RT
            ========================================================= */
 
-        .rt-row td {
+        .contact-person-row td {
             height: 22px;
             padding: 3px 5px !important;
             font-size: 10px !important;
@@ -483,14 +483,14 @@ $jumlahBarisDikerjakan = max($spk->dikerjakanOleh->count(), $dikerjakanBarisMini
 
 
             {{-- =================================================
-                 RT / PERWAKILAN
+                 CONTACT PERSON
                  ================================================= --}}
 
-            @if ($rtPertama)
-                <tr class="rt-row">
+            @if ($contactPersonPertama)
+                <tr class="contact-person-row">
 
                     <td colspan="6">
-                        {{ $rtPertama->nama_lengkap }}{{ $rtPertama->no_telepon ? ' (' . $rtPertama->no_telepon . ')' : '' }}
+                        {{ $contactPersonPertama->nama_lengkap }}{{ $contactPersonPertama->no_telepon ? ' (' . $contactPersonPertama->no_telepon . ')' : '' }}
                     </td>
 
                 </tr>

@@ -24,7 +24,7 @@ class SuratPengantarController extends Controller
             'rambuPasang.rambu.jenisRambu',
             'dikerjakanOleh.user',
             'pembuat',
-            'rtPerwakilan',
+            'contactPerson',
         ]);
 
         $pdf = Pdf::loadView('pdf.surat-pengantar', ['spk' => $spk]);

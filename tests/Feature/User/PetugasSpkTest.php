@@ -10,6 +10,7 @@ use App\Livewire\User\Kendala as KendalaComponent;
 use App\Livewire\User\Laporan as LaporanComponent;
 use App\Livewire\User\Spk\Show as UserSpkShowComponent;
 use App\Models\AuditLog;
+use App\Models\ContactPerson;
 use App\Models\DikerjakanOleh;
 use App\Models\JenisRambu;
 use App\Models\Kendala;
@@ -17,7 +18,6 @@ use App\Models\LaporanPengerjaan;
 use App\Models\Notifikasi;
 use App\Models\Rambu;
 use App\Models\RambuPasang;
-use App\Models\RtPerwakilan;
 use App\Models\Spk;
 use App\Models\User;
 use Illuminate\Database\QueryException;
@@ -1013,10 +1013,10 @@ class PetugasSpkTest extends TestCase
 
         $rambuPasang = $this->makeRambuPasang($admin);
 
-        RtPerwakilan::create([
+        ContactPerson::create([
             'nama_lengkap' => 'Abdul',
             'no_telepon' => '08226735526',
-            'rtperwakilan_spk_id' => $rambuPasang->rambu_spk_id,
+            'contact_person_spk_id' => $rambuPasang->rambu_spk_id,
         ]);
 
         $response = $this->get(route('user.spk.show', $rambuPasang->spk));

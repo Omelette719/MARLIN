@@ -166,8 +166,8 @@ class Spk extends Model
         return $this->hasMany(AuditLog::class);
     }
 
-    public function rtPerwakilan(): HasMany
+    public function contactPerson(): HasMany
     {
-        return $this->hasMany(RtPerwakilan::class, 'rtperwakilan_spk_id');
+        return $this->hasMany(ContactPerson::class, 'contact_person_spk_id');
     }
 }

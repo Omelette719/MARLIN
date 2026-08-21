@@ -94,7 +94,7 @@ Tabel ini merupakan jantung dari seluruh sistem, merepresentasikan sebuah Surat 
 | `laporan_akhir_diajukan_at` | timestamp, nullable | Berfungsi sebagai gerbang untuk masuk ke antrean validasi, penjelasan lengkap tersedia di [ALUR-BISNIS.md](ALUR-BISNIS.md) |
 | `selesai_pada` | timestamp, nullable | Diisi sekali saja pada saat kolom `status` berubah menjadi `selesai`, dipakai untuk menghitung Durasi Pengerjaan dan Selisih dari Deadline |
 
-Relasi yang dimiliki tabel ini adalah `hasMany` menuju `rambu_pasang`, `dikerjakan_oleh`, `rt_perwakilan`, dan `audit_log`, ditambah relasi `belongsToMany` menuju `users` lewat tabel penghubung `dikerjakan_oleh`.
+Relasi yang dimiliki tabel ini adalah `hasMany` menuju `rambu_pasang`, `dikerjakan_oleh`, `contact_person`, dan `audit_log`, ditambah relasi `belongsToMany` menuju `users` lewat tabel penghubung `dikerjakan_oleh`.
 
 Dua hal penting perlu ditekankan tentang tabel ini. Pertama, **SPK tidak pernah dihapus secara permanen**. Ketika sebuah pekerjaan dibatalkan, satu-satunya yang berubah adalah kolom `status`-nya menjadi `dibatalkan`, sama sekali bukan perintah `DELETE` terhadap barisnya. Kedua, dan ini merupakan keputusan desain yang cukup mendasar, **tidak ada kolom "jenis pekerjaan" di level SPK ini sama sekali**. Setiap baris `rambu_pasang` yang tercakup di dalam SPK memiliki kolom `jenis_pekerjaan`-nya sendiri-sendiri, sehingga satu SPK bisa mencampur baris berjenis Pemasangan Baru dan baris berjenis Perbaikan sekaligus dalam satu dokumen yang sama. Untuk kebutuhan tampilan yang membutuhkan satu nilai ringkas per SPK, method `Spk::jenisRingkasan()` akan mengembalikan jenis yang sama apabila seluruh baris di dalamnya memang sejenis, atau mengembalikan `null` apabila campuran, yang biasanya ditampilkan sebagai lencana "Pemasangan & Perbaikan" pada berbagai permukaan tampilan yang membutuhkannya.
 
@@ -186,7 +186,7 @@ Menyimpan temuan kondisi rambu rusak, sepenuhnya independen dari SPK aktif mana 
 | `status_tindak_lanjut` | string, default `baru` | Bernilai `baru`, `sudah_dibuatkan_spk`, atau `ditolak`, mengikuti enum `StatusTindakLanjut` |
 | `ditindaklanjuti_oleh` | foreign key ke `users`, nullable, **restrict** | |
 
-## Tabel `rt_perwakilan`
+## Tabel `contact_person`
 
 Menyimpan kontak RT atau perwakilan warga per SPK, digunakan untuk keperluan tanda tangan manual di atas kertas. Tabel ini juga hanya memiliki kolom `created_at`.
 
@@ -194,7 +194,7 @@ Menyimpan kontak RT atau perwakilan warga per SPK, digunakan untuk keperluan tan
 |---|---|
 | `nama_lengkap` | string |
 | `no_telepon` | string, nullable |
-| `rtperwakilan_spk_id` | foreign key ke `spk`, **cascade** |
+| `contact_person_spk_id` | foreign key ke `spk`, **cascade** |
 
 ## Tabel `audit_log`
 

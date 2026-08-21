@@ -77,7 +77,7 @@
                 </div>
             @endif
 
-            @if ($contactPerson = $spk->rtPerwakilan->first())
+            @if ($contactPerson = $spk->contactPerson->first())
                 <div>
                     <flux:text class="text-sm text-zinc-500">Contact Person</flux:text>
                     <flux:text>{{ $contactPerson->nama_lengkap }}{{ $contactPerson->no_telepon ? ' ('.$contactPerson->no_telepon.')' : '' }}</flux:text>

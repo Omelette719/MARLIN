@@ -126,14 +126,14 @@ Basis data MARLIN terdiri dari tiga belas tabel domain, di luar tabel-tabel bawa
 |---|---|---|
 | `jenis_rambu` | Menyimpan data master kategori rambu, seperti nama, spesifikasi standar, gambar referensi, dan bentuk ikon yang ditampilkan di peta | Memiliki banyak (`hasMany`) baris pada tabel `rambu` |
 | `rambu` | Merepresentasikan satu unit rambu fisik: jenisnya, alamatnya (baik dalam bentuk teks gabungan `wilayah` maupun field terstruktur `jalan`/`rt`/`kelurahan`), lokasi spesifiknya, koordinatnya, kondisi terkininya, dan apakah ia sudah benar-benar terpasang secara fisik | Merujuk (`belongsTo`) ke `jenis_rambu`; memiliki banyak baris pada `rambu_pasang` dan `laporan_kondisi` |
-| `spk` | Merepresentasikan satu Surat Perintah Kerja: nomor suratnya, alamat, tenggat waktu, tingkat urgensi, status, asal permintaan, dan perihal | Memiliki banyak baris pada `rambu_pasang`, `dikerjakan_oleh`, `rt_perwakilan`, dan `audit_log` |
+| `spk` | Merepresentasikan satu Surat Perintah Kerja: nomor suratnya, alamat, tenggat waktu, tingkat urgensi, status, asal permintaan, dan perihal | Memiliki banyak baris pada `rambu_pasang`, `dikerjakan_oleh`, `contact_person`, dan `audit_log` |
 | `rambu_pasang` | Merepresentasikan satu baris pekerjaan terhadap satu rambu, dalam konteks satu SPK tertentu; ini adalah "jembatan" yang menghubungkan sebuah SPK dengan rambu-rambu yang tercakup di dalamnya | Merujuk ke `spk` dan `rambu`; memiliki banyak baris pada `laporan_pengerjaan` dan `kendala` |
 | `dikerjakan_oleh` | Tabel penghubung (pivot) yang mencatat siapa saja petugas yang bergabung ke sebuah SPK, dan apakah mereka bertindak sebagai perwakilan | Merujuk ke `spk` dan `users` |
 | `laporan_pengerjaan` | Menyimpan laporan hasil kerja petugas untuk satu baris `rambu_pasang`, termasuk foto hasil akhir, koordinat GPS, dan status persetujuannya | Merujuk ke `rambu_pasang` dan `users`; memiliki banyak baris pada `barang_bahan` |
 | `barang_bahan` | Daftar barang atau bahan material yang digunakan dalam satu laporan pengerjaan tertentu | Merujuk ke `laporan_pengerjaan` |
 | `kendala` | Menyimpan laporan kendala lapangan untuk satu baris `rambu_pasang`, lengkap dengan alasan dan foto pendukung | Merujuk ke `rambu_pasang` dan `users` |
 | `laporan_kondisi` | Menyimpan temuan kondisi rusak yang dilaporkan petugas, tidak terikat pada SPK aktif mana pun, lengkap dengan status tindak lanjutnya | Merujuk ke `rambu` dan `users` |
-| `rt_perwakilan` | Menyimpan kontak RT atau perwakilan warga setempat per SPK, untuk keperluan tanda tangan manual di atas kertas saat petugas berkunjung ke lapangan | Merujuk ke `spk` |
+| `contact_person` | Menyimpan kontak RT atau perwakilan warga setempat per SPK, untuk keperluan tanda tangan manual di atas kertas saat petugas berkunjung ke lapangan | Merujuk ke `spk` |
 | `audit_log` | Menyimpan jejak setiap aksi bisnis penting yang terjadi di dalam sistem | Merujuk ke `users` dan `spk` (dengan `spk_id` yang di-null-kan, bukan ikut terhapus, apabila SPK sumbernya suatu saat terhapus) |
 | `notifikasi` | Menyimpan notifikasi in-app untuk setiap pengguna | Merujuk ke `users` |
 | `system_error_log` | Menyimpan jejak kesalahan teknis (exception) yang tertangkap otomatis oleh penangan kesalahan global aplikasi | Merujuk ke `users` secara opsional |

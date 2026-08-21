@@ -10,12 +10,12 @@ use App\Enums\StatusSpk;
 use App\Enums\StatusTindakLanjut;
 use App\Livewire\Concerns\RejectsNonImageUploads;
 use App\Models\AuditLog;
+use App\Models\ContactPerson;
 use App\Models\JenisRambu;
 use App\Models\LaporanKondisi;
 use App\Models\Notifikasi;
 use App\Models\Rambu;
 use App\Models\RambuPasang;
-use App\Models\RtPerwakilan;
 use App\Models\Spk;
 use App\Models\User;
 use App\Rules\Koordinat;
@@ -69,9 +69,9 @@ class Create extends Component
 
     public string $catatan_pekerja_tambahan = '';
 
-    public string $rt_nama = '';
+    public string $contact_person_nama = '';
 
-    public string $rt_telepon = '';
+    public string $contact_person_telepon = '';
 
     public array $rambuItems = [];
 
@@ -142,7 +142,7 @@ class Create extends Component
     // catching before the admin has filled out the whole form — same
     // reasoning as the koordinat warning below: don't make them discover a
     // typo only after clicking Simpan Surat at the very end.
-    private const LIVE_VALIDATED_FIELDS = ['rt', 'rt_nama', 'rt_telepon', 'petugas_survei', 'deadline', 'tanggal_survei'];
+    private const LIVE_VALIDATED_FIELDS = ['rt', 'contact_person_nama', 'contact_person_telepon', 'petugas_survei', 'deadline', 'tanggal_survei'];
 
     public function updated(string $property, mixed $value = null): void
     {
@@ -312,8 +312,8 @@ class Create extends Component
             'petugas_survei' => ['nullable', 'string', 'max:500', 'required_with:tanggal_survei', 'regex:/^[a-zA-Z\s,]+$/'],
             'file_referensi' => 'nullable|mimes:jpg,jpeg,png,gif,webp,pdf|max:5120',
             'catatan_pekerja_tambahan' => 'nullable|string|max:2000',
-            'rt_nama' => ['nullable', 'string', 'max:255', 'regex:/^[a-zA-Z\s]+$/'],
-            'rt_telepon' => ['nullable', 'string', 'max:30', 'regex:/^[0-9]+$/'],
+            'contact_person_nama' => ['nullable', 'string', 'max:255', 'regex:/^[a-zA-Z\s]+$/'],
+            'contact_person_telepon' => ['nullable', 'string', 'max:30', 'regex:/^[0-9]+$/'],
         ];
     }
 
@@ -325,8 +325,8 @@ class Create extends Component
             'tanggal_survei.before_or_equal' => 'Tanggal survei tidak boleh di masa depan.',
             'petugas_survei.required_with' => 'Isi petugas survei kalau tanggal survei sudah diisi.',
             'petugas_survei.regex' => 'Petugas survei hanya boleh berisi huruf, spasi, dan koma (untuk memisahkan nama).',
-            'rt_nama.regex' => 'Nama Contact Person hanya boleh berisi huruf dan spasi, tanpa angka atau simbol.',
-            'rt_telepon.regex' => 'Nomor telepon hanya boleh berisi angka.',
+            'contact_person_nama.regex' => 'Nama Contact Person hanya boleh berisi huruf dan spasi, tanpa angka atau simbol.',
+            'contact_person_telepon.regex' => 'Nomor telepon hanya boleh berisi angka.',
         ];
     }
 
@@ -415,11 +415,11 @@ class Create extends Component
                 'catatan_pekerja_tambahan' => $this->catatan_pekerja_tambahan ?: null,
             ]);
 
-            if ($this->rt_nama) {
-                RtPerwakilan::create([
-                    'nama_lengkap' => $this->rt_nama,
-                    'no_telepon' => $this->rt_telepon ?: null,
-                    'rtperwakilan_spk_id' => $spk->id,
+            if ($this->contact_person_nama) {
+                ContactPerson::create([
+                    'nama_lengkap' => $this->contact_person_nama,
+                    'no_telepon' => $this->contact_person_telepon ?: null,
+                    'contact_person_spk_id' => $spk->id,
                 ]);
             }
 

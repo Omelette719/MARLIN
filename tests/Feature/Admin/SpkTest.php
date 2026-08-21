@@ -323,7 +323,7 @@ class SpkTest extends TestCase
         $this->assertSame(0, Spk::count());
     }
 
-    // Format errors (rt, rt_nama, rt_telepon, petugas_survei, deadline,
+    // Format errors (rt, contact_person_nama, contact_person_telepon, petugas_survei, deadline,
     // tanggal_survei) surface as soon as that field changes — same UX as
     // the koordinat warning — instead of only appearing after Simpan Surat
     // is clicked at the very end of a long form.
@@ -400,7 +400,7 @@ class SpkTest extends TestCase
         $this->assertSame(0, Spk::count());
     }
 
-    public function test_rt_nama_with_numbers_is_rejected(): void
+    public function test_contact_person_nama_with_numbers_is_rejected(): void
     {
         $this->actingAs(User::factory()->admin()->create());
 
@@ -411,14 +411,14 @@ class SpkTest extends TestCase
             ->set('kelurahan', 'Kertak Baru Ilir')
             ->set('deadline', now()->addDays(5)->toDateString())
             ->set('asal_permintaan', 'internal')
-            ->set('rt_nama', 'Abdul RT27')
+            ->set('contact_person_nama', 'Abdul RT27')
             ->call('save')
-            ->assertHasErrors(['rt_nama' => 'regex']);
+            ->assertHasErrors(['contact_person_nama' => 'regex']);
 
         $this->assertSame(0, Spk::count());
     }
 
-    public function test_rt_telepon_with_symbols_is_rejected(): void
+    public function test_contact_person_telepon_with_symbols_is_rejected(): void
     {
         $this->actingAs(User::factory()->admin()->create());
 
@@ -429,14 +429,14 @@ class SpkTest extends TestCase
             ->set('kelurahan', 'Kertak Baru Ilir')
             ->set('deadline', now()->addDays(5)->toDateString())
             ->set('asal_permintaan', 'internal')
-            ->set('rt_telepon', '0812-345-6789')
+            ->set('contact_person_telepon', '0812-345-6789')
             ->call('save')
-            ->assertHasErrors(['rt_telepon' => 'regex']);
+            ->assertHasErrors(['contact_person_telepon' => 'regex']);
 
         $this->assertSame(0, Spk::count());
     }
 
-    public function test_admin_can_create_spk_with_tanggal_survei_and_rt_perwakilan(): void
+    public function test_admin_can_create_spk_with_tanggal_survei_and_contact_person(): void
     {
         $admin = User::factory()->admin()->create();
         $this->actingAs($admin);
@@ -453,8 +453,8 @@ class SpkTest extends TestCase
             ->set('asal_permintaan', 'internal')
             ->set('tanggal_survei', '2026-06-15')
             ->set('petugas_survei', 'Budi, Andi')
-            ->set('rt_nama', 'Ahmad Matoha')
-            ->set('rt_telepon', '08981112210')
+            ->set('contact_person_nama', 'Ahmad Matoha')
+            ->set('contact_person_telepon', '08981112210')
             ->set('rambuItems.0.jenis_rambu_id', (string) $jenisRambu->id)
             ->set('rambuItems.0.lokasi', 'Perempatan 1')
             ->set('rambuItems.0.koordinat', '-3.3194,114.5908')
@@ -471,9 +471,9 @@ class SpkTest extends TestCase
         $this->assertSame('pemasangan cermin tikungan', $spk->perihal);
         $this->assertSame('2026-06-15', $spk->tanggal_survei->toDateString());
         $this->assertSame('Budi, Andi', $spk->petugas_survei);
-        $this->assertSame(1, $spk->rtPerwakilan()->count());
+        $this->assertSame(1, $spk->contactPerson()->count());
 
-        $rt = $spk->rtPerwakilan()->first();
+        $rt = $spk->contactPerson()->first();
         $this->assertSame('Ahmad Matoha', $rt->nama_lengkap);
         $this->assertSame('08981112210', $rt->no_telepon);
     }
@@ -504,7 +504,7 @@ class SpkTest extends TestCase
         $this->assertSame(0, Spk::count());
     }
 
-    public function test_admin_can_create_spk_without_tanggal_survei_or_rt_perwakilan(): void
+    public function test_admin_can_create_spk_without_tanggal_survei_or_contact_person(): void
     {
         $admin = User::factory()->admin()->create();
         $this->actingAs($admin);
@@ -529,7 +529,7 @@ class SpkTest extends TestCase
         $spk = Spk::first();
 
         $this->assertNull($spk->tanggal_survei);
-        $this->assertSame(0, $spk->rtPerwakilan()->count());
+        $this->assertSame(0, $spk->contactPerson()->count());
     }
 
     public function test_creating_spk_broadcasts_notifikasi_to_active_petugas(): void
@@ -851,7 +851,7 @@ class SpkTest extends TestCase
         $this->assertStringContainsString('Depan pasar lama', $warnings[0][0]['label']);
     }
 
-    public function test_rt_telepon_with_letters_is_rejected(): void
+    public function test_contact_person_telepon_with_letters_is_rejected(): void
     {
         $admin = User::factory()->admin()->create();
         $this->actingAs($admin);
@@ -865,14 +865,14 @@ class SpkTest extends TestCase
             ->set('kelurahan', 'Kertak Baru Ilir')
             ->set('deadline', now()->addDays(5)->toDateString())
             ->set('asal_permintaan', 'internal')
-            ->set('rt_nama', 'Abdul')
-            ->set('rt_telepon', 'bukan nomor telepon')
+            ->set('contact_person_nama', 'Abdul')
+            ->set('contact_person_telepon', 'bukan nomor telepon')
             ->set('rambuItems.0.jenis_rambu_id', (string) $jenisRambu->id)
             ->set('rambuItems.0.lokasi', 'Perempatan dekat masjid')
             ->set('rambuItems.0.koordinat', '-3.3194,114.5908')
             ->set('rambuItems.0.jumlah', 1)
             ->call('save')
-            ->assertHasErrors(['rt_telepon' => 'regex']);
+            ->assertHasErrors(['contact_person_telepon' => 'regex']);
 
         $this->assertSame(0, Spk::count());
     }

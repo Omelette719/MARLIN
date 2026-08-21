@@ -2,11 +2,11 @@
 
 namespace Tests\Feature;
 
+use App\Models\ContactPerson;
 use App\Models\DikerjakanOleh;
 use App\Models\JenisRambu;
 use App\Models\Rambu;
 use App\Models\RambuPasang;
-use App\Models\RtPerwakilan;
 use App\Models\Spk;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -81,7 +81,7 @@ class SuratPengantarTest extends TestCase
         $response->assertHeader('content-type', 'application/pdf');
     }
 
-    public function test_surat_pengantar_renders_with_tanggal_survei_and_rt_perwakilan(): void
+    public function test_surat_pengantar_renders_with_tanggal_survei_and_contact_person(): void
     {
         $admin = User::factory()->admin()->create();
         $this->actingAs($admin);
@@ -89,10 +89,10 @@ class SuratPengantarTest extends TestCase
         $spk = $this->makeSpk($admin);
         $spk->update(['tanggal_survei' => '2026-06-15']);
 
-        RtPerwakilan::create([
+        ContactPerson::create([
             'nama_lengkap' => 'RT. 27 Matoha',
             'no_telepon' => '08981112210',
-            'rtperwakilan_spk_id' => $spk->id,
+            'contact_person_spk_id' => $spk->id,
         ]);
 
         $response = $this->get(route('spk.surat-pengantar', $spk));
@@ -113,7 +113,7 @@ class SuratPengantarTest extends TestCase
             'is_perwakilan' => true,
         ]);
 
-        $spk->load(['rambuPasang.rambu.jenisRambu', 'dikerjakanOleh.user', 'pembuat', 'rtPerwakilan']);
+        $spk->load(['rambuPasang.rambu.jenisRambu', 'dikerjakanOleh.user', 'pembuat', 'contactPerson']);
 
         $html = view('pdf.surat-pengantar', ['spk' => $spk])->render();
 
@@ -121,18 +121,18 @@ class SuratPengantarTest extends TestCase
         $this->assertStringNotContainsString('>Ya<', $html);
     }
 
-    public function test_mengetahui_block_never_shows_rt_perwakilan_name_even_when_present(): void
+    public function test_mengetahui_block_never_shows_contact_person_name_even_when_present(): void
     {
         $admin = User::factory()->admin()->create();
         $spk = $this->makeSpk($admin);
 
-        RtPerwakilan::create([
+        ContactPerson::create([
             'nama_lengkap' => 'Abdul',
             'no_telepon' => '08226735526',
-            'rtperwakilan_spk_id' => $spk->id,
+            'contact_person_spk_id' => $spk->id,
         ]);
 
-        $spk->load(['rambuPasang.rambu.jenisRambu', 'dikerjakanOleh.user', 'pembuat', 'rtPerwakilan']);
+        $spk->load(['rambuPasang.rambu.jenisRambu', 'dikerjakanOleh.user', 'pembuat', 'contactPerson']);
 
         $html = view('pdf.surat-pengantar', ['spk' => $spk])->render();
 
@@ -153,7 +153,7 @@ class SuratPengantarTest extends TestCase
         $spk = $this->makeSpk($admin);
         $spk->update(['tanggal_survei' => '2026-06-15', 'petugas_survei' => 'Budi, Andi']);
 
-        $spk->load(['rambuPasang.rambu.jenisRambu', 'dikerjakanOleh.user', 'pembuat', 'rtPerwakilan']);
+        $spk->load(['rambuPasang.rambu.jenisRambu', 'dikerjakanOleh.user', 'pembuat', 'contactPerson']);
 
         $html = view('pdf.surat-pengantar', ['spk' => $spk])->render();
 
@@ -169,7 +169,7 @@ class SuratPengantarTest extends TestCase
         $rp = $spk->rambuPasang()->first();
         $rp->update(['status' => 'batal', 'catatan_pembatalan' => 'Salah lokasi, sudah ada rambu lain di sana.']);
 
-        $spk->load(['rambuPasang.rambu.jenisRambu', 'dikerjakanOleh.user', 'pembuat', 'rtPerwakilan']);
+        $spk->load(['rambuPasang.rambu.jenisRambu', 'dikerjakanOleh.user', 'pembuat', 'contactPerson']);
 
         $html = view('pdf.surat-pengantar', ['spk' => $spk])->render();
 

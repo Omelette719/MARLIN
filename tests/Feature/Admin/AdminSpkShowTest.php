@@ -8,13 +8,13 @@ use App\Enums\Urgensi;
 use App\Livewire\Admin\Spk\Edit as SpkEditComponent;
 use App\Livewire\Admin\Spk\Riwayat;
 use App\Livewire\Admin\Spk\Show as SpkShowComponent;
+use App\Models\ContactPerson;
 use App\Models\DikerjakanOleh;
 use App\Models\JenisRambu;
 use App\Models\Kendala;
 use App\Models\Notifikasi;
 use App\Models\Rambu;
 use App\Models\RambuPasang;
-use App\Models\RtPerwakilan;
 use App\Models\Spk;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -699,10 +699,10 @@ class AdminSpkShowTest extends TestCase
             'asal_permintaan' => 'internal',
         ]);
 
-        RtPerwakilan::create([
+        ContactPerson::create([
             'nama_lengkap' => 'Abdul',
             'no_telepon' => '08226735526',
-            'rtperwakilan_spk_id' => $spk->id,
+            'contact_person_spk_id' => $spk->id,
         ]);
 
         $response = $this->get(route('admin.spk.show', $spk));
