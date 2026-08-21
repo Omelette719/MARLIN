@@ -88,8 +88,17 @@
                         @foreach ($barangBahan as $index => $bb)
                             <div wire:key="bb-{{ $index }}" class="flex items-start gap-3">
                                 <flux:input wire:model="barangBahan.{{ $index }}.nama" placeholder="Nama barang" class="flex-1" />
-                                <flux:input wire:model="barangBahan.{{ $index }}.jumlah" type="number" min="1" placeholder="Jumlah" class="w-24" />
-                                <flux:input wire:model="barangBahan.{{ $index }}.satuan" placeholder="Satuan" class="w-28" />
+                                {{-- flux:input's wrapper always carries its own w-full class, which
+                                wins the cascade over a plain w-24/w-28 on the same element (both
+                                target width, and w-full is emitted later in the compiled CSS) —
+                                sizing the wrapping div instead, and letting w-full fill it, is what
+                                actually constrains these two. --}}
+                                <div class="w-24 shrink-0">
+                                    <flux:input wire:model="barangBahan.{{ $index }}.jumlah" type="number" min="1" placeholder="Jumlah" />
+                                </div>
+                                <div class="w-28 shrink-0">
+                                    <flux:input wire:model="barangBahan.{{ $index }}.satuan" placeholder="Satuan" />
+                                </div>
                                 @if (count($barangBahan) > 1)
                                     <flux:button type="button" size="sm" variant="danger" icon="trash" wire:click="removeBarangBahan({{ $index }})" />
                                 @endif
