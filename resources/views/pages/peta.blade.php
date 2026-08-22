@@ -1,4 +1,38 @@
     <div class="flex w-full flex-1 flex-col gap-3">
+        <div class="grid grid-cols-1 gap-2 text-sm sm:grid-cols-2 lg:grid-cols-4">
+            <div class="flex items-start gap-2">
+                <span class="mt-1 inline-block size-3 shrink-0 rounded-full" style="background:#ba1a1a"></span>
+                <div>
+                    <div class="font-medium text-zinc-700">Tinggi / Prioritas</div>
+                    <ul class="list-inside list-disc text-xs text-zinc-500">
+                        <li>Tinggi: sisa waktu pengerjaan kurang dari 4 hari.</li>
+                        <li>Prioritas: SPK-nya ditandai sebagai prioritas oleh admin.</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="flex items-start gap-2">
+                <span class="mt-1 inline-block size-3 shrink-0 rounded-full" style="background:#eab308"></span>
+                <div>
+                    <div class="font-medium text-zinc-700">Sedang</div>
+                    <div class="text-xs text-zinc-500">Sisa waktu pengerjaan kurang dari 7 hari.</div>
+                </div>
+            </div>
+            <div class="flex items-start gap-2">
+                <span class="mt-1 inline-block size-3 shrink-0 rounded-full" style="background:#22d3ee"></span>
+                <div>
+                    <div class="font-medium text-zinc-700">Menunggu Validasi</div>
+                    <div class="text-xs text-zinc-500">Petugas sudah mengirim laporan pengerjaan, menunggu admin memeriksa dan menyetujuinya.</div>
+                </div>
+            </div>
+            <div class="flex items-start gap-2">
+                <span class="mt-1 inline-block size-3 shrink-0 rounded-full" style="background:#9ca3af"></span>
+                <div>
+                    <div class="font-medium text-zinc-700">Rendah</div>
+                    <div class="text-xs text-zinc-500">Sisa waktu pengerjaan masih lama atau belum ada laporan pengerjaan masuk untuk rambu ini.</div>
+                </div>
+            </div>
+        </div>
+
         <div class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
             <div class="grid flex-1 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 <flux:select id="peta-filter-jenis" label="Jenis Rambu" placeholder="Semua Jenis" size="sm" onchange="terapkanFilterPetaUtama()">
@@ -35,40 +69,6 @@
                 <flux:button type="button" id="peta-unduh-pdf" size="sm" variant="primary" icon="arrow-down-tray" onclick="unduhPetaGambarPdf(getPetaFilterQueryUtama(), 'peta-unduh-pdf')">
                     Unduh PDF
                 </flux:button>
-            </div>
-        </div>
-
-        <div class="grid grid-cols-1 gap-2 text-sm sm:grid-cols-2 lg:grid-cols-4">
-            <div class="flex items-start gap-2">
-                <span class="mt-1 inline-block size-3 shrink-0 rounded-full" style="background:#ba1a1a"></span>
-                <div>
-                    <div class="font-medium text-zinc-700">Tinggi / Prioritas</div>
-                    <ul class="list-inside list-disc text-xs text-zinc-500">
-                        <li>Tinggi: sisa waktu pengerjaan kurang dari 4 hari.</li>
-                        <li>Prioritas: SPK-nya ditandai sebagai prioritas oleh admin.</li>
-                    </ul>
-                </div>
-            </div>
-            <div class="flex items-start gap-2">
-                <span class="mt-1 inline-block size-3 shrink-0 rounded-full" style="background:#eab308"></span>
-                <div>
-                    <div class="font-medium text-zinc-700">Sedang</div>
-                    <div class="text-xs text-zinc-500">Sisa waktu pengerjaan kurang dari 7 hari.</div>
-                </div>
-            </div>
-            <div class="flex items-start gap-2">
-                <span class="mt-1 inline-block size-3 shrink-0 rounded-full" style="background:#22d3ee"></span>
-                <div>
-                    <div class="font-medium text-zinc-700">Menunggu Validasi</div>
-                    <div class="text-xs text-zinc-500">Petugas sudah mengirim laporan pengerjaan, menunggu admin memeriksa dan menyetujuinya.</div>
-                </div>
-            </div>
-            <div class="flex items-start gap-2">
-                <span class="mt-1 inline-block size-3 shrink-0 rounded-full" style="background:#9ca3af"></span>
-                <div>
-                    <div class="font-medium text-zinc-700">Rendah</div>
-                    <div class="text-xs text-zinc-500">Sisa waktu pengerjaan masih lama atau belum ada laporan pengerjaan masuk untuk rambu ini.</div>
-                </div>
             </div>
         </div>
 
