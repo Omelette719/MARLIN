@@ -6,7 +6,7 @@
     @endphp
 
     <div class="flex w-full flex-1 flex-col gap-6">
-        <div class="flex items-end justify-between">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
                 <flux:heading size="xl">Daftar Surat Aktif</flux:heading>
                 <flux:subheading>Daftar surat pemasangan rambu yang menjadi tanggung jawab petugas lapangan.</flux:subheading>
@@ -14,93 +14,101 @@
         </div>
 
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <flux:card class="flex items-center gap-4">
-                <div class="flex size-12 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-600">
-                    <flux:icon icon="clipboard-document-list" class="size-6" />
-                </div>
-                <div class="min-w-0">
-                    <flux:text class="text-sm text-zinc-500">Aktif</flux:text>
-                    <flux:heading size="xl">{{ $aktifCount }}</flux:heading>
-                </div>
-            </flux:card>
+            <button type="button" wire:click="$set('statusFilter', '')" class="block cursor-pointer text-left">
+                <flux:card class="flex items-center gap-4 transition hover:shadow-md {{ $statusFilter === '' ? 'ring-2 ring-blue-400' : '' }}">
+                    <div class="flex size-12 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-600">
+                        <flux:icon icon="clipboard-document-list" class="size-6" />
+                    </div>
+                    <div class="min-w-0">
+                        <flux:text class="text-sm text-zinc-500">Aktif</flux:text>
+                        <flux:heading size="xl">{{ $aktifCount }}</flux:heading>
+                    </div>
+                </flux:card>
+            </button>
 
-            <flux:card class="flex items-center gap-4">
-                <div class="flex size-12 shrink-0 items-center justify-center rounded-full bg-cyan-100 text-cyan-600">
-                    <flux:icon icon="arrow-path" class="size-6" />
-                </div>
-                <div class="min-w-0">
-                    <flux:text class="text-sm text-zinc-500">Progres</flux:text>
-                    <flux:heading size="xl">{{ $progresCount }}</flux:heading>
-                </div>
-            </flux:card>
+            <a href="{{ route('user.spk-dikerjakan') }}" wire:navigate class="block">
+                <flux:card class="flex items-center gap-4 transition hover:shadow-md">
+                    <div class="flex size-12 shrink-0 items-center justify-center rounded-full bg-cyan-100 text-cyan-600">
+                        <flux:icon icon="arrow-path" class="size-6" />
+                    </div>
+                    <div class="min-w-0">
+                        <flux:text class="text-sm text-zinc-500">Progres</flux:text>
+                        <flux:heading size="xl">{{ $progresCount }}</flux:heading>
+                    </div>
+                </flux:card>
+            </a>
 
-            <flux:card class="flex items-center gap-4">
-                <div class="flex size-12 shrink-0 items-center justify-center rounded-full bg-red-100 text-red-600">
-                    <flux:icon icon="exclamation-triangle" class="size-6" />
-                </div>
-                <div class="min-w-0">
-                    <flux:text class="text-sm text-zinc-500">Mendekati Deadline</flux:text>
-                    <flux:heading size="xl">{{ $mendekatiDeadlineCount }}</flux:heading>
-                </div>
-            </flux:card>
+            <button type="button" wire:click="$set('statusFilter', 'mendekati_deadline')" class="block cursor-pointer text-left">
+                <flux:card class="flex items-center gap-4 transition hover:shadow-md {{ $statusFilter === 'mendekati_deadline' ? 'ring-2 ring-red-400' : '' }}">
+                    <div class="flex size-12 shrink-0 items-center justify-center rounded-full bg-red-100 text-red-600">
+                        <flux:icon icon="exclamation-triangle" class="size-6" />
+                    </div>
+                    <div class="min-w-0">
+                        <flux:text class="text-sm text-zinc-500">Mendekati Deadline</flux:text>
+                        <flux:heading size="xl">{{ $mendekatiDeadlineCount }}</flux:heading>
+                    </div>
+                </flux:card>
+            </button>
 
-            <flux:card class="flex items-center gap-4">
-                <div class="flex size-12 shrink-0 items-center justify-center rounded-full bg-green-100 text-green-600">
-                    <flux:icon icon="check-circle" class="size-6" />
-                </div>
-                <div class="min-w-0">
-                    <flux:text class="text-sm text-zinc-500">Selesai Bulan Ini</flux:text>
-                    <flux:heading size="xl">{{ $selesaiBulanIniCount }}</flux:heading>
-                </div>
-            </flux:card>
+            <a href="{{ route('user.riwayat-spk', ['tanggal_dari' => now()->startOfMonth()->toDateString()]) }}" wire:navigate class="block">
+                <flux:card class="flex items-center gap-4 transition hover:shadow-md">
+                    <div class="flex size-12 shrink-0 items-center justify-center rounded-full bg-green-100 text-green-600">
+                        <flux:icon icon="check-circle" class="size-6" />
+                    </div>
+                    <div class="min-w-0">
+                        <flux:text class="text-sm text-zinc-500">Selesai Bulan Ini</flux:text>
+                        <flux:heading size="xl">{{ $selesaiBulanIniCount }}</flux:heading>
+                    </div>
+                </flux:card>
+            </a>
         </div>
 
         <flux:card class="flex flex-col gap-3">
-            <div class="flex items-end justify-between gap-3">
-                <div>
-                    <flux:heading size="lg">Peta Rambu Perlu Perhatian</flux:heading>
-                    <flux:subheading>Default: hanya rambu belum terpasang, rusak, atau menunggu validasi. Filter diterapkan otomatis begitu dipilih.</flux:subheading>
-                </div>
-                <flux:button type="button" id="user-dashboard-peta-unduh-pdf" variant="ghost" icon="arrow-down-tray" onclick="unduhPetaGambarPdf(getPetaFilterQueryUserDashboard(), 'user-dashboard-peta-unduh-pdf')">
-                    Unduh PDF
-                </flux:button>
+            <div>
+                <flux:heading size="lg">Peta Rambu Perlu Perhatian</flux:heading>
+                <flux:subheading>Default: hanya rambu belum terpasang, rusak, atau menunggu validasi. Filter diterapkan otomatis begitu dipilih.</flux:subheading>
             </div>
 
-            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
-                <flux:select id="user-dashboard-peta-jenis" label="Jenis Rambu" placeholder="Semua Jenis" size="sm" onchange="terapkanFilterPetaUserDashboard()">
-                    <flux:select.option value="">Semua Jenis</flux:select.option>
-                    @foreach ($jenisRambuOptions as $j)
-                        <flux:select.option value="{{ $j->id }}">{{ $j->nama_jenis }}</flux:select.option>
-                    @endforeach
-                </flux:select>
+            <div class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+                <div class="grid flex-1 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                    <flux:select id="user-dashboard-peta-jenis" label="Jenis Rambu" placeholder="Semua Jenis" size="sm" onchange="terapkanFilterPetaUserDashboard()">
+                        <flux:select.option value="">Semua Jenis</flux:select.option>
+                        @foreach ($jenisRambuOptions as $j)
+                            <flux:select.option value="{{ $j->id }}">{{ $j->nama_jenis }}</flux:select.option>
+                        @endforeach
+                    </flux:select>
 
-                <flux:select id="user-dashboard-peta-tingkat" label="Tingkat" placeholder="Default (perlu perhatian)" size="sm" onchange="terapkanFilterPetaUserDashboard()">
-                    <flux:select.option value="">Default (perlu perhatian)</flux:select.option>
-                    @foreach ($tingkatOptions as $value => $label)
-                        {{-- Same reasoning as the admin widget: "Selesai / Kondisi
-                        Baik" would just duplicate what hideTenang already hides
-                        by default when no tingkat is chosen. --}}
-                        @continue($value === 'selesai')
-                        <flux:select.option value="{{ $value }}">{{ $label }}</flux:select.option>
-                    @endforeach
-                </flux:select>
+                    <flux:select id="user-dashboard-peta-tingkat" label="Tingkat" placeholder="Default (perlu perhatian)" size="sm" onchange="terapkanFilterPetaUserDashboard()">
+                        <flux:select.option value="">Default (perlu perhatian)</flux:select.option>
+                        @foreach ($tingkatOptions as $value => $label)
+                            {{-- Same reasoning as the admin widget: "Selesai / Kondisi
+                            Baik" would just duplicate what hideTenang already hides
+                            by default when no tingkat is chosen. --}}
+                            @continue($value === 'selesai')
+                            <flux:select.option value="{{ $value }}">{{ $label }}</flux:select.option>
+                        @endforeach
+                    </flux:select>
 
-                <flux:select id="user-dashboard-peta-kecamatan" label="Kecamatan" placeholder="Semua Kecamatan" size="sm" onchange="terapkanFilterPetaUserDashboard()">
-                    <flux:select.option value="">Semua Kecamatan</flux:select.option>
-                    @foreach ($kecamatanOptions as $k)
-                        <flux:select.option value="{{ $k }}">{{ $k }}</flux:select.option>
-                    @endforeach
-                </flux:select>
+                    <flux:select id="user-dashboard-peta-kecamatan" label="Kecamatan" placeholder="Semua Kecamatan" size="sm" onchange="terapkanFilterPetaUserDashboard()">
+                        <flux:select.option value="">Semua Kecamatan</flux:select.option>
+                        @foreach ($kecamatanOptions as $k)
+                            <flux:select.option value="{{ $k }}">{{ $k }}</flux:select.option>
+                        @endforeach
+                    </flux:select>
 
-                <flux:select id="user-dashboard-peta-kelurahan" label="Kelurahan" placeholder="Semua Kelurahan" size="sm" onchange="terapkanFilterPetaUserDashboard()">
-                    <flux:select.option value="">Semua Kelurahan</flux:select.option>
-                    @foreach ($kelurahanOptions as $k)
-                        <flux:select.option value="{{ $k }}">{{ $k }}</flux:select.option>
-                    @endforeach
-                </flux:select>
+                    <flux:select id="user-dashboard-peta-kelurahan" label="Kelurahan" placeholder="Semua Kelurahan" size="sm" onchange="terapkanFilterPetaUserDashboard()">
+                        <flux:select.option value="">Semua Kelurahan</flux:select.option>
+                        @foreach ($kelurahanOptions as $k)
+                            <flux:select.option value="{{ $k }}">{{ $k }}</flux:select.option>
+                        @endforeach
+                    </flux:select>
+                </div>
 
-                <div class="flex items-end">
-                    <flux:button type="button" size="sm" variant="primary" class="w-full" onclick="resetFilterPetaUserDashboard()">Clear All</flux:button>
+                <div class="flex gap-2">
+                    <flux:button type="button" size="sm" onclick="resetFilterPetaUserDashboard()">Clear All</flux:button>
+                    <flux:button type="button" id="user-dashboard-peta-unduh-pdf" size="sm" variant="primary" icon="arrow-down-tray" onclick="unduhPetaGambarPdf(getPetaFilterQueryUserDashboard(), 'user-dashboard-peta-unduh-pdf')">
+                        Unduh PDF
+                    </flux:button>
                 </div>
             </div>
 
@@ -188,9 +196,9 @@
                     @forelse ($spkPerluPerhatian as $row)
                         @php $persen = $row['total'] > 0 ? round(($row['selesai'] / $row['total']) * 100) : 100; @endphp
                         <div>
-                            <div class="mb-1 flex items-center justify-between text-sm">
-                                <span class="flex items-center gap-2 font-medium text-zinc-700">
-                                    <flux:link :href="route('user.spk.show', $row['spk'])" wire:navigate>{{ $row['spk']->nomor_surat }}</flux:link>
+                            <div class="mb-1 flex flex-col gap-1 text-sm sm:flex-row sm:items-center sm:justify-between">
+                                <span class="flex flex-wrap items-center gap-2 font-medium text-zinc-700">
+                                    <flux:link :href="route('user.spk.show', $row['spk'])" wire:navigate class="whitespace-nowrap">{{ $row['spk']->nomor_surat }}</flux:link>
                                     @if ($row['butuhPerhatian'])
                                         <flux:badge size="sm" color="red">Prioritas</flux:badge>
                                     @endif
@@ -215,10 +223,10 @@
 
                 <div class="flex flex-col gap-3">
                     @forelse ($saranSpk as $row)
-                        <div class="flex items-center justify-between gap-2 text-sm">
+                        <div class="flex flex-col gap-1 text-sm sm:flex-row sm:items-center sm:justify-between sm:gap-2">
                             <div>
-                                <div class="flex items-center gap-2 font-medium text-zinc-700">
-                                    <flux:link :href="route('user.spk.show', $row['spk'])" wire:navigate>{{ $row['spk']->nomor_surat }}</flux:link>
+                                <div class="flex flex-wrap items-center gap-2 font-medium text-zinc-700">
+                                    <flux:link :href="route('user.spk.show', $row['spk'])" wire:navigate class="whitespace-nowrap">{{ $row['spk']->nomor_surat }}</flux:link>
                                     @if ($row['samaKecamatan'])
                                         <flux:badge size="sm" color="blue">Kecamatan Sama</flux:badge>
                                     @elseif ($row['jarakMeter'] !== null)
@@ -227,7 +235,7 @@
                                 </div>
                                 <div class="text-zinc-500">{{ $row['spk']->wilayah }}</div>
                             </div>
-                            <span class="shrink-0 text-zinc-500">deadline {{ $row['spk']->deadline->translatedFormat('d M') }}</span>
+                            <span class="text-zinc-500 sm:shrink-0">deadline {{ $row['spk']->deadline->translatedFormat('d M') }}</span>
                         </div>
                     @empty
                         <flux:text class="text-zinc-500">Tidak ada saran SPK yang bisa ditampilkan saat ini.</flux:text>

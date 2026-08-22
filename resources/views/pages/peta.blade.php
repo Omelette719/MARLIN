@@ -46,7 +46,6 @@
                     <ul class="list-inside list-disc text-xs text-zinc-500">
                         <li>Tinggi: sisa waktu pengerjaan kurang dari 4 hari.</li>
                         <li>Prioritas: SPK-nya ditandai sebagai prioritas oleh admin.</li>
-                        <li>Urgent: rambu ditandai berstatus Urgent.</li>
                     </ul>
                 </div>
             </div>

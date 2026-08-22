@@ -29,7 +29,19 @@ class Dashboard extends Component
     #[Url]
     public string $search = '';
 
+    // Backs the Aktif/Mendekati Deadline stat cards, which filter this same
+    // "Daftar Surat Aktif" list rather than linking elsewhere — '' (Aktif)
+    // is every active SPK, matching the unfiltered list. Progres links to
+    // SPK Sedang Dikerjakan instead, so it has no filter value here.
+    #[Url]
+    public string $statusFilter = '';
+
     public function updatedSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedStatusFilter(): void
     {
         $this->resetPage();
     }
@@ -157,6 +169,13 @@ class Dashboard extends Component
             ->when($this->search, fn ($query) => $query->where(fn ($q) => $q
                 ->where('nomor_surat', 'like', "%{$this->search}%")
                 ->orWhere('wilayah', 'like', "%{$this->search}%")))
+            // Mirrors Spk::computeUrgensi()'s own "Tinggi" threshold (deadline
+            // within 4 days) — an active SPK's urgensiSaatIni() is purely
+            // deadline/prioritas-based, so this stays in sync with what the
+            // card's own count and the badge shown per-card actually mean.
+            ->when($this->statusFilter === 'mendekati_deadline', fn ($query) => $query->where(fn ($q) => $q
+                ->where('prioritas', true)
+                ->orWhereDate('deadline', '<=', now()->addDays(4))))
             ->withCount(['rambuPasang', 'dikerjakanOleh'])
             ->with(['rambuPasang:id,rambu_spk_id,status,jenis_pekerjaan,foto_survei'])
             ->orderByDesc('prioritas')

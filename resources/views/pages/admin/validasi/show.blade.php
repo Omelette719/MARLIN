@@ -4,7 +4,7 @@
     @endphp
 
     <div class="flex w-full flex-1 flex-col gap-6">
-        <div class="flex items-end justify-between">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
                 <flux:heading size="xl">Detail Validasi: {{ $spk->nomor_surat }}</flux:heading>
                 <flux:subheading>{{ $spk->wilayah }}</flux:subheading>

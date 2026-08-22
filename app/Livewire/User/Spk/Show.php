@@ -323,7 +323,7 @@ class Show extends Component
             'perwakilan' => $tim->firstWhere('is_perwakilan', true),
             'userOptions' => $userOptions,
             'rambuPasang' => $this->spk->rambuPasang()
-                ->with(['rambu.jenisRambu', 'laporanPengerjaan' => fn ($q) => $q->latest(), 'kendala' => fn ($q) => $q->latest()])
+                ->with(['rambu.jenisRambu', 'laporanPengerjaan' => fn ($q) => $q->latest()->with('barangBahan'), 'kendala' => fn ($q) => $q->latest()])
                 ->get(),
         ];
     }

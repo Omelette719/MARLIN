@@ -64,7 +64,11 @@ class Show extends Component
     {
         return [
             'tim' => $this->spk->dikerjakanOleh()->with('user')->get(),
-            'rambuPasang' => $this->spk->rambuPasang()->with(['rambu.jenisRambu', 'kendala' => fn ($q) => $q->latest()])->get(),
+            'rambuPasang' => $this->spk->rambuPasang()->with([
+                'rambu.jenisRambu',
+                'kendala' => fn ($q) => $q->latest(),
+                'laporanPengerjaan' => fn ($q) => $q->latest()->with('barangBahan'),
+            ])->get(),
         ];
     }
 

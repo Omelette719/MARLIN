@@ -3,35 +3,29 @@
     @endphp
 
     <div class="flex w-full flex-1 flex-col gap-6">
-        <div class="flex items-end justify-between">
-            <div>
-                <flux:heading size="xl">Daftar Rambu{{ $jenisAktif ? ': '.$jenisAktif->nama_jenis : '' }}</flux:heading>
-                <flux:subheading>Daftar aset fisik rambu lalu lintas yang tercatat di sistem.</flux:subheading>
-            </div>
-
-            <x-back-button :fallback="$isAdmin ? route('admin.jenis-rambu.index') : route('jenis-rambu.index')" icon="arrow-left">
-                Kembali ke Jenis Rambu
-            </x-back-button>
+        <div>
+            <flux:heading size="xl">Daftar Rambu{{ $jenisAktif ? ': '.$jenisAktif->nama_jenis : '' }}</flux:heading>
+            <flux:subheading>Daftar aset fisik rambu lalu lintas yang tercatat di sistem.</flux:subheading>
         </div>
 
-        <div class="flex items-center gap-4">
-            <flux:input wire:model.live.debounce.400ms="search" placeholder="Cari wilayah atau lokasi..." icon="magnifying-glass" class="max-w-sm" />
+        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <flux:input wire:model.live.debounce.400ms="search" placeholder="Cari wilayah atau lokasi..." icon="magnifying-glass" />
 
-            <flux:select wire:model.live="jenis" placeholder="Semua Jenis" class="max-w-xs">
+            <flux:select wire:model.live="jenis" placeholder="Semua Jenis">
                 <flux:select.option value="">Semua Jenis</flux:select.option>
                 @foreach ($jenisOptions as $j)
                     <flux:select.option value="{{ $j->id }}">{{ $j->nama_jenis }}</flux:select.option>
                 @endforeach
             </flux:select>
 
-            <flux:select wire:model.live="kondisi" placeholder="Semua Kondisi" class="max-w-xs">
+            <flux:select wire:model.live="kondisi" placeholder="Semua Kondisi">
                 <flux:select.option value="">Semua Kondisi</flux:select.option>
                 @foreach ($kondisiOptions as $k)
                     <flux:select.option value="{{ $k->value }}">{{ $k->label() }}</flux:select.option>
                 @endforeach
             </flux:select>
 
-            <flux:select wire:model.live="status" placeholder="Semua Status" class="max-w-xs">
+            <flux:select wire:model.live="status" placeholder="Semua Status">
                 <flux:select.option value="">Semua Status</flux:select.option>
                 <flux:select.option value="terpasang">Terpasang</flux:select.option>
                 <flux:select.option value="belum_terpasang">Belum Terpasang</flux:select.option>
@@ -39,6 +33,7 @@
         </div>
 
         <flux:card class="flex-1">
+            <x-table-scroll-hint />
             <flux:table>
                 <flux:table.columns>
                     <flux:table.column>Jenis Rambu</flux:table.column>

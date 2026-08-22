@@ -3,7 +3,7 @@
     @endphp
 
     <div class="flex w-full flex-1 flex-col gap-6">
-        <div class="flex items-end justify-between">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
                 <flux:heading size="xl">Laporan Rambu</flux:heading>
                 <flux:subheading>Riwayat pekerjaan rambu, bisa difilter bebas per jenis rambu, status, dan rentang tanggal.</flux:subheading>
@@ -56,6 +56,7 @@
         <flux:card class="flex flex-col gap-3">
             <flux:heading size="lg">Daftar Rambu ({{ $total }})</flux:heading>
 
+            <x-table-scroll-hint />
             <flux:table>
                 <flux:table.columns>
                     <flux:table.column>Nomor Surat</flux:table.column>

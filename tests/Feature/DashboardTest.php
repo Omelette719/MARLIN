@@ -133,6 +133,48 @@ class DashboardTest extends TestCase
         $this->assertSame(1, $progresCount);
     }
 
+    public function test_progres_card_links_to_spk_sedang_dikerjakan(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $response = $this->get(route('dashboard'));
+
+        $response->assertOk();
+        $response->assertSee(route('user.spk-dikerjakan'), false);
+    }
+
+    public function test_mendekati_deadline_filter_narrows_the_spk_list_to_tinggi_urgensi(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $this->actingAs(User::factory()->create());
+
+        $dekatDeadline = $this->makeAktifSpk($admin, ['deadline' => now()->addDays(2)]);
+        $this->makeAktifSpk($admin, ['deadline' => now()->addDays(10)]);
+
+        $spk = Livewire::test(UserDashboardComponent::class)
+            ->set('statusFilter', 'mendekati_deadline')
+            ->viewData('spk');
+
+        $this->assertCount(1, $spk);
+        $this->assertSame($dekatDeadline->id, $spk->first()->id);
+    }
+
+    public function test_empty_status_filter_shows_every_active_spk(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $this->actingAs(User::factory()->create());
+
+        $this->makeAktifSpk($admin);
+        $this->makeAktifSpk($admin);
+
+        $spk = Livewire::test(UserDashboardComponent::class)
+            ->set('statusFilter', 'mendekati_deadline')
+            ->set('statusFilter', '')
+            ->viewData('spk');
+
+        $this->assertCount(2, $spk);
+    }
+
     private function makeRambuPasangFor(Spk $spk, string $kelurahan = 'Antasan Besar', string $koordinat = '-3.3194,114.5908'): RambuPasang
     {
         static $urut = 0;

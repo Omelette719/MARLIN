@@ -3,7 +3,7 @@
     @endphp
 
     <div class="flex w-full flex-1 flex-col gap-6">
-        <div class="flex items-end justify-between">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
                 <flux:heading size="xl">Manajemen Petugas</flux:heading>
                 <flux:subheading>Kelola akun admin dan petugas lapangan.</flux:subheading>
@@ -17,6 +17,7 @@
         <flux:input wire:model.live.debounce.400ms="search" placeholder="Cari nama atau NIP..." icon="magnifying-glass" class="max-w-sm" />
 
         <flux:card class="flex-1">
+            <x-table-scroll-hint />
             <flux:table>
                 <flux:table.columns>
                     <flux:table.column>Nama</flux:table.column>

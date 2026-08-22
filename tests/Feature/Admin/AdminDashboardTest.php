@@ -63,6 +63,18 @@ class AdminDashboardTest extends TestCase
         $response->assertDontSee('DISHUB-BJM');
     }
 
+    public function test_rambu_terpasang_and_belum_terpasang_cards_link_to_filtered_daftar_rambu(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $this->actingAs($admin);
+
+        $response = $this->get(route('admin.dashboard'));
+
+        $response->assertOk();
+        $response->assertSee(route('admin.rambu.index', ['status' => 'terpasang']), false);
+        $response->assertSee(route('admin.rambu.index', ['status' => 'belum_terpasang']), false);
+    }
+
     private function makeSpkWithProgress(User $admin, string $nomorSurat, array $spkAttrs, array $statuses): Spk
     {
         $jenisRambu = JenisRambu::create(['nama_jenis' => 'Rambu Peringatan']);

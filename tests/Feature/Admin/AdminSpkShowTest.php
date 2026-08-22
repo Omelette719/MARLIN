@@ -2,16 +2,19 @@
 
 namespace Tests\Feature\Admin;
 
+use App\Enums\StatusLaporan;
 use App\Enums\StatusRambuPasang;
 use App\Enums\StatusSpk;
 use App\Enums\Urgensi;
 use App\Livewire\Admin\Spk\Edit as SpkEditComponent;
 use App\Livewire\Admin\Spk\Riwayat;
 use App\Livewire\Admin\Spk\Show as SpkShowComponent;
+use App\Models\BarangBahan;
 use App\Models\ContactPerson;
 use App\Models\DikerjakanOleh;
 use App\Models\JenisRambu;
 use App\Models\Kendala;
+use App\Models\LaporanPengerjaan;
 use App\Models\Notifikasi;
 use App\Models\Rambu;
 use App\Models\RambuPasang;
@@ -755,6 +758,102 @@ class AdminSpkShowTest extends TestCase
         $response->assertOk();
         $response->assertSee('Kendala yang dilaporkan');
         $response->assertSee('Warga menolak, minta dipindah ke gang sebelah.');
+    }
+
+    public function test_admin_spk_detail_shows_rejection_note_for_revisi_rambu(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $petugas = User::factory()->create();
+        $this->actingAs($admin);
+
+        $spk = Spk::create([
+            'nomor_surat' => 'SR-2026/BJM/7011',
+            'dibuat_oleh' => $admin->id,
+            'wilayah' => 'Banjarmasin Tengah',
+            'deadline' => now()->addDays(5),
+            'urgensi' => 'sedang',
+            'status' => 'aktif',
+            'asal_permintaan' => 'internal',
+        ]);
+
+        $jenis = JenisRambu::create(['nama_jenis' => 'Rambu Peringatan']);
+        $rambu = Rambu::create([
+            'jenis_rambu_id' => $jenis->id,
+            'wilayah' => 'Banjarmasin Tengah',
+            'lokasi' => 'Depan kantor lurah',
+            'koordinat' => '-3.30,114.59',
+        ]);
+        $rp = RambuPasang::create([
+            'rambu_spk_id' => $spk->id,
+            'rambu_id' => $rambu->id,
+            'jenis_pekerjaan' => 'pasang_baru',
+            'jumlah' => 1,
+            'status' => 'revisi',
+        ]);
+
+        LaporanPengerjaan::create([
+            'rambu_pasang_id' => $rp->id,
+            'dilaporkan_oleh' => $petugas->id,
+            'status' => StatusLaporan::Ditolak,
+            'catatan_penolakan' => 'Foto kurang jelas, tolong ambil ulang.',
+        ]);
+
+        $response = $this->get(route('admin.spk.show', $spk));
+
+        $response->assertOk();
+        $response->assertSee('Perlu direvisi');
+        $response->assertSee('Foto kurang jelas, tolong ambil ulang.');
+    }
+
+    public function test_admin_spk_detail_shows_barang_bahan_terpakai(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $petugas = User::factory()->create();
+        $this->actingAs($admin);
+
+        $spk = Spk::create([
+            'nomor_surat' => 'SR-2026/BJM/7012',
+            'dibuat_oleh' => $admin->id,
+            'wilayah' => 'Banjarmasin Tengah',
+            'deadline' => now()->addDays(5),
+            'urgensi' => 'sedang',
+            'status' => 'aktif',
+            'asal_permintaan' => 'internal',
+        ]);
+
+        $jenis = JenisRambu::create(['nama_jenis' => 'Rambu Peringatan']);
+        $rambu = Rambu::create([
+            'jenis_rambu_id' => $jenis->id,
+            'wilayah' => 'Banjarmasin Tengah',
+            'lokasi' => 'Depan kantor lurah',
+            'koordinat' => '-3.30,114.59',
+        ]);
+        $rp = RambuPasang::create([
+            'rambu_spk_id' => $spk->id,
+            'rambu_id' => $rambu->id,
+            'jenis_pekerjaan' => 'pasang_baru',
+            'jumlah' => 1,
+            'status' => 'menunggu_validasi',
+        ]);
+
+        $laporan = LaporanPengerjaan::create([
+            'rambu_pasang_id' => $rp->id,
+            'dilaporkan_oleh' => $petugas->id,
+            'status' => StatusLaporan::Diajukan,
+        ]);
+
+        BarangBahan::create([
+            'laporan_pengerjaan_id' => $laporan->id,
+            'nama' => 'Cat Reflektif',
+            'jumlah' => 2,
+            'satuan' => 'kaleng',
+        ]);
+
+        $response = $this->get(route('admin.spk.show', $spk));
+
+        $response->assertOk();
+        $response->assertSee('Barang/Bahan Terpakai');
+        $response->assertSee('Cat Reflektif: 2 kaleng');
     }
 
     public function test_admin_can_batalkan_spk(): void

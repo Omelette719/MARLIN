@@ -32,6 +32,7 @@
         </div>
 
         <flux:card class="flex-1">
+            <x-table-scroll-hint />
             <flux:table>
                 <flux:table.columns>
                     <flux:table.column>Waktu</flux:table.column>

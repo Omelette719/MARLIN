@@ -6,10 +6,10 @@
     @endphp
 
     <div class="flex w-full flex-1 flex-col gap-6">
-        <div class="flex items-end justify-between">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
                 <flux:heading size="xl">Daftar Surat</flux:heading>
-                <flux:subheading>SPK aktif untuk pemasangan &amp; perbaikan rambu &mdash; yang selesai/dibatalkan ada di <flux:link :href="route('admin.spk.riwayat')" wire:navigate>Riwayat SPK</flux:link>.</flux:subheading>
+                <flux:subheading>SPK aktif untuk pemasangan &amp; perbaikan rambu, yang selesai/dibatalkan ada di <flux:link :href="route('admin.spk.riwayat')" wire:navigate>Riwayat SPK</flux:link>.</flux:subheading>
             </div>
 
             <flux:button variant="primary" icon="plus" :href="route('admin.spk.create')" wire:navigate>
@@ -17,10 +17,10 @@
             </flux:button>
         </div>
 
-        <div class="flex items-center gap-4">
-            <flux:input wire:model.live.debounce.400ms="search" placeholder="Cari nomor surat atau wilayah..." icon="magnifying-glass" class="max-w-sm" />
+        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <flux:input wire:model.live.debounce.400ms="search" placeholder="Cari nomor surat atau wilayah..." icon="magnifying-glass" />
 
-            <flux:select wire:model.live="jenis" placeholder="Semua Jenis" class="max-w-xs">
+            <flux:select wire:model.live="jenis" placeholder="Semua Jenis">
                 <flux:select.option value="">Semua Jenis</flux:select.option>
                 @foreach ($jenisOptions as $j)
                     <flux:select.option value="{{ $j->value }}">{{ $j->label() }}</flux:select.option>

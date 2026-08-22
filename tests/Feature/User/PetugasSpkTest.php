@@ -10,6 +10,7 @@ use App\Livewire\User\Kendala as KendalaComponent;
 use App\Livewire\User\Laporan as LaporanComponent;
 use App\Livewire\User\Spk\Show as UserSpkShowComponent;
 use App\Models\AuditLog;
+use App\Models\BarangBahan;
 use App\Models\ContactPerson;
 use App\Models\DikerjakanOleh;
 use App\Models\JenisRambu;
@@ -1024,6 +1025,34 @@ class PetugasSpkTest extends TestCase
         $response->assertOk();
         $response->assertSee('Contact Person');
         $response->assertSee('Abdul (08226735526)');
+    }
+
+    public function test_user_spk_detail_shows_barang_bahan_terpakai(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $petugas = User::factory()->create();
+        $this->actingAs($petugas);
+
+        $rambuPasang = $this->makeRambuPasang($admin, 'menunggu_validasi');
+
+        $laporan = LaporanPengerjaan::create([
+            'rambu_pasang_id' => $rambuPasang->id,
+            'dilaporkan_oleh' => $petugas->id,
+            'status' => StatusLaporan::Diajukan,
+        ]);
+
+        BarangBahan::create([
+            'laporan_pengerjaan_id' => $laporan->id,
+            'nama' => 'Cat Reflektif',
+            'jumlah' => 2,
+            'satuan' => 'kaleng',
+        ]);
+
+        $response = $this->get(route('user.spk.show', $rambuPasang->spk));
+
+        $response->assertOk();
+        $response->assertSee('Barang/Bahan Terpakai');
+        $response->assertSee('Cat Reflektif: 2 kaleng');
     }
 
     public function test_petugas_cannot_submit_laporan_if_joined_but_not_perwakilan(): void

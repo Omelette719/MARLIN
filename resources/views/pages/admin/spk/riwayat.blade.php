@@ -6,15 +6,9 @@
     @endphp
 
     <div class="flex w-full flex-1 flex-col gap-6">
-        <div class="flex items-end justify-between">
-            <div>
-                <flux:heading size="xl">Riwayat SPK</flux:heading>
-                <flux:subheading>Arsip SPK yang sudah selesai atau dibatalkan &mdash; yang masih aktif ada di <flux:link :href="route('admin.spk.index')" wire:navigate>Daftar Surat</flux:link>.</flux:subheading>
-            </div>
-
-            <x-back-button :fallback="route('admin.spk.index')" icon="arrow-left">
-                Kembali
-            </x-back-button>
+        <div>
+            <flux:heading size="xl">Riwayat SPK</flux:heading>
+            <flux:subheading>Arsip SPK yang sudah selesai atau dibatalkan, yang masih aktif ada di <flux:link :href="route('admin.spk.index')" wire:navigate>Daftar Surat</flux:link>.</flux:subheading>
         </div>
 
         <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">

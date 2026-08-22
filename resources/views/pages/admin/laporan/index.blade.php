@@ -3,7 +3,7 @@
     @endphp
 
     <div class="flex w-full flex-1 flex-col gap-6">
-        <div class="flex items-end justify-between">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
                 <flux:heading size="xl">Laporan Bulanan</flux:heading>
                 <flux:subheading>Ringkasan riwayat pekerjaan untuk periode {{ $periodeLabel }}.</flux:subheading>
@@ -105,6 +105,7 @@
                 </flux:subheading>
             </div>
 
+            <x-table-scroll-hint />
             <flux:table>
                 <flux:table.columns>
                     <flux:table.column>Nomor Surat</flux:table.column>
@@ -137,6 +138,7 @@
         <flux:card class="flex flex-col gap-3">
             <flux:heading size="lg">SPK Belum Selesai ({{ $spkAktif->count() }})</flux:heading>
 
+            <x-table-scroll-hint />
             <flux:table>
                 <flux:table.columns>
                     <flux:table.column>Nomor Surat</flux:table.column>
@@ -166,6 +168,7 @@
             <flux:heading size="lg">Detail Rambu ({{ $rambuDetail['total'] }})</flux:heading>
             <flux:subheading>Mengikuti filter Jenis Rambu dan Status Rambu di atas.</flux:subheading>
 
+            <x-table-scroll-hint />
             <flux:table>
                 <flux:table.columns>
                     <flux:table.column>Nomor Surat</flux:table.column>

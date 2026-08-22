@@ -6,7 +6,7 @@
     @endphp
 
     <div class="flex w-full flex-1 flex-col gap-6">
-        <div class="flex items-end justify-between">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
                 <flux:heading size="xl">
                     {{ $spk->nomor_surat }}
@@ -25,7 +25,7 @@
                 <flux:subheading>{{ $spk->wilayah }}</flux:subheading>
             </div>
 
-            <div class="flex items-center gap-3">
+            <div class="flex flex-wrap items-center gap-3">
                 <flux:button variant="ghost" icon="arrow-down-tray" :href="route('spk.surat-pengantar', $spk)" target="_blank">
                     Unduh Surat Pengantar
                 </flux:button>
@@ -190,10 +190,25 @@
 
                             @if ($rp->status === StatusRambuPasang::Batal && $rp->catatan_pembatalan)
                                 <flux:text class="text-sm text-red-600">Dibatalkan: {{ $rp->catatan_pembatalan }}</flux:text>
+                            @elseif ($rp->status === StatusRambuPasang::Revisi && $rp->laporanPengerjaan->first()?->catatan_penolakan)
+                                <flux:callout variant="danger" icon="exclamation-triangle" heading="Perlu direvisi">
+                                    {{ $rp->laporanPengerjaan->first()->catatan_penolakan }}
+                                </flux:callout>
                             @elseif ($rp->status === StatusRambuPasang::Tertunda && $rp->kendala->first())
                                 <flux:callout variant="warning" icon="exclamation-triangle" heading="Kendala yang dilaporkan">
                                     {{ $rp->kendala->first()->alasan }}
                                 </flux:callout>
+                            @endif
+
+                            @if ($rp->laporanPengerjaan->first()?->barangBahan->isNotEmpty())
+                                <div>
+                                    <flux:text class="text-sm text-zinc-500">Barang/Bahan Terpakai:</flux:text>
+                                    <ul class="list-inside list-disc text-sm">
+                                        @foreach ($rp->laporanPengerjaan->first()->barangBahan as $bb)
+                                            <li>{{ $bb->nama }}: {{ $bb->jumlah }} {{ $bb->satuan }}</li>
+                                        @endforeach
+                                    </ul>
+                                </div>
                             @endif
 
                             <div class="mt-auto flex gap-2 pt-2">

@@ -4,7 +4,7 @@
 
     <div>
     <div class="flex w-full flex-1 flex-col gap-6">
-        <div class="flex items-end justify-between">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
                 <flux:heading size="xl">Jenis Rambu</flux:heading>
                 <flux:subheading>Master data jenis rambu lalu lintas untuk dropdown pembuatan SPK.</flux:subheading>
@@ -52,9 +52,9 @@
                         </div>
 
                         <div class="flex flex-col gap-1 p-4">
-                            <div class="flex items-center justify-between gap-2">
+                            <div class="flex items-start justify-between gap-2">
                                 <flux:heading size="sm">{{ $jenis->nama_jenis }}</flux:heading>
-                                <flux:badge size="sm">{{ $jenis->bentuk_ikon->label() }}</flux:badge>
+                                <flux:badge size="sm" class="shrink-0">{{ $jenis->bentuk_ikon->label() }}</flux:badge>
                             </div>
                             <flux:text class="text-sm text-zinc-500">{{ $jenis->rambu_count }} rambu terdaftar</flux:text>
                         </div>
