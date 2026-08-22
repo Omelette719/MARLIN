@@ -206,7 +206,7 @@
             <flux:heading size="lg">Laporan Akhir</flux:heading>
 
             @if ($spk->laporan_akhir_diajukan_at)
-                <flux:badge color="cyan" size="sm" class="w-fit">Laporan akhir sudah diajukan, menunggu validasi admin</flux:badge>
+                <flux:callout color="cyan" icon="clock" heading="Laporan akhir sudah diajukan, menunggu validasi admin" />
             @elseif ($this->sayaPerwakilan)
                 @if ($this->siapDiajukan)
                     <flux:text class="text-sm text-zinc-500">Semua rambu sudah ditangani (selesai atau terkendala). Surat ini siap diajukan sebagai laporan akhir.</flux:text>

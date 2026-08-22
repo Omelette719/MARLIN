@@ -109,7 +109,7 @@
                         </div>
 
                         <div class="flex flex-col gap-3 p-5">
-                            <div class="flex items-start justify-between gap-3">
+                            <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                                 <div>
                                     <flux:heading size="sm">{{ $rp->rambu->wilayah }}, {{ $rp->rambu->lokasi }}</flux:heading>
                                     <flux:subheading>
@@ -118,9 +118,9 @@
                                     </flux:subheading>
                                 </div>
                                 @if ($isKendala)
-                                    <flux:badge size="sm" color="amber">Akan dikembalikan untuk direvisi</flux:badge>
+                                    <flux:badge size="sm" color="amber" class="self-start">Akan dikembalikan untuk direvisi</flux:badge>
                                 @else
-                                    <flux:badge size="sm" :color="$isChecked ? 'green' : 'zinc'">
+                                    <flux:badge size="sm" :color="$isChecked ? 'green' : 'zinc'" class="self-start">
                                         {{ $isChecked ? 'Sesuai' : 'Klik untuk tandai sesuai' }}
                                     </flux:badge>
                                 @endif
@@ -171,8 +171,8 @@
                             $isKendala = $rp->status === StatusRambuPasang::Tertunda;
                             $foto = $isKendala ? $rp->kendala->first()?->foto : $rp->laporanPengerjaan->first()?->foto_sesudah;
                         @endphp
-                        <div wire:key="reject-{{ $rp->id }}" class="flex gap-4 rounded-lg border border-red-200 bg-red-50 p-4">
-                            <div class="h-20 w-28 shrink-0 overflow-hidden rounded-lg bg-zinc-100">
+                        <div wire:key="reject-{{ $rp->id }}" class="flex flex-col gap-4 rounded-lg border border-red-200 bg-red-50 p-4 sm:flex-row">
+                            <div class="h-40 w-full shrink-0 overflow-hidden rounded-lg bg-zinc-100 sm:h-20 sm:w-28">
                                 @if ($foto)
                                     <img src="{{ Storage::url($foto) }}" class="size-full object-cover" />
                                 @else

@@ -73,7 +73,18 @@
                     </div>
 
                     <div class="flex flex-col gap-3 sm:flex-row sm:items-end">
-                        <flux:input wire:model="koordinat_gps" label="Koordinat GPS" placeholder="Kosongkan untuk memakai koordinat awal" class="flex-1" />
+                        {{-- Flux wraps a labeled input in its own <ui-field> element, which is
+                        the actual flex item here — a `class="flex-1"` passed straight to
+                        flux:input lands one level too deep (on an inner wrapper) and never
+                        grows, so the input has to be wrapped explicitly instead. --}}
+                        <div class="flex-1">
+                            <flux:input
+                                wire:model="koordinat_gps"
+                                label="Koordinat GPS"
+                                label:badge="Opsional"
+                                description:trailing="Kosongkan untuk memakai koordinat awal."
+                            />
+                        </div>
                         <flux:button type="button" variant="ghost" class="self-start" x-on:click="ambilLokasi()">Ambil Lokasi Sekarang</flux:button>
                     </div>
 

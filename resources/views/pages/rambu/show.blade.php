@@ -124,8 +124,8 @@
             <flux:heading size="lg">Riwayat Temuan Kondisi</flux:heading>
 
             @forelse ($riwayatKondisi as $laporan)
-                <div wire:key="temuan-{{ $laporan->id }}" class="flex gap-3 rounded-xl border border-zinc-200 bg-white p-4 shadow-xs transition hover:shadow-sm">
-                    <div class="h-20 w-28 shrink-0 overflow-hidden rounded-lg bg-zinc-100">
+                <div wire:key="temuan-{{ $laporan->id }}" class="flex flex-col gap-3 rounded-xl border border-zinc-200 bg-white p-4 shadow-xs transition hover:shadow-sm sm:flex-row">
+                    <div class="h-40 w-full shrink-0 overflow-hidden rounded-lg bg-zinc-100 sm:h-20 sm:w-28">
                         @if ($laporan->foto)
                             <img src="{{ Storage::url($laporan->foto) }}" class="size-full object-cover" />
                         @else
@@ -134,7 +134,7 @@
                     </div>
 
                     <div class="flex flex-1 flex-col gap-1">
-                        <div class="flex items-center justify-between gap-2">
+                        <div class="flex flex-wrap items-center gap-2">
                             <flux:badge size="sm" :color="$laporan->kondisi_dilaporkan === KondisiRambu::Rusak ? 'red' : 'green'">
                                 {{ $laporan->kondisi_dilaporkan->label() }}
                             </flux:badge>
